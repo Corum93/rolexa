@@ -283,8 +283,8 @@
       <a href="#employers">For employers</a>
     </div>
     <div class="nav-cta">
-      <a class="btn btn-ghost">Sign in</a>
-      <a class="btn btn-primary">Post a job</a>
+      <a class="btn btn-ghost" href="#candidate-dashboard" onclick="goCandidate();return false;">Sign in</a>
+      <a class="btn btn-primary" href="#employer-gate" onclick="goEmployer();return false;">Post a job</a>
     </div>
   </div>
 </nav>
@@ -314,7 +314,7 @@
         <option>Director</option>
         <option>Executive / C-suite</option>
       </select>
-      <button>Search jobs</button>
+      <button onclick="scrollToId('jobs')">Search jobs</button>
     </div>
     <div class="stat-strip">
       <div><div class="num">Launching soon</div><div class="lbl">first roles going live shortly</div></div>
@@ -412,7 +412,7 @@
       <div class="building-badge">Building</div>
       <h3>Rolexa is currently being built.</h3>
       <p>No employer has posted a role yet — but the platform is ready the moment they do. Create an account now and we'll email you the second jobs matching your level and region go live.</p>
-      <a class="btn btn-primary">Create your account</a>
+      <a class="btn btn-primary" href="#candidate-dashboard" onclick="goCandidate();return false;">Create your account</a>
     </div>
   </div>
 </section>
@@ -453,12 +453,12 @@
     <div class="split-card dark">
       <h3>Looking for your next role?</h3>
       <p>Build a profile once, apply everywhere, and chat directly with hiring teams the moment they shortlist you — no email back-and-forth.</p>
-      <a class="btn btn-primary">Create your profile</a>
+      <a class="btn btn-primary" href="#candidate-dashboard" onclick="goCandidate();return false;">Create your profile</a>
     </div>
     <div class="split-card blue">
       <h3>Hiring? Post in minutes.</h3>
       <p>Get a live dashboard of every applicant, shortlist and reject with one click, and message candidates directly from the pipeline.</p>
-      <a class="btn btn-dark">Post a job</a>
+      <a class="btn btn-dark" href="#employer-gate" onclick="goEmployer();return false;">Post a job</a>
     </div>
   </div>
 </section>
@@ -706,6 +706,19 @@ function setView(v){
   document.body.setAttribute('data-view', v);
   document.getElementById('btn-seeker').classList.toggle('active', v==='seeker');
   document.getElementById('btn-employer').classList.toggle('active', v==='employer');
+}
+
+function scrollToId(id){
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function goCandidate(){
+  setView('seeker');
+  setTimeout(()=>scrollToId('candidate-dashboard'), 50);
+}
+function goEmployer(){
+  setView('employer');
+  setTimeout(()=>scrollToId('employer-gate'), 50);
 }
 
 const MY_APPS = [
