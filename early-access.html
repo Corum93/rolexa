@@ -45,10 +45,23 @@
   .actions{grid-column:1 / -1;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:4px;}
   .submit{border:none;background:var(--blue);color:var(--white);border-radius:999px;padding:13px 22px;font-weight:800;font-size:14px;cursor:pointer;}
   .submit:hover{background:var(--blue-light);}
+  .submit:disabled{opacity:.7;cursor:not-allowed;}
   .note{font-size:12.5px;color:var(--muted);line-height:1.5;}
   .status{grid-column:1 / -1;border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.5;display:none;}
-  .status.good{display:block;background:#DFF3EA;color:#176B49;border:1px solid rgba(47,174,122,0.22);}
   .status.bad{display:block;background:#FBE4E1;color:#A33327;border:1px solid rgba(224,83,63,0.22);}
+  .success-card{display:none;background:linear-gradient(180deg,#FFFFFF,#F5F7FC);border:1px solid var(--line);border-radius:22px;padding:34px;box-shadow:0 18px 46px rgba(10,14,26,0.06);}
+  .success-card.show{display:block;}
+  .success-icon{width:52px;height:52px;border-radius:50%;background:#DFF3EA;color:#176B49;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;margin-bottom:18px;}
+  .success-card h2{font-size:32px;line-height:1.12;margin-bottom:10px;}
+  .success-card p{font-size:15px;line-height:1.6;color:#5A5F73;margin:0;max-width:660px;}
+  .success-list{display:grid;gap:10px;margin:22px 0 0;padding:0;list-style:none;max-width:680px;}
+  .success-list li{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:13px 15px;font-size:14px;line-height:1.45;color:var(--ink);}
+  .success-list li b{color:var(--navy);}
+  .success-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;}
+  .btn{border-radius:999px;padding:12px 18px;font-size:14px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;}
+  .btn-primary{background:var(--blue);color:var(--white);}
+  .btn-dark{background:var(--ink);color:var(--white);}
+  .btn-light{background:var(--white);color:var(--navy);border:1px solid var(--line);}
   footer{background:var(--ink);color:var(--muted);padding:32px 0;font-size:13px;}
   footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
   @media(max-width:780px){
@@ -65,8 +78,10 @@
     .panel-head{display:block;}
     .panel-head h2{font-size:26px;}
     form{grid-template-columns:1fr;}
-    .actions{align-items:stretch;flex-direction:column;}
-    .submit{width:100%;}
+    .actions,.success-actions{align-items:stretch;flex-direction:column;}
+    .submit,.btn{width:100%;}
+    .success-card{padding:28px 22px;}
+    .success-card h2{font-size:28px;}
   }
 </style>
 </head>
@@ -89,7 +104,7 @@
 </header>
 <main class="main">
   <div class="wrap">
-    <div class="choice" aria-label="Choose account type">
+    <div class="choice" id="choicePanel" aria-label="Choose account type">
       <button id="candidateChoice" class="active" type="button" onclick="setType('candidate')">
         <span class="tag">Candidate</span>
         <h2>I’m looking for work</h2>
@@ -101,7 +116,7 @@
         <p>Join the employer waitlist for hiring dashboards, candidate shortlists and in-app messaging when Rolexa opens.</p>
       </button>
     </div>
-    <section class="panel">
+    <section class="panel" id="formPanel">
       <div class="panel-head">
         <div>
           <h2 id="formTitle">Candidate early access</h2>
@@ -144,6 +159,21 @@
         </div>
       </form>
     </section>
+    <section class="success-card" id="successCard" aria-live="polite">
+      <div class="success-icon" id="successIcon">✓</div>
+      <h2 id="successTitle">You’re on the list.</h2>
+      <p id="successMessage">Thanks for joining Rolexa early access. We’ll contact you before the platform opens.</p>
+      <ul class="success-list">
+        <li><b>What happens next:</b> your details are now in the Rolexa early access list.</li>
+        <li><b>No live account yet:</b> this is a waitlist request, not a login or paid account.</li>
+        <li><b>Before launch:</b> we’ll use this list to invite early candidates and employers first.</li>
+      </ul>
+      <div class="success-actions">
+        <a class="btn btn-primary" id="otherListBtn" href="early-access.html?type=employer">Join employer waitlist too</a>
+        <a class="btn btn-dark" href="index.html">Back to homepage</a>
+        <button class="btn btn-light" type="button" onclick="resetFormView()">Add another signup</button>
+      </div>
+    </section>
   </div>
 </main>
 <footer>
@@ -176,6 +206,34 @@ function setType(type){
 }
 function showStatus(kind,msg){const el=document.getElementById('status');el.className='status '+kind;el.textContent=msg;}
 function clearStatus(){const el=document.getElementById('status');el.className='status';el.textContent='';}
+function showConfirmation(type,mode){
+  const isEmployer=type==='employer';
+  const duplicate=mode==='duplicate';
+  document.getElementById('formPanel').classList.add('hidden');
+  document.getElementById('choicePanel').classList.add('hidden');
+  const card=document.getElementById('successCard');
+  const title=document.getElementById('successTitle');
+  const msg=document.getElementById('successMessage');
+  const icon=document.getElementById('successIcon');
+  const other=document.getElementById('otherListBtn');
+  icon.textContent=duplicate?'✓':'✓';
+  title.textContent=duplicate?'You’re already on the list.':'You’re on the list.';
+  msg.textContent=duplicate
+    ? `This email is already registered for ${isEmployer?'employer':'candidate'} early access, so there is nothing else you need to do.`
+    : `Thanks for joining the ${isEmployer?'employer':'candidate'} waitlist. We’ll contact you before Rolexa access opens.`;
+  other.textContent=isEmployer?'Join candidate waitlist too':'Join employer waitlist too';
+  other.href=isEmployer?'early-access.html?type=candidate':'early-access.html?type=employer';
+  card.classList.add('show');
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function resetFormView(){
+  document.getElementById('successCard').classList.remove('show');
+  document.getElementById('formPanel').classList.remove('hidden');
+  document.getElementById('choicePanel').classList.remove('hidden');
+  document.getElementById('waitlistForm').reset();
+  setType(accountType);
+  document.getElementById('choicePanel').scrollIntoView({behavior:'smooth',block:'start'});
+}
 document.getElementById('waitlistForm').addEventListener('submit',async function(e){
   e.preventDefault();
   clearStatus();
@@ -185,25 +243,30 @@ document.getElementById('waitlistForm').addEventListener('submit',async function
   const data={
     account_type:accountType,
     full_name:document.getElementById('fullName').value.trim(),
-    email:document.getElementById('email').value.trim(),
+    email:document.getElementById('email').value.trim().toLowerCase(),
     location:document.getElementById('location').value.trim()||null,
     role_title:document.getElementById('roleTitle').value.trim()||null,
     company_name:accountType==='employer'?(document.getElementById('companyName').value.trim()||null):null,
     company_website:accountType==='employer'?(document.getElementById('companyWebsite').value.trim()||null):null,
     message:document.getElementById('message').value.trim()||null
   };
+  const submittedType=accountType;
   const {error}=await db.from('waitlist_signups').insert(data);
   if(error){
-    showStatus('bad','Sorry, something went wrong saving your details. Please try again.');
     submit.disabled=false;
-    submit.textContent=accountType==='candidate'?'Join candidate waitlist':'Join employer waitlist';
+    submit.textContent=submittedType==='candidate'?'Join candidate waitlist':'Join employer waitlist';
+    if(error.code==='23505'){
+      showConfirmation(submittedType,'duplicate');
+      return;
+    }
+    showStatus('bad','Sorry, something went wrong saving your details. Please try again.');
     console.error(error);
     return;
   }
   this.reset();
-  showStatus('good',accountType==='candidate'?'You’re on the candidate waitlist. We’ll contact you when Rolexa candidate access opens.':'You’re on the employer waitlist. We’ll contact you when Rolexa employer access opens.');
   submit.disabled=false;
-  submit.textContent=accountType==='candidate'?'Join candidate waitlist':'Join employer waitlist';
+  submit.textContent=submittedType==='candidate'?'Join candidate waitlist':'Join employer waitlist';
+  showConfirmation(submittedType,'success');
 });
 setType(accountType);
 </script>
