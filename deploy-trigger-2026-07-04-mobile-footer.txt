@@ -1,0 +1,2 @@
+Mobile footer deploy trigger.
+Purpose: force GitHub Pages to rebuild after footer background fix.
