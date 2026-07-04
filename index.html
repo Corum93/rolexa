@@ -147,5 +147,6 @@ function setView(v){document.body.setAttribute('data-view',v);document.getElemen
 const MY_APPS=[{role:"Senior Product Designer",co:"Beckworth Group",status:"shortlisted"},{role:"Lead UX Researcher",co:"Fenwick Digital",status:"interviewing"},{role:"Product Designer",co:"Thornfield Studio",status:"applied"},{role:"Design Manager",co:"Harcourt Retail",status:"rejected"}];function renderApps(){const el=document.getElementById('candidate-apps');if(!el)return;el.innerHTML=MY_APPS.map(a=>`<div class="app-row"><div><div class="rt">${a.role}</div><div class="rc">${a.co}</div></div><span class="status-pill status-${a.status}">${a.status.charAt(0).toUpperCase()+a.status.slice(1)}</span></div>`).join('')}function signIn(which){document.getElementById(which+'-gate').style.display='none';document.getElementById(which+'-content').style.display='block';if(which==='candidate')renderApps();if(which==='employer')openCandidateChat(activeCandidate,'shortlisted',false)}function signOut(which){document.getElementById(which+'-gate').style.display='block';document.getElementById(which+'-content').style.display='none'}
 renderChips();renderBrackets();renderPipeline();renderChatList();renderChatBody();
 </script>
+<script src="rolexa-support-chat.js" defer></script>
 </body>
 </html>
