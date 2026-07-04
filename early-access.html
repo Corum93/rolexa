@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rolexa | Early access</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#0A0E1A;--navy:#1A275C;--blue:#4C74FF;--blue-light:#8CA6FF;--sky:#C7D3FF;--paper:#F5F7FC;--white:#FFFFFF;--muted:#8892B0;--line:rgba(10,14,26,0.09);--good:#2FAE7A;--bad:#E0533F;}
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;min-height:100%;background:var(--ink);}
+  body{font-family:'Inter',sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;letter-spacing:-0.01em;}
+  a{text-decoration:none;color:inherit;}
+  button,input,textarea,select{font-family:inherit;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 28px;}
+  nav{background:var(--ink);border-bottom:1px solid rgba(255,255,255,0.08);}
+  .nav-inner{max-width:1120px;margin:0 auto;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;gap:18px;}
+  .brand{display:flex;align-items:center;gap:10px;color:var(--white);font-weight:700;font-size:20px;}
+  .back{color:var(--sky);border:1px solid rgba(255,255,255,0.22);border-radius:999px;padding:10px 16px;font-size:13px;font-weight:700;}
+  .hero{background:linear-gradient(180deg,var(--navy),var(--ink));color:var(--white);padding:58px 0 50px;}
+  .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue-light);font-weight:800;margin-bottom:12px;}
+  .hero h1{font-size:46px;line-height:1.08;max-width:760px;}
+  .hero p{color:var(--sky);font-size:17px;line-height:1.6;max-width:660px;margin:16px 0 0;}
+  .main{background:var(--paper);padding:42px 0 60px;}
+  .choice{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+  .choice button{background:var(--white);border:1px solid var(--line);border-radius:20px;padding:24px;text-align:left;cursor:pointer;box-shadow:0 12px 30px rgba(10,14,26,0.04);}
+  .choice button.active{border-color:var(--blue);box-shadow:0 18px 40px rgba(76,116,255,0.16);}
+  .choice .tag{display:inline-block;background:#E9EDFF;color:#2946C7;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px;}
+  .choice h2{font-size:24px;margin-bottom:8px;}
+  .choice p{font-size:14px;color:#5A5F73;line-height:1.55;margin:0;}
+  .panel{background:var(--white);border:1px solid var(--line);border-radius:22px;padding:30px;box-shadow:0 18px 46px rgba(10,14,26,0.06);}
+  .panel-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:22px;}
+  .panel-head h2{font-size:28px;}
+  .panel-head p{font-size:14px;color:#5A5F73;line-height:1.55;margin:6px 0 0;max-width:620px;}
+  form{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .field{display:flex;flex-direction:column;gap:7px;}
+  .field.full{grid-column:1 / -1;}
+  label{font-size:12px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:0.04em;}
+  input,textarea,select{width:100%;border:1px solid var(--line);border-radius:11px;padding:13px 14px;background:var(--paper);font-size:14px;color:var(--ink);outline:none;}
+  textarea{min-height:110px;resize:vertical;}
+  input:focus,textarea:focus,select:focus{border-color:var(--blue);background:var(--white);}
+  .hidden{display:none!important;}
+  .actions{grid-column:1 / -1;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:4px;}
+  .submit{border:none;background:var(--blue);color:var(--white);border-radius:999px;padding:13px 22px;font-weight:800;font-size:14px;cursor:pointer;}
+  .submit:hover{background:var(--blue-light);}
+  .note{font-size:12.5px;color:var(--muted);line-height:1.5;}
+  .status{grid-column:1 / -1;border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.5;display:none;}
+  .status.good{display:block;background:#DFF3EA;color:#176B49;border:1px solid rgba(47,174,122,0.22);}
+  .status.bad{display:block;background:#FBE4E1;color:#A33327;border:1px solid rgba(224,83,63,0.22);}
+  footer{background:var(--ink);color:var(--muted);padding:32px 0;font-size:13px;}
+  footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+  @media(max-width:780px){
+    .nav-inner{align-items:flex-start;flex-direction:column;padding:22px 24px;}
+    .wrap{padding:0 24px;}
+    .hero{padding:38px 0 34px;}
+    .hero h1{font-size:32px;line-height:1.12;}
+    .hero p{font-size:15px;}
+    .main{padding:28px 0 40px;}
+    .choice{grid-template-columns:1fr;gap:12px;}
+    .choice button{padding:21px;}
+    .choice h2{font-size:22px;}
+    .panel{padding:24px 20px;}
+    .panel-head{display:block;}
+    .panel-head h2{font-size:26px;}
+    form{grid-template-columns:1fr;}
+    .actions{align-items:stretch;flex-direction:column;}
+    .submit{width:100%;}
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="index.html" aria-label="Rolexa home">
+      <svg width="34" height="34" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="11" fill="#3358F4"/><path d="M10 27 L17 18 L22 23 L30 12" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="30" cy="12" r="3" fill="white"/></svg>
+      <span>Rolexa</span>
+    </a>
+    <a class="back" href="index.html">Back to homepage</a>
+  </div>
+</nav>
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Early access waitlist</div>
+    <h1>Join Rolexa before the platform goes live.</h1>
+    <p>Create your early access request as a candidate or employer. Rolexa is still in build, so this adds you to the waitlist and helps us prioritise who gets invited first.</p>
+  </div>
+</header>
+<main class="main">
+  <div class="wrap">
+    <div class="choice" aria-label="Choose account type">
+      <button id="candidateChoice" class="active" type="button" onclick="setType('candidate')">
+        <span class="tag">Candidate</span>
+        <h2>I’m looking for work</h2>
+        <p>Join the candidate waitlist for profile access, application tracking and role matching when Rolexa opens.</p>
+      </button>
+      <button id="employerChoice" type="button" onclick="setType('employer')">
+        <span class="tag">Employer</span>
+        <h2>I’m hiring people</h2>
+        <p>Join the employer waitlist for hiring dashboards, candidate shortlists and in-app messaging when Rolexa opens.</p>
+      </button>
+    </div>
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2 id="formTitle">Candidate early access</h2>
+          <p id="formIntro">Tell us who you are and what kind of roles you’re interested in. We’ll use this to contact you when candidate access opens.</p>
+        </div>
+      </div>
+      <form id="waitlistForm">
+        <div class="field">
+          <label for="fullName">Full name</label>
+          <input id="fullName" name="full_name" autocomplete="name" required placeholder="Your full name">
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label for="location">Location</label>
+          <input id="location" name="location" autocomplete="address-level2" placeholder="London, Manchester, Glasgow...">
+        </div>
+        <div class="field">
+          <label for="roleTitle" id="roleLabel">Target role</label>
+          <input id="roleTitle" name="role_title" placeholder="Product manager, nurse, COO...">
+        </div>
+        <div class="field employer-only hidden">
+          <label for="companyName">Company name</label>
+          <input id="companyName" name="company_name" placeholder="Company name">
+        </div>
+        <div class="field employer-only hidden">
+          <label for="companyWebsite">Company website</label>
+          <input id="companyWebsite" name="company_website" placeholder="https://example.co.uk">
+        </div>
+        <div class="field full">
+          <label for="message" id="messageLabel">Anything we should know?</label>
+          <textarea id="message" name="message" placeholder="Tell us what you want from Rolexa."></textarea>
+        </div>
+        <div id="status" class="status"></div>
+        <div class="actions">
+          <button class="submit" id="submitBtn" type="submit">Join candidate waitlist</button>
+          <div class="note">Your details are saved securely in Rolexa’s early access waitlist. This does not create a live account yet.</div>
+        </div>
+      </form>
+    </section>
+  </div>
+</main>
+<footer>
+  <div class="wrap">
+    <strong style="color:#fff;">Rolexa</strong>
+    <span>UK job platform prototype · early access waitlist</span>
+  </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://hndzomiigjjyyconeqpc.supabase.co';
+const SUPABASE_KEY='sb_publishable_bHyw-HOLRFv_7FDAI1amhQ_MX-Sjocd';
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let accountType='candidate';
+const params=new URLSearchParams(window.location.search);
+if(params.get('type')==='employer') accountType='employer';
+function setType(type){
+  accountType=type;
+  document.getElementById('candidateChoice').classList.toggle('active',type==='candidate');
+  document.getElementById('employerChoice').classList.toggle('active',type==='employer');
+  document.querySelectorAll('.employer-only').forEach(el=>el.classList.toggle('hidden',type!=='employer'));
+  document.getElementById('formTitle').textContent=type==='candidate'?'Candidate early access':'Employer early access';
+  document.getElementById('formIntro').textContent=type==='candidate'
+    ? 'Tell us who you are and what kind of roles you’re interested in. We’ll use this to contact you when candidate access opens.'
+    : 'Tell us about your company and the kind of hiring you want to do. We’ll use this to contact you when employer access opens.';
+  document.getElementById('roleLabel').textContent=type==='candidate'?'Target role':'Hiring role or team';
+  document.getElementById('messageLabel').textContent=type==='candidate'?'Anything we should know?':'What hiring problem should Rolexa help with?';
+  document.getElementById('submitBtn').textContent=type==='candidate'?'Join candidate waitlist':'Join employer waitlist';
+  clearStatus();
+}
+function showStatus(kind,msg){const el=document.getElementById('status');el.className='status '+kind;el.textContent=msg;}
+function clearStatus(){const el=document.getElementById('status');el.className='status';el.textContent='';}
+document.getElementById('waitlistForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  clearStatus();
+  const submit=document.getElementById('submitBtn');
+  submit.disabled=true;
+  submit.textContent='Saving...';
+  const data={
+    account_type:accountType,
+    full_name:document.getElementById('fullName').value.trim(),
+    email:document.getElementById('email').value.trim(),
+    location:document.getElementById('location').value.trim()||null,
+    role_title:document.getElementById('roleTitle').value.trim()||null,
+    company_name:accountType==='employer'?(document.getElementById('companyName').value.trim()||null):null,
+    company_website:accountType==='employer'?(document.getElementById('companyWebsite').value.trim()||null):null,
+    message:document.getElementById('message').value.trim()||null
+  };
+  const {error}=await db.from('waitlist_signups').insert(data);
+  if(error){
+    showStatus('bad','Sorry, something went wrong saving your details. Please try again.');
+    submit.disabled=false;
+    submit.textContent=accountType==='candidate'?'Join candidate waitlist':'Join employer waitlist';
+    console.error(error);
+    return;
+  }
+  this.reset();
+  showStatus('good',accountType==='candidate'?'You’re on the candidate waitlist. We’ll contact you when Rolexa candidate access opens.':'You’re on the employer waitlist. We’ll contact you when Rolexa employer access opens.');
+  submit.disabled=false;
+  submit.textContent=accountType==='candidate'?'Join candidate waitlist':'Join employer waitlist';
+});
+setType(accountType);
+</script>
+</body>
+</html>
