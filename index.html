@@ -24,6 +24,30 @@
   .chat-wrap{display:grid;grid-template-columns:260px 1fr;background:var(--white);border:1px solid var(--line-soft);border-radius:20px;overflow:hidden;height:480px;}.chat-list{border-right:1px solid var(--line-soft);overflow-y:auto;}.chat-list-item{padding:14px 18px;border-bottom:1px solid var(--line-soft);cursor:pointer;}.chat-list-item.active{background:var(--paper);}.chat-list-item .nm{font-weight:700;font-size:13.5px;}.chat-list-item .lm{font-size:12px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.chat-main{display:flex;flex-direction:column;}.chat-top{padding:14px 20px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;}.chat-top .nm{font-weight:700;font-size:14px;}.chat-top .sub{font-size:12px;color:var(--good);}.chat-body{flex:1;padding:18px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}.msg{max-width:70%;padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:1.5;}.msg.them{background:var(--paper);align-self:flex-start;border-bottom-left-radius:4px;}.msg.me{background:var(--blue);color:var(--white);align-self:flex-end;border-bottom-right-radius:4px;}.chat-input{display:flex;gap:8px;padding:14px;border-top:1px solid var(--line-soft);}.chat-input input{flex:1;border:1px solid var(--line-soft);border-radius:10px;padding:11px 14px;font-size:13.5px;font-family:inherit;}.chat-input button{background:var(--ink);color:var(--white);border:none;border-radius:10px;padding:0 18px;font-weight:600;font-size:13px;}.chat-input button:hover{background:var(--blue);}
   .logo-panel{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}.logo-tile{border-radius:16px;padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}.logo-tile.on-dark{background:var(--ink);}.logo-tile.on-blue{background:var(--blue);}.logo-tile.on-light{background:var(--white);border:1px solid var(--line-soft);}.logo-tile .cap{font-size:12px;color:var(--muted);font-weight:600;}footer{background:var(--ink);color:var(--muted);padding:40px 0;font-size:13px;}footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}[data-view="employer"] #view-seeker{display:none;}[data-view="seeker"] #view-employer{display:none;}@media(max-width:860px){.nav-inner{align-items:flex-start;flex-direction:column;}.nav-links{display:none;}.hero{padding:44px 0 38px;}.hero h1{font-size:34px;}.search-card{grid-template-columns:1fr;margin-top:24px;}.stat-strip{gap:24px;margin-top:28px;}.mode-switch{margin-top:18px;}.mission{padding:42px 0 28px;}.mission-grid{grid-template-columns:1fr;}.improve{padding:34px 0 34px;}.improve-grid{grid-template-columns:1fr;}.bracket-grid{grid-template-columns:repeat(2,1fr);}.split{grid-template-columns:1fr;}.dash-stats{grid-template-columns:repeat(2,1fr);}.pipeline{grid-template-columns:1fr;}.pcol{border-right:none;border-bottom:1px solid var(--line-soft);}.chat-wrap{grid-template-columns:1fr;height:auto;}.chat-list{display:none;}.logo-panel{grid-template-columns:1fr;}}
 </style>
+<style id="rolexa-spacing-pass">
+  section{padding:52px 0;}
+  .section-tight{padding:32px 0;}
+  .hero{padding:50px 0 40px;}
+  .search-card{margin-top:24px;}
+  .stat-strip{margin-top:28px;gap:34px;}
+  .mode-switch{margin-top:16px;}
+  .mission{padding:42px 0 28px;}
+  .improve{padding:30px 0 34px;}
+  #explorer{padding-top:34px;padding-bottom:32px;}
+  #why{padding-top:32px;padding-bottom:16px;}
+  #jobs{padding-top:18px;}
+  #candidate-dashboard{padding-top:38px;}
+  #jobs .sec-head,#candidate-dashboard .sec-head{margin-bottom:16px;}
+  .sec-head{margin-bottom:22px;}
+  .explorer{padding:24px;}
+  .building-banner{padding:32px;}
+  .auth-gate{padding:36px 34px;}
+  .split-card{padding:30px;}
+  .dash-head{padding:20px 24px;}
+  .dstat{padding:18px 22px;}
+  .pcol{padding:18px;}
+  @media(max-width:860px){section{padding:42px 0;}.hero{padding:40px 0 34px;}.mission{padding:36px 0 22px;}.improve{padding:28px 0;}.sec-head{margin-bottom:18px;}.building-banner{padding:28px;}.auth-gate{padding:32px 28px;}}
+</style>
 </head>
 <body data-view="seeker">
 <nav><div class="nav-inner"><div class="brand"><svg width="34" height="34" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="11" fill="#3358F4"/><path d="M10 27 L17 18 L22 23 L30 12" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="30" cy="12" r="3" fill="white"/></svg><span class="brand-word">Rolexa</span></div><div class="nav-links"><a href="#why">Why Rolexa</a><a href="#explorer">Salary explorer</a><a href="#jobs">Early access</a><a href="#employers">For employers</a></div><div class="nav-cta"><a class="btn btn-ghost" href="#candidate-dashboard" onclick="goCandidate();return false;">Candidate demo</a><a class="btn btn-primary" href="#employer-gate" onclick="goEmployer();return false;">Employer demo</a></div></div></nav>
