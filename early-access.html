@@ -206,6 +206,10 @@ function setType(type){
 }
 function showStatus(kind,msg){const el=document.getElementById('status');el.className='status '+kind;el.textContent=msg;}
 function clearStatus(){const el=document.getElementById('status');el.className='status';el.textContent='';}
+function isDuplicateError(error){
+  const text=[error?.code,error?.message,error?.details,error?.hint,error?.status,error?.name].filter(Boolean).join(' ').toLowerCase();
+  return text.includes('23505') || text.includes('duplicate') || text.includes('unique') || text.includes('waitlist_signups_unique_email_type');
+}
 function showConfirmation(type,mode){
   const isEmployer=type==='employer';
   const duplicate=mode==='duplicate';
@@ -216,7 +220,7 @@ function showConfirmation(type,mode){
   const msg=document.getElementById('successMessage');
   const icon=document.getElementById('successIcon');
   const other=document.getElementById('otherListBtn');
-  icon.textContent=duplicate?'✓':'✓';
+  icon.textContent='✓';
   title.textContent=duplicate?'You’re already on the list.':'You’re on the list.';
   msg.textContent=duplicate
     ? `This email is already registered for ${isEmployer?'employer':'candidate'} early access, so there is nothing else you need to do.`
@@ -252,20 +256,18 @@ document.getElementById('waitlistForm').addEventListener('submit',async function
   };
   const submittedType=accountType;
   const {error}=await db.from('waitlist_signups').insert(data);
+  submit.disabled=false;
+  submit.textContent=submittedType==='candidate'?'Join candidate waitlist':'Join employer waitlist';
   if(error){
-    submit.disabled=false;
-    submit.textContent=submittedType==='candidate'?'Join candidate waitlist':'Join employer waitlist';
-    if(error.code==='23505'){
+    console.log('Rolexa waitlist submit error:', error);
+    if(isDuplicateError(error)){
       showConfirmation(submittedType,'duplicate');
       return;
     }
-    showStatus('bad','Sorry, something went wrong saving your details. Please try again.');
-    console.error(error);
+    showStatus('bad','Sorry, something went wrong saving your details. Please try again. If this email is already registered, you may already be on the list.');
     return;
   }
   this.reset();
-  submit.disabled=false;
-  submit.textContent=submittedType==='candidate'?'Join candidate waitlist':'Join employer waitlist';
   showConfirmation(submittedType,'success');
 });
 setType(accountType);
