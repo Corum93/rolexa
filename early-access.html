@@ -129,34 +129,13 @@
         </div>
       </div>
       <form id="waitlistForm">
-        <div class="field">
-          <label for="fullName">Full name</label>
-          <input id="fullName" name="full_name" autocomplete="name" required placeholder="Your full name">
-        </div>
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
-        </div>
-        <div class="field">
-          <label for="location">Location</label>
-          <input id="location" name="location" autocomplete="address-level2" placeholder="London, Manchester, Glasgow...">
-        </div>
-        <div class="field">
-          <label for="roleTitle" id="roleLabel">Target role</label>
-          <input id="roleTitle" name="role_title" placeholder="Product manager, nurse, COO...">
-        </div>
-        <div class="field employer-only hidden">
-          <label for="companyName">Company name</label>
-          <input id="companyName" name="company_name" placeholder="Company name">
-        </div>
-        <div class="field employer-only hidden">
-          <label for="companyWebsite">Company website</label>
-          <input id="companyWebsite" name="company_website" placeholder="https://example.co.uk">
-        </div>
-        <div class="field full">
-          <label for="message" id="messageLabel">Anything we should know?</label>
-          <textarea id="message" name="message" placeholder="Tell us what you want from Rolexa."></textarea>
-        </div>
+        <div class="field"><label for="fullName">Full name</label><input id="fullName" name="full_name" autocomplete="name" required placeholder="Your full name"></div>
+        <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+        <div class="field"><label for="location">Location</label><input id="location" name="location" autocomplete="address-level2" placeholder="London, Manchester, Glasgow..."></div>
+        <div class="field"><label for="roleTitle" id="roleLabel">Target role</label><input id="roleTitle" name="role_title" placeholder="Product manager, nurse, COO..."></div>
+        <div class="field employer-only hidden"><label for="companyName">Company name</label><input id="companyName" name="company_name" placeholder="Company name"></div>
+        <div class="field employer-only hidden"><label for="companyWebsite">Company website</label><input id="companyWebsite" name="company_website" placeholder="https://example.co.uk"></div>
+        <div class="field full"><label for="message" id="messageLabel">Anything we should know?</label><textarea id="message" name="message" placeholder="Tell us what you want from Rolexa."></textarea></div>
         <div id="status" class="status"></div>
         <div class="actions">
           <button class="submit" id="submitBtn" type="submit">Join candidate waitlist</button>
@@ -170,23 +149,19 @@
       <p id="successMessage">Thanks for joining Rolexa early access. We’ll contact you before the platform opens.</p>
       <ul class="success-list">
         <li><b>What happens next:</b> your details are now in the Rolexa early access list.</li>
-        <li><b>No live account yet:</b> this is a waitlist request, not a login or paid account.</li>
-        <li><b>Before launch:</b> we’ll use this list to invite early candidates and employers first.</li>
+        <li><b>No live account yet:</b> this is a waitlist request, not a secure login or paid account.</li>
+        <li><b>Candidate next step:</b> candidates can now build a profile dashboard preview while real accounts are being prepared.</li>
       </ul>
       <div class="success-actions">
-        <a class="btn btn-primary" id="otherListBtn" href="early-access.html?type=employer">Join employer waitlist too</a>
+        <a class="btn btn-primary hidden" id="buildProfileBtn" href="candidate-dashboard.html">Build candidate profile</a>
+        <a class="btn btn-light" id="otherListBtn" href="early-access.html?type=employer">Join employer waitlist too</a>
         <a class="btn btn-dark" href="index.html">Back to homepage</a>
         <button class="btn btn-light" type="button" onclick="resetFormView()">Add another signup</button>
       </div>
     </section>
   </div>
 </main>
-<footer>
-  <div class="wrap">
-    <div class="footer-brand"><svg class="brand-mark" viewBox="0 0 62 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="rxLogoGradEAFooter" x1="8" y1="6" x2="56" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#1D7BFF"/><stop offset="1" stop-color="#0057FF"/></linearGradient></defs><path d="M9 35V7h17.5c7.4 0 12.2 4.3 12.2 10.7S33.9 28.4 26.5 28.4H18" stroke="url(#rxLogoGradEAFooter)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30.5 21c0-8.4 6.7-15.1 15.1-15.1S60.7 12.6 60.7 21 54 36.1 45.6 36.1 30.5 29.4 30.5 21Z" stroke="url(#rxLogoGradEAFooter)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 28.3L29 35" stroke="url(#rxLogoGradEAFooter)" stroke-width="6.4" stroke-linecap="round"/></svg><span>Rolexa</span></div>
-    <span>UK job platform prototype · early access waitlist</span>
-  </div>
-</footer>
+<footer><div class="wrap"><div class="footer-brand"><svg class="brand-mark" viewBox="0 0 62 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="rxLogoGradEAFooter" x1="8" y1="6" x2="56" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#1D7BFF"/><stop offset="1" stop-color="#0057FF"/></linearGradient></defs><path d="M9 35V7h17.5c7.4 0 12.2 4.3 12.2 10.7S33.9 28.4 26.5 28.4H18" stroke="url(#rxLogoGradEAFooter)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30.5 21c0-8.4 6.7-15.1 15.1-15.1S60.7 12.6 60.7 21 54 36.1 45.6 36.1 30.5 29.4 30.5 21Z" stroke="url(#rxLogoGradEAFooter)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 28.3L29 35" stroke="url(#rxLogoGradEAFooter)" stroke-width="6.4" stroke-linecap="round"/></svg><span>Rolexa</span></div><span>UK job platform prototype · early access waitlist</span></div></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL='https://hndzomiigjjyyconeqpc.supabase.co';
@@ -195,88 +170,15 @@ const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let accountType='candidate';
 const params=new URLSearchParams(window.location.search);
 if(params.get('type')==='employer') accountType='employer';
-function setType(type){
-  accountType=type;
-  document.getElementById('candidateChoice').classList.toggle('active',type==='candidate');
-  document.getElementById('employerChoice').classList.toggle('active',type==='employer');
-  document.querySelectorAll('.employer-only').forEach(el=>el.classList.toggle('hidden',type!=='employer'));
-  document.getElementById('formTitle').textContent=type==='candidate'?'Candidate early access':'Employer early access';
-  document.getElementById('formIntro').textContent=type==='candidate'
-    ? 'Tell us who you are and what kind of roles you’re interested in. We’ll use this to contact you when candidate access opens.'
-    : 'Tell us about your company and the kind of hiring you want to do. We’ll use this to contact you when employer access opens.';
-  document.getElementById('roleLabel').textContent=type==='candidate'?'Target role':'Hiring role or team';
-  document.getElementById('messageLabel').textContent=type==='candidate'?'Anything we should know?':'What hiring problem should Rolexa help with?';
-  document.getElementById('submitBtn').textContent=type==='candidate'?'Join candidate waitlist':'Join employer waitlist';
-  clearStatus();
-}
+function setType(type){accountType=type;document.getElementById('candidateChoice').classList.toggle('active',type==='candidate');document.getElementById('employerChoice').classList.toggle('active',type==='employer');document.querySelectorAll('.employer-only').forEach(el=>el.classList.toggle('hidden',type!=='employer'));document.getElementById('formTitle').textContent=type==='candidate'?'Candidate early access':'Employer early access';document.getElementById('formIntro').textContent=type==='candidate'?'Tell us who you are and what kind of roles you’re interested in. We’ll use this to contact you when candidate access opens.':'Tell us about your company and the kind of hiring you want to do. We’ll use this to contact you when employer access opens.';document.getElementById('roleLabel').textContent=type==='candidate'?'Target role':'Hiring role or team';document.getElementById('messageLabel').textContent=type==='candidate'?'Anything we should know?':'What hiring problem should Rolexa help with?';document.getElementById('submitBtn').textContent=type==='candidate'?'Join candidate waitlist':'Join employer waitlist';clearStatus();}
 function showStatus(kind,msg){const el=document.getElementById('status');el.className='status '+kind;el.textContent=msg;}
 function clearStatus(){const el=document.getElementById('status');el.className='status';el.textContent='';}
-function isDuplicateError(error){
-  const text=[error?.code,error?.message,error?.details,error?.hint,error?.status,error?.name].filter(Boolean).join(' ').toLowerCase();
-  return text.includes('23505') || text.includes('duplicate') || text.includes('unique') || text.includes('waitlist_signups_unique_email_type');
-}
-function showConfirmation(type,mode){
-  const isEmployer=type==='employer';
-  const duplicate=mode==='duplicate';
-  document.getElementById('formPanel').classList.add('hidden');
-  document.getElementById('choicePanel').classList.add('hidden');
-  const card=document.getElementById('successCard');
-  const title=document.getElementById('successTitle');
-  const msg=document.getElementById('successMessage');
-  const icon=document.getElementById('successIcon');
-  const other=document.getElementById('otherListBtn');
-  icon.textContent='✓';
-  title.textContent=duplicate?'You’re already on the list.':'You’re on the list.';
-  msg.textContent=duplicate
-    ? `This email is already registered for ${isEmployer?'employer':'candidate'} early access, so there is nothing else you need to do.`
-    : `Thanks for joining the ${isEmployer?'employer':'candidate'} waitlist. We’ll contact you before Rolexa access opens.`;
-  other.textContent=isEmployer?'Join candidate waitlist too':'Join employer waitlist too';
-  other.href=isEmployer?'early-access.html?type=candidate':'early-access.html?type=employer';
-  card.classList.add('show');
-  card.scrollIntoView({behavior:'smooth',block:'start'});
-}
-function resetFormView(){
-  document.getElementById('successCard').classList.remove('show');
-  document.getElementById('formPanel').classList.remove('hidden');
-  document.getElementById('choicePanel').classList.remove('hidden');
-  document.getElementById('waitlistForm').reset();
-  setType(accountType);
-  document.getElementById('choicePanel').scrollIntoView({behavior:'smooth',block:'start'});
-}
-document.getElementById('waitlistForm').addEventListener('submit',async function(e){
-  e.preventDefault();
-  clearStatus();
-  const submit=document.getElementById('submitBtn');
-  submit.disabled=true;
-  submit.textContent='Saving...';
-  const data={
-    account_type:accountType,
-    full_name:document.getElementById('fullName').value.trim(),
-    email:document.getElementById('email').value.trim().toLowerCase(),
-    location:document.getElementById('location').value.trim()||null,
-    role_title:document.getElementById('roleTitle').value.trim()||null,
-    company_name:accountType==='employer'?(document.getElementById('companyName').value.trim()||null):null,
-    company_website:accountType==='employer'?(document.getElementById('companyWebsite').value.trim()||null):null,
-    message:document.getElementById('message').value.trim()||null
-  };
-  const submittedType=accountType;
-  const {error}=await db.from('waitlist_signups').insert(data);
-  submit.disabled=false;
-  submit.textContent=submittedType==='candidate'?'Join candidate waitlist':'Join employer waitlist';
-  if(error){
-    console.log('Rolexa waitlist submit error:', error);
-    if(isDuplicateError(error)){
-      showConfirmation(submittedType,'duplicate');
-      return;
-    }
-    showStatus('bad','Sorry, something went wrong saving your details. Please try again. If this email is already registered, you may already be on the list.');
-    return;
-  }
-  this.reset();
-  showConfirmation(submittedType,'success');
-});
+function isDuplicateError(error){const text=[error?.code,error?.message,error?.details,error?.hint,error?.status,error?.name].filter(Boolean).join(' ').toLowerCase();return text.includes('23505')||text.includes('duplicate')||text.includes('unique')||text.includes('waitlist_signups_unique_email_type');}
+function showConfirmation(type,mode,email){const isEmployer=type==='employer';const duplicate=mode==='duplicate';document.getElementById('formPanel').classList.add('hidden');document.getElementById('choicePanel').classList.add('hidden');const card=document.getElementById('successCard');const title=document.getElementById('successTitle');const msg=document.getElementById('successMessage');const icon=document.getElementById('successIcon');const other=document.getElementById('otherListBtn');const build=document.getElementById('buildProfileBtn');icon.textContent='✓';title.textContent=duplicate?'You’re already on the list.':'You’re on the list.';msg.textContent=duplicate?`This email is already registered for ${isEmployer?'employer':'candidate'} early access, so there is nothing else you need to do.`:`Thanks for joining the ${isEmployer?'employer':'candidate'} waitlist. ${isEmployer?'We’ll contact you before employer access opens.':'You can now build your candidate profile dashboard preview.'}`;other.textContent=isEmployer?'Join candidate waitlist too':'Join employer waitlist too';other.href=isEmployer?'early-access.html?type=candidate':'early-access.html?type=employer';build.classList.toggle('hidden',isEmployer);build.href=email?`candidate-dashboard.html?email=${encodeURIComponent(email)}`:'candidate-dashboard.html';card.classList.add('show');card.scrollIntoView({behavior:'smooth',block:'start'});}
+function resetFormView(){document.getElementById('successCard').classList.remove('show');document.getElementById('formPanel').classList.remove('hidden');document.getElementById('choicePanel').classList.remove('hidden');document.getElementById('waitlistForm').reset();setType(accountType);document.getElementById('choicePanel').scrollIntoView({behavior:'smooth',block:'start'});}
+document.getElementById('waitlistForm').addEventListener('submit',async function(e){e.preventDefault();clearStatus();const submit=document.getElementById('submitBtn');submit.disabled=true;submit.textContent='Saving...';const data={account_type:accountType,full_name:document.getElementById('fullName').value.trim(),email:document.getElementById('email').value.trim().toLowerCase(),location:document.getElementById('location').value.trim()||null,role_title:document.getElementById('roleTitle').value.trim()||null,company_name:accountType==='employer'?(document.getElementById('companyName').value.trim()||null):null,company_website:accountType==='employer'?(document.getElementById('companyWebsite').value.trim()||null):null,message:document.getElementById('message').value.trim()||null};const submittedType=accountType;const {error}=await db.from('waitlist_signups').insert(data);submit.disabled=false;submit.textContent=submittedType==='candidate'?'Join candidate waitlist':'Join employer waitlist';if(error){console.log('Rolexa waitlist submit error:',error);if(isDuplicateError(error)){showConfirmation(submittedType,'duplicate',data.email);return;}showStatus('bad','Sorry, something went wrong saving your details. Please try again. If this email is already registered, you may already be on the list.');return;}this.reset();showConfirmation(submittedType,'success',data.email);});
 setType(accountType);
 </script>
-<script src="rolexa-support-chat.js?v=41" defer></script>
+<script src="rolexa-support-chat.js?v=42" defer></script>
 </body>
 </html>
