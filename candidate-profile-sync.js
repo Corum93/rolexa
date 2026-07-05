@@ -105,14 +105,17 @@
 
   function addCvUploadUI(){
     if (document.getElementById('cvUpload')) return;
-    const cvCheckbox = byId('hasCv');
+    let cvCheckbox = byId('hasCv');
     if (!cvCheckbox) return;
     const checkWrapper = cvCheckbox.closest('.check');
     const checks = checkWrapper ? checkWrapper.closest('.checks') : null;
     if (!checks) return;
 
+    checkWrapper.innerHTML = '<input id="hasCv" type="checkbox" disabled> <span>CV uploaded <small style="display:block;color:#6B7280;font-weight:700;margin-top:2px">updates after file upload</small></span>';
+    checkWrapper.style.cursor = 'default';
+    checkWrapper.title = 'This updates automatically after a real CV file is uploaded.';
+    cvCheckbox = byId('hasCv');
     cvCheckbox.disabled = true;
-    cvCheckbox.title = 'This updates automatically after a CV is uploaded.';
 
     const field = document.createElement('div');
     field.className = 'field full';
