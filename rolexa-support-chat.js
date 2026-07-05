@@ -13,6 +13,8 @@
     body[data-view="seeker"] #employers{padding-top:10px!important;}
     body[data-view="seeker"] #employers .split{margin-top:0!important;}
     @media(max-width:860px){body[data-view="seeker"] #candidate-dashboard{padding-bottom:12px!important;}body[data-view="seeker"] #employers{padding-top:8px!important;}}
+    .rx-login-link{background:transparent!important;color:#fff!important;border-color:rgba(255,255,255,.25)!important;}
+    .rx-login-link:hover{border-color:rgba(255,255,255,.55)!important;background:rgba(255,255,255,.06)!important;}
     .rx-chat-launcher{position:fixed;right:22px;bottom:22px;z-index:9999;border:0;border-radius:999px;background:#4C74FF;color:#fff;box-shadow:0 18px 40px rgba(10,14,26,.28);padding:14px 18px;font:700 14px Inter,system-ui,sans-serif;display:flex;align-items:center;gap:10px;cursor:pointer;}
     .rx-chat-launcher:hover{background:#8CA6FF;}
     .rx-chat-dot{width:9px;height:9px;border-radius:50%;background:#2FAE7A;box-shadow:0 0 0 4px rgba(47,174,122,.18);}
@@ -40,6 +42,16 @@
     @media(max-width:780px){.rx-chat-launcher{right:14px;bottom:14px;padding:13px 15px;}.rx-chat-panel{right:14px;bottom:74px;width:calc(100vw - 28px);height:500px;max-height:calc(100vh - 94px);}.rx-msg{max-width:92%;}}
   `;
   document.head.appendChild(style);
+
+  function addLoginButton(){
+    const navCta = document.querySelector('nav .nav-cta');
+    if (!navCta || navCta.querySelector('.rx-login-link')) return;
+    const login = document.createElement('a');
+    login.className = 'btn btn-ghost rx-login-link';
+    login.href = 'candidate-login.html';
+    login.textContent = 'Login';
+    navCta.insertBefore(login, navCta.firstChild);
+  }
 
   const launcher = document.createElement('button');
   launcher.className = 'rx-chat-launcher';
@@ -75,18 +87,9 @@
   const input = panel.querySelector('#rxChatInput');
   const typing = panel.querySelector('#rxTyping');
   const close = panel.querySelector('.rx-chat-close');
+  const quickQuestions = ['Is Rolexa live yet?','I’m a candidate','I’m an employer','What happens after I join?'];
 
-  const quickQuestions = [
-    'Is Rolexa live yet?',
-    'I’m a candidate',
-    'I’m an employer',
-    'What happens after I join?'
-  ];
-
-  function escapeHtml(text){
-    return String(text).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-  }
-
+  function escapeHtml(text){return String(text).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
   function addMessage(text, from='bot'){
     const msg = document.createElement('div');
     msg.className = `rx-msg ${from}`;
@@ -95,7 +98,6 @@
     body.scrollTop = body.scrollHeight;
     saveHistory();
   }
-
   function addQuickChips(){
     const holder = document.createElement('div');
     holder.className = 'rx-chat-quick';
@@ -110,97 +112,50 @@
     body.appendChild(holder);
     body.scrollTop = body.scrollHeight;
   }
-
   function replyFor(text){
     const t = text.toLowerCase();
-    if (t.includes('live') || t.includes('launch') || t.includes('ready')) {
-      return 'Rolexa is not fully live yet. Right now you can join early access as a candidate or employer, and the team will use the waitlist to invite people before launch.';
-    }
-    if (t.includes('candidate') || t.includes('job') || t.includes('work') || t.includes('role')) {
-      return 'For candidates, Rolexa is being built to help you create one profile, track applications, see clearer salary guidance and message employers once shortlisted. You can join the candidate waitlist from the early access page.';
-    }
-    if (t.includes('employer') || t.includes('hire') || t.includes('hiring') || t.includes('company')) {
-      return 'For employers, Rolexa will support job posting, candidate review, shortlisting, pipeline tracking and in-app messages. Employer access is waitlist only while the platform is being built.';
-    }
-    if (t.includes('account') || t.includes('login') || t.includes('sign in')) {
-      return 'There are no live Rolexa accounts yet. The early access form adds you to the waitlist. When accounts open, Rolexa can contact people from that list first.';
-    }
-    if (t.includes('duplicate') || t.includes('already') || t.includes('email')) {
-      return 'If your email is already on the list, you do not need to submit again. You can still join the other waitlist type separately, for example candidate and employer.';
-    }
-    if (t.includes('salary') || t.includes('pay')) {
-      return 'The salary explorer is a prototype guide using indicative UK pay bands by region and level. It is there to show the direction of the product, not to guarantee live market salary data yet.';
-    }
-    if (t.includes('price') || t.includes('pricing') || t.includes('cost') || t.includes('subscription')) {
-      return 'Employer pricing is still being finalised for launch. At the moment, the main action is to join employer early access so Rolexa can contact interested companies first.';
-    }
-    if (t.includes('human') || t.includes('contact') || t.includes('support')) {
-      return 'The fastest next step is to join early access and leave your details. This assistant can help with basic Rolexa questions, but it is not a live human agent yet.';
-    }
+    if (t.includes('live') || t.includes('launch') || t.includes('ready')) return 'Rolexa is not fully live yet. Right now you can join early access as a candidate or employer, and the team will use the waitlist to invite people before launch.';
+    if (t.includes('candidate') || t.includes('job') || t.includes('work') || t.includes('role')) return 'For candidates, Rolexa is being built to help you create one profile, track applications, see clearer salary guidance and message employers once shortlisted. You can join the candidate waitlist from the early access page.';
+    if (t.includes('employer') || t.includes('hire') || t.includes('hiring') || t.includes('company')) return 'For employers, Rolexa will support job posting, candidate review, shortlisting, pipeline tracking and in-app messages. Employer access is waitlist only while the platform is being built.';
+    if (t.includes('account') || t.includes('login') || t.includes('sign in')) return 'Candidate login is being built through the Login page. The dashboard is still a prototype until profile storage is connected.';
+    if (t.includes('duplicate') || t.includes('already') || t.includes('email')) return 'If your email is already on the list, you do not need to submit again. You can still join the other waitlist type separately, for example candidate and employer.';
+    if (t.includes('salary') || t.includes('pay')) return 'The salary explorer is a prototype guide using indicative UK pay bands by region and level. It is there to show the direction of the product, not to guarantee live market salary data yet.';
+    if (t.includes('price') || t.includes('pricing') || t.includes('cost') || t.includes('subscription')) return 'Employer pricing is still being finalised for launch. At the moment, the main action is to join employer early access so Rolexa can contact interested companies first.';
+    if (t.includes('human') || t.includes('contact') || t.includes('support')) return 'The fastest next step is to join early access and leave your details. This assistant can help with basic Rolexa questions, but it is not a live human agent yet.';
     return 'I can help with Rolexa early access, candidate signups, employer access, the dashboard demo, salary explorer, or what happens after you join the waitlist. What would you like to know?';
   }
-
   async function getReply(text){
     if (CONFIG.llmEndpoint) {
       try {
-        const res = await fetch(CONFIG.llmEndpoint, {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({message:text, page:location.pathname})
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.reply) return data.reply;
-        }
-      } catch (e) {}
+        const res = await fetch(CONFIG.llmEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,page:location.pathname})});
+        if (res.ok) { const data = await res.json(); if (data && data.reply) return data.reply; }
+      } catch(e) {}
     }
     return replyFor(text);
   }
-
   async function handleUser(text){
     const clean = text.trim();
     if (!clean) return;
-    addMessage(clean, 'user');
-    input.value = '';
+    addMessage(clean,'user');
+    input.value='';
     typing.classList.add('show');
-    body.scrollTop = body.scrollHeight;
+    body.scrollTop=body.scrollHeight;
     const reply = await getReply(clean);
-    setTimeout(() => {
-      typing.classList.remove('show');
-      addMessage(reply, 'bot');
-    }, Math.min(900 + reply.length * 7, 1800));
+    setTimeout(()=>{typing.classList.remove('show');addMessage(reply,'bot');}, Math.min(900 + reply.length * 7, 1800));
   }
-
   function saveHistory(){
     const items = Array.from(body.querySelectorAll('.rx-msg')).slice(-16).map(el => ({from:el.classList.contains('user')?'user':'bot', text:el.textContent}));
     try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(items)); } catch(e) {}
   }
-
   function loadHistory(){
-    try {
-      const saved = JSON.parse(localStorage.getItem(CONFIG.storageKey) || '[]');
-      if (saved.length) {
-        saved.forEach(m => addMessage(m.text, m.from));
-        return true;
-      }
-    } catch(e) {}
+    try { const saved = JSON.parse(localStorage.getItem(CONFIG.storageKey) || '[]'); if (saved.length) { saved.forEach(m => addMessage(m.text,m.from)); return true; } } catch(e) {}
     return false;
   }
-
   function enhanceDemoGates(){
     const gateCopy = {
-      candidate: {
-        placeholder: 'Enter your email to preview the demo',
-        intro: 'Enter a valid email to unlock the candidate dashboard preview. No password is needed for this demo.',
-        alt: 'This unlocks the preview only. To join the real waitlist, use Join candidate early access.'
-      },
-      employer: {
-        placeholder: 'Enter your work email to preview the demo',
-        intro: 'Enter a valid work email to unlock the employer dashboard preview. No password is needed for this demo.',
-        alt: 'This unlocks the preview only. To join the real employer waitlist, use Join employer early access.'
-      }
+      candidate:{placeholder:'Enter your email to preview the demo',intro:'Enter a valid email to unlock the candidate dashboard preview. No password is needed for this demo.',alt:'This unlocks the preview only. To join the real waitlist, use Join candidate early access.'},
+      employer:{placeholder:'Enter your work email to preview the demo',intro:'Enter a valid work email to unlock the employer dashboard preview. No password is needed for this demo.',alt:'This unlocks the preview only. To join the real employer waitlist, use Join employer early access.'}
     };
-
     ['candidate','employer'].forEach(which => {
       const gate = document.getElementById(which + '-gate');
       if (!gate) return;
@@ -213,17 +168,11 @@
         inputEl.inputMode = 'email';
         inputEl.placeholder = gateCopy[which].placeholder;
         inputEl.setAttribute('aria-label', gateCopy[which].placeholder);
-        inputEl.addEventListener('keydown', event => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            if (typeof window.signIn === 'function') window.signIn(which);
-          }
-        });
+        inputEl.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); if (typeof window.signIn === 'function') window.signIn(which); } });
       }
       if (intro) intro.textContent = gateCopy[which].intro;
       if (alt) alt.textContent = gateCopy[which].alt;
     });
-
     if (window.__rolexaDemoGateWrapped) return;
     const originalSignIn = window.signIn;
     if (typeof originalSignIn !== 'function') return;
@@ -234,10 +183,7 @@
       if (inputEl) {
         const email = inputEl.value.trim().toLowerCase();
         inputEl.value = email;
-        if (!email || !inputEl.checkValidity()) {
-          inputEl.reportValidity();
-          return;
-        }
+        if (!email || !inputEl.checkValidity()) { inputEl.reportValidity(); return; }
       }
       originalSignIn(which);
       const content = document.getElementById(which + '-content');
@@ -246,13 +192,11 @@
     };
   }
 
-  launcher.addEventListener('click', () => {
-    panel.classList.toggle('open');
-    if (panel.classList.contains('open')) setTimeout(() => input.focus(), 80);
-  });
+  launcher.addEventListener('click', () => { panel.classList.toggle('open'); if (panel.classList.contains('open')) setTimeout(() => input.focus(), 80); });
   close.addEventListener('click', () => panel.classList.remove('open'));
   form.addEventListener('submit', e => { e.preventDefault(); handleUser(input.value); });
 
+  addLoginButton();
   enhanceDemoGates();
 
   if (!loadHistory()) {
