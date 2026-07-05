@@ -202,13 +202,14 @@
     if (!/candidate-dashboard\.html$/.test(location.pathname)) return;
     addCvUploadUI();
     let lib;
-    try { lib = await loadSupabase(); } catch(e) { console.warn(e); return; }
+    try { lib = await loadSupabase(); } catch(e) { console.warn(e); location.replace('candidate-login.html'); return; }
     const client = lib.createClient(CONFIG.url, CONFIG.key);
     const { data: sessionData } = await client.auth.getSession();
     const session = sessionData && sessionData.session;
 
     if (!session || !session.user) {
-      showSyncStatus('info', 'Login to save your profile securely.');
+      const next = encodeURIComponent('candidate-dashboard.html' + location.search);
+      location.replace('candidate-login.html?next=' + next);
       return;
     }
 
