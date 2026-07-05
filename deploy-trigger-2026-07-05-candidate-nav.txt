@@ -1,0 +1,2 @@
+Candidate dashboard navigation rebuild trigger.
+Commit 1e41eb362eaa524c0c35bb283906b8f5a940e4b0 contains the Step 1 navigation update.
