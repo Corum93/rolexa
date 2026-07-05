@@ -9,6 +9,12 @@
 
   const style = document.createElement('style');
   style.textContent = `
+    .brand-rolexa-updated{gap:12px!important;align-items:center!important;}
+    .brand-rolexa-updated .brand-ro-mark{width:44px;height:34px;display:block;flex:0 0 auto;}
+    .brand-rolexa-updated .brand-word{font-family:Georgia,'Times New Roman',serif!important;font-size:28px!important;font-weight:700!important;letter-spacing:-0.055em!important;line-height:1!important;color:#fff!important;}
+    footer .brand-rolexa-updated .brand-ro-mark{width:34px;height:26px;}
+    footer .brand-rolexa-updated .brand-word{font-size:19px!important;}
+    @media(max-width:860px){.brand-rolexa-updated .brand-ro-mark{width:41px;height:32px;}.brand-rolexa-updated .brand-word{font-size:28px!important;}}
     body[data-view="seeker"] #candidate-dashboard{padding-bottom:18px!important;}
     body[data-view="seeker"] #employers{padding-top:10px!important;}
     body[data-view="seeker"] #employers .split{margin-top:0!important;}
@@ -40,6 +46,27 @@
     @media(max-width:780px){.rx-chat-launcher{right:14px;bottom:14px;padding:13px 15px;}.rx-chat-panel{right:14px;bottom:74px;width:calc(100vw - 28px);height:500px;max-height:calc(100vh - 94px);}.rx-msg{max-width:92%;}}
   `;
   document.head.appendChild(style);
+
+  function applyBrandRefresh(){
+    const logo = `
+      <svg class="brand-ro-mark" viewBox="0 0 62 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="rxLogoGrad" x1="8" y1="6" x2="56" y2="36" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#1D7BFF"/>
+            <stop offset="1" stop-color="#0057FF"/>
+          </linearGradient>
+        </defs>
+        <path d="M9 35V7h17.5c7.4 0 12.2 4.3 12.2 10.7S33.9 28.4 26.5 28.4H18" stroke="url(#rxLogoGrad)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M30.5 21c0-8.4 6.7-15.1 15.1-15.1S60.7 12.6 60.7 21 54 36.1 45.6 36.1 30.5 29.4 30.5 21Z" stroke="url(#rxLogoGrad)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18 28.3L29 35" stroke="url(#rxLogoGrad)" stroke-width="6.4" stroke-linecap="round"/>
+      </svg>
+      <span class="brand-word">Rolexa</span>`;
+
+    document.querySelectorAll('nav .brand, footer .brand').forEach(brand => {
+      brand.innerHTML = logo;
+      brand.classList.add('brand-rolexa-updated');
+    });
+  }
 
   const launcher = document.createElement('button');
   launcher.className = 'rx-chat-launcher';
@@ -253,6 +280,7 @@
   close.addEventListener('click', () => panel.classList.remove('open'));
   form.addEventListener('submit', e => { e.preventDefault(); handleUser(input.value); });
 
+  applyBrandRefresh();
   enhanceDemoGates();
 
   if (!loadHistory()) {
