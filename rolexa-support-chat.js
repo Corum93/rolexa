@@ -9,6 +9,10 @@
 
   const style = document.createElement('style');
   style.textContent = `
+    body[data-view="seeker"] #candidate-dashboard{padding-bottom:18px!important;}
+    body[data-view="seeker"] #employers{padding-top:10px!important;}
+    body[data-view="seeker"] #employers .split{margin-top:0!important;}
+    @media(max-width:860px){body[data-view="seeker"] #candidate-dashboard{padding-bottom:12px!important;}body[data-view="seeker"] #employers{padding-top:8px!important;}}
     .rx-chat-launcher{position:fixed;right:22px;bottom:22px;z-index:9999;border:0;border-radius:999px;background:#4C74FF;color:#fff;box-shadow:0 18px 40px rgba(10,14,26,.28);padding:14px 18px;font:700 14px Inter,system-ui,sans-serif;display:flex;align-items:center;gap:10px;cursor:pointer;}
     .rx-chat-launcher:hover{background:#8CA6FF;}
     .rx-chat-dot{width:9px;height:9px;border-radius:50%;background:#2FAE7A;box-shadow:0 0 0 4px rgba(47,174,122,.18);}
@@ -183,12 +187,73 @@
     return false;
   }
 
+  function enhanceDemoGates(){
+    const gateCopy = {
+      candidate: {
+        placeholder: 'Enter your email to preview the demo',
+        intro: 'Enter a valid email to unlock the candidate dashboard preview. No password is needed for this demo.',
+        alt: 'This unlocks the preview only. To join the real waitlist, use Join candidate early access.'
+      },
+      employer: {
+        placeholder: 'Enter your work email to preview the demo',
+        intro: 'Enter a valid work email to unlock the employer dashboard preview. No password is needed for this demo.',
+        alt: 'This unlocks the preview only. To join the real employer waitlist, use Join employer early access.'
+      }
+    };
+
+    ['candidate','employer'].forEach(which => {
+      const gate = document.getElementById(which + '-gate');
+      if (!gate) return;
+      const inputEl = gate.querySelector('input[type="email"]');
+      const intro = gate.querySelector('.auth-gate p');
+      const alt = gate.querySelector('.auth-gate .alt');
+      if (inputEl) {
+        inputEl.required = true;
+        inputEl.autocomplete = 'email';
+        inputEl.inputMode = 'email';
+        inputEl.placeholder = gateCopy[which].placeholder;
+        inputEl.setAttribute('aria-label', gateCopy[which].placeholder);
+        inputEl.addEventListener('keydown', event => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            if (typeof window.signIn === 'function') window.signIn(which);
+          }
+        });
+      }
+      if (intro) intro.textContent = gateCopy[which].intro;
+      if (alt) alt.textContent = gateCopy[which].alt;
+    });
+
+    if (window.__rolexaDemoGateWrapped) return;
+    const originalSignIn = window.signIn;
+    if (typeof originalSignIn !== 'function') return;
+    window.__rolexaDemoGateWrapped = true;
+    window.signIn = function(which){
+      const gate = document.getElementById(which + '-gate');
+      const inputEl = gate ? gate.querySelector('input[type="email"]') : null;
+      if (inputEl) {
+        const email = inputEl.value.trim().toLowerCase();
+        inputEl.value = email;
+        if (!email || !inputEl.checkValidity()) {
+          inputEl.reportValidity();
+          return;
+        }
+      }
+      originalSignIn(which);
+      const content = document.getElementById(which + '-content');
+      const signedInEmail = content ? content.querySelector('.signed-in-bar b') : null;
+      if (signedInEmail && inputEl) signedInEmail.textContent = inputEl.value.trim().toLowerCase();
+    };
+  }
+
   launcher.addEventListener('click', () => {
     panel.classList.toggle('open');
     if (panel.classList.contains('open')) setTimeout(() => input.focus(), 80);
   });
   close.addEventListener('click', () => panel.classList.remove('open'));
   form.addEventListener('submit', e => { e.preventDefault(); handleUser(input.value); });
+
+  enhanceDemoGates();
 
   if (!loadHistory()) {
     addMessage('Hi, I’m the Rolexa support assistant. I can help with early access, candidate signups, employer access and the demo.');
