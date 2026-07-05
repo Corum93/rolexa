@@ -66,6 +66,7 @@
     if (!/candidate-dashboard\.html$/.test(location.pathname)) return;
     loadScriptOnce('candidate-profile-sync.js?v=55', '__rolexaProfileSyncRequested');
     loadScriptOnce('candidate-activity-sync.js?v=55', '__rolexaActivitySyncRequested');
+    loadScriptOnce('candidate-smart-match.js?v=57', '__rolexaSmartMatchRequested');
   }
 
   function enhanceDemoGates(){
