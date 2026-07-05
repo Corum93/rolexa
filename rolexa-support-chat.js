@@ -52,13 +52,20 @@
     navCta.insertBefore(login, navCta.firstChild);
   }
 
-  function loadCandidateProfileSync(){
-    if (!/candidate-dashboard\.html$/.test(location.pathname)) return;
-    if (document.querySelector('script[src*="candidate-profile-sync.js"]')) return;
+  function loadScriptOnce(src, marker){
+    if (window[marker]) return;
+    if (document.querySelector(`script[src*="${src}"]`)) return;
+    window[marker] = true;
     const script = document.createElement('script');
-    script.src = 'candidate-profile-sync.js?v=51';
+    script.src = src;
     script.defer = true;
     document.body.appendChild(script);
+  }
+
+  function loadCandidateDashboardSync(){
+    if (!/candidate-dashboard\.html$/.test(location.pathname)) return;
+    loadScriptOnce('candidate-profile-sync.js?v=52', '__rolexaProfileSyncRequested');
+    loadScriptOnce('candidate-activity-sync.js?v=52', '__rolexaActivitySyncRequested');
   }
 
   function enhanceDemoGates(){
@@ -139,16 +146,8 @@
   function addQuickChips(){
     const holder = document.createElement('div');
     holder.className = 'rx-chat-quick';
-    quickQuestions.forEach(q => {
-      const btn = document.createElement('button');
-      btn.className = 'rx-chip';
-      btn.type = 'button';
-      btn.textContent = q;
-      btn.addEventListener('click', () => handleUser(q));
-      holder.appendChild(btn);
-    });
-    body.appendChild(holder);
-    body.scrollTop = body.scrollHeight;
+    quickQuestions.forEach(q => { const btn = document.createElement('button'); btn.className = 'rx-chip'; btn.type = 'button'; btn.textContent = q; btn.addEventListener('click', () => handleUser(q)); holder.appendChild(btn); });
+    body.appendChild(holder); body.scrollTop = body.scrollHeight;
   }
   function replyFor(text){
     const t = text.toLowerCase();
@@ -163,23 +162,10 @@
     return 'I can help with Rolexa early access, candidate signups, employer access, the dashboard demo, salary explorer, or what happens after you join the waitlist. What would you like to know?';
   }
   async function handleUser(text){
-    const clean = text.trim();
-    if (!clean) return;
-    addMessage(clean,'user');
-    input.value='';
-    typing.classList.add('show');
-    body.scrollTop=body.scrollHeight;
-    const reply = replyFor(clean);
-    setTimeout(()=>{typing.classList.remove('show');addMessage(reply,'bot');}, Math.min(900 + reply.length * 7, 1800));
+    const clean = text.trim(); if (!clean) return; addMessage(clean,'user'); input.value=''; typing.classList.add('show'); body.scrollTop=body.scrollHeight; const reply = replyFor(clean); setTimeout(()=>{typing.classList.remove('show');addMessage(reply,'bot');}, Math.min(900 + reply.length * 7, 1800));
   }
-  function saveHistory(){
-    const items = Array.from(body.querySelectorAll('.rx-msg')).slice(-16).map(el => ({from:el.classList.contains('user')?'user':'bot', text:el.textContent}));
-    try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(items)); } catch(e) {}
-  }
-  function loadHistory(){
-    try { const saved = JSON.parse(localStorage.getItem(CONFIG.storageKey) || '[]'); if (saved.length) { saved.forEach(m => addMessage(m.text,m.from)); return true; } } catch(e) {}
-    return false;
-  }
+  function saveHistory(){ const items = Array.from(body.querySelectorAll('.rx-msg')).slice(-16).map(el => ({from:el.classList.contains('user')?'user':'bot', text:el.textContent})); try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(items)); } catch(e) {} }
+  function loadHistory(){ try { const saved = JSON.parse(localStorage.getItem(CONFIG.storageKey) || '[]'); if (saved.length) { saved.forEach(m => addMessage(m.text,m.from)); return true; } } catch(e) {} return false; }
 
   launcher.addEventListener('click', () => { panel.classList.toggle('open'); if (panel.classList.contains('open')) setTimeout(() => input.focus(), 80); });
   close.addEventListener('click', () => panel.classList.remove('open'));
@@ -187,10 +173,7 @@
 
   addLoginButton();
   enhanceDemoGates();
-  loadCandidateProfileSync();
+  loadCandidateDashboardSync();
 
-  if (!loadHistory()) {
-    addMessage('Hi, I’m the Rolexa support assistant. I can help with early access, candidate signups, employer access and the demo.');
-    addQuickChips();
-  }
+  if (!loadHistory()) { addMessage('Hi, I’m the Rolexa support assistant. I can help with early access, candidate signups, employer access and the demo.'); addQuickChips(); }
 })();
