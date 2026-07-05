@@ -2,10 +2,7 @@
   if (window.__rolexaSupportLoaded) return;
   window.__rolexaSupportLoaded = true;
 
-  const CONFIG = {
-    llmEndpoint: null,
-    storageKey: 'rolexa_support_chat_v1'
-  };
+  const CONFIG = { storageKey: 'rolexa_support_chat_v1' };
 
   const style = document.createElement('style');
   style.textContent = `
@@ -43,6 +40,8 @@
   `;
   document.head.appendChild(style);
 
+  function escapeHtml(text){return String(text).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+
   function addLoginButton(){
     const navCta = document.querySelector('nav .nav-cta');
     if (!navCta || navCta.querySelector('.rx-login-link')) return;
@@ -53,104 +52,15 @@
     navCta.insertBefore(login, navCta.firstChild);
   }
 
-  const launcher = document.createElement('button');
-  launcher.className = 'rx-chat-launcher';
-  launcher.type = 'button';
-  launcher.setAttribute('aria-label', 'Open Rolexa support chat');
-  launcher.innerHTML = '<span class="rx-chat-dot"></span><span>Need help?</span>';
+  function loadCandidateProfileSync(){
+    if (!/candidate-dashboard\.html$/.test(location.pathname)) return;
+    if (document.querySelector('script[src*="candidate-profile-sync.js"]')) return;
+    const script = document.createElement('script');
+    script.src = 'candidate-profile-sync.js?v=51';
+    script.defer = true;
+    document.body.appendChild(script);
+  }
 
-  const panel = document.createElement('section');
-  panel.className = 'rx-chat-panel';
-  panel.setAttribute('aria-label', 'Rolexa support chat');
-  panel.innerHTML = `
-    <div class="rx-chat-head">
-      <div>
-        <div class="rx-chat-title">Rolexa support</div>
-        <div class="rx-chat-sub">Ask about early access, candidates, employers or the demo.</div>
-      </div>
-      <button class="rx-chat-close" type="button" aria-label="Close support chat">×</button>
-    </div>
-    <div class="rx-chat-body" id="rxChatBody"></div>
-    <div class="rx-typing" id="rxTyping">Rolexa support is typing...</div>
-    <form class="rx-chat-form" id="rxChatForm">
-      <input class="rx-chat-input" id="rxChatInput" autocomplete="off" placeholder="Type your question...">
-      <button class="rx-chat-send" type="submit">Send</button>
-    </form>
-    <div class="rx-chat-small">Prototype assistant. It helps with Rolexa questions but does not create accounts or guarantee hiring outcomes.</div>
-  `;
-
-  document.body.appendChild(panel);
-  document.body.appendChild(launcher);
-
-  const body = panel.querySelector('#rxChatBody');
-  const form = panel.querySelector('#rxChatForm');
-  const input = panel.querySelector('#rxChatInput');
-  const typing = panel.querySelector('#rxTyping');
-  const close = panel.querySelector('.rx-chat-close');
-  const quickQuestions = ['Is Rolexa live yet?','I’m a candidate','I’m an employer','What happens after I join?'];
-
-  function escapeHtml(text){return String(text).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
-  function addMessage(text, from='bot'){
-    const msg = document.createElement('div');
-    msg.className = `rx-msg ${from}`;
-    msg.innerHTML = escapeHtml(text);
-    body.appendChild(msg);
-    body.scrollTop = body.scrollHeight;
-    saveHistory();
-  }
-  function addQuickChips(){
-    const holder = document.createElement('div');
-    holder.className = 'rx-chat-quick';
-    quickQuestions.forEach(q => {
-      const btn = document.createElement('button');
-      btn.className = 'rx-chip';
-      btn.type = 'button';
-      btn.textContent = q;
-      btn.addEventListener('click', () => handleUser(q));
-      holder.appendChild(btn);
-    });
-    body.appendChild(holder);
-    body.scrollTop = body.scrollHeight;
-  }
-  function replyFor(text){
-    const t = text.toLowerCase();
-    if (t.includes('live') || t.includes('launch') || t.includes('ready')) return 'Rolexa is not fully live yet. Right now you can join early access as a candidate or employer, and the team will use the waitlist to invite people before launch.';
-    if (t.includes('candidate') || t.includes('job') || t.includes('work') || t.includes('role')) return 'For candidates, Rolexa is being built to help you create one profile, track applications, see clearer salary guidance and message employers once shortlisted. You can join the candidate waitlist from the early access page.';
-    if (t.includes('employer') || t.includes('hire') || t.includes('hiring') || t.includes('company')) return 'For employers, Rolexa will support job posting, candidate review, shortlisting, pipeline tracking and in-app messages. Employer access is waitlist only while the platform is being built.';
-    if (t.includes('account') || t.includes('login') || t.includes('sign in')) return 'Candidate login is being built through the Login page. The dashboard is still a prototype until profile storage is connected.';
-    if (t.includes('duplicate') || t.includes('already') || t.includes('email')) return 'If your email is already on the list, you do not need to submit again. You can still join the other waitlist type separately, for example candidate and employer.';
-    if (t.includes('salary') || t.includes('pay')) return 'The salary explorer is a prototype guide using indicative UK pay bands by region and level. It is there to show the direction of the product, not to guarantee live market salary data yet.';
-    if (t.includes('price') || t.includes('pricing') || t.includes('cost') || t.includes('subscription')) return 'Employer pricing is still being finalised for launch. At the moment, the main action is to join employer early access so Rolexa can contact interested companies first.';
-    if (t.includes('human') || t.includes('contact') || t.includes('support')) return 'The fastest next step is to join early access and leave your details. This assistant can help with basic Rolexa questions, but it is not a live human agent yet.';
-    return 'I can help with Rolexa early access, candidate signups, employer access, the dashboard demo, salary explorer, or what happens after you join the waitlist. What would you like to know?';
-  }
-  async function getReply(text){
-    if (CONFIG.llmEndpoint) {
-      try {
-        const res = await fetch(CONFIG.llmEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,page:location.pathname})});
-        if (res.ok) { const data = await res.json(); if (data && data.reply) return data.reply; }
-      } catch(e) {}
-    }
-    return replyFor(text);
-  }
-  async function handleUser(text){
-    const clean = text.trim();
-    if (!clean) return;
-    addMessage(clean,'user');
-    input.value='';
-    typing.classList.add('show');
-    body.scrollTop=body.scrollHeight;
-    const reply = await getReply(clean);
-    setTimeout(()=>{typing.classList.remove('show');addMessage(reply,'bot');}, Math.min(900 + reply.length * 7, 1800));
-  }
-  function saveHistory(){
-    const items = Array.from(body.querySelectorAll('.rx-msg')).slice(-16).map(el => ({from:el.classList.contains('user')?'user':'bot', text:el.textContent}));
-    try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(items)); } catch(e) {}
-  }
-  function loadHistory(){
-    try { const saved = JSON.parse(localStorage.getItem(CONFIG.storageKey) || '[]'); if (saved.length) { saved.forEach(m => addMessage(m.text,m.from)); return true; } } catch(e) {}
-    return false;
-  }
   function enhanceDemoGates(){
     const gateCopy = {
       candidate:{placeholder:'Enter your email to preview the demo',intro:'Enter a valid email to unlock the candidate dashboard preview. No password is needed for this demo.',alt:'This unlocks the preview only. To join the real waitlist, use Join candidate early access.'},
@@ -192,12 +102,92 @@
     };
   }
 
+  const launcher = document.createElement('button');
+  launcher.className = 'rx-chat-launcher';
+  launcher.type = 'button';
+  launcher.setAttribute('aria-label', 'Open Rolexa support chat');
+  launcher.innerHTML = '<span class="rx-chat-dot"></span><span>Need help?</span>';
+
+  const panel = document.createElement('section');
+  panel.className = 'rx-chat-panel';
+  panel.setAttribute('aria-label', 'Rolexa support chat');
+  panel.innerHTML = `
+    <div class="rx-chat-head"><div><div class="rx-chat-title">Rolexa support</div><div class="rx-chat-sub">Ask about early access, candidates, employers or the demo.</div></div><button class="rx-chat-close" type="button" aria-label="Close support chat">×</button></div>
+    <div class="rx-chat-body" id="rxChatBody"></div>
+    <div class="rx-typing" id="rxTyping">Rolexa support is typing...</div>
+    <form class="rx-chat-form" id="rxChatForm"><input class="rx-chat-input" id="rxChatInput" autocomplete="off" placeholder="Type your question..."><button class="rx-chat-send" type="submit">Send</button></form>
+    <div class="rx-chat-small">Prototype assistant. It helps with Rolexa questions but does not create accounts or guarantee hiring outcomes.</div>`;
+
+  document.body.appendChild(panel);
+  document.body.appendChild(launcher);
+
+  const body = panel.querySelector('#rxChatBody');
+  const form = panel.querySelector('#rxChatForm');
+  const input = panel.querySelector('#rxChatInput');
+  const typing = panel.querySelector('#rxTyping');
+  const close = panel.querySelector('.rx-chat-close');
+  const quickQuestions = ['Is Rolexa live yet?','I’m a candidate','I’m an employer','What happens after I join?'];
+
+  function addMessage(text, from='bot'){
+    const msg = document.createElement('div');
+    msg.className = `rx-msg ${from}`;
+    msg.innerHTML = escapeHtml(text);
+    body.appendChild(msg);
+    body.scrollTop = body.scrollHeight;
+    saveHistory();
+  }
+  function addQuickChips(){
+    const holder = document.createElement('div');
+    holder.className = 'rx-chat-quick';
+    quickQuestions.forEach(q => {
+      const btn = document.createElement('button');
+      btn.className = 'rx-chip';
+      btn.type = 'button';
+      btn.textContent = q;
+      btn.addEventListener('click', () => handleUser(q));
+      holder.appendChild(btn);
+    });
+    body.appendChild(holder);
+    body.scrollTop = body.scrollHeight;
+  }
+  function replyFor(text){
+    const t = text.toLowerCase();
+    if (t.includes('live') || t.includes('launch') || t.includes('ready')) return 'Rolexa is not fully live yet. Right now you can join early access as a candidate or employer, and the team will use the waitlist to invite people before launch.';
+    if (t.includes('candidate') || t.includes('job') || t.includes('work') || t.includes('role')) return 'For candidates, Rolexa is being built to help you create one profile, track applications, see clearer salary guidance and message employers once shortlisted. You can join the candidate waitlist from the early access page.';
+    if (t.includes('employer') || t.includes('hire') || t.includes('hiring') || t.includes('company')) return 'For employers, Rolexa will support job posting, candidate review, shortlisting, pipeline tracking and in-app messages. Employer access is waitlist only while the platform is being built.';
+    if (t.includes('account') || t.includes('login') || t.includes('sign in')) return 'Candidate login is being built through the Login page. The dashboard is still a prototype until profile storage is connected.';
+    if (t.includes('duplicate') || t.includes('already') || t.includes('email')) return 'If your email is already on the list, you do not need to submit again. You can still join the other waitlist type separately, for example candidate and employer.';
+    if (t.includes('salary') || t.includes('pay')) return 'The salary explorer is a prototype guide using indicative UK pay bands by region and level. It is there to show the direction of the product, not to guarantee live market salary data yet.';
+    if (t.includes('price') || t.includes('pricing') || t.includes('cost') || t.includes('subscription')) return 'Employer pricing is still being finalised for launch. At the moment, the main action is to join employer early access so Rolexa can contact interested companies first.';
+    if (t.includes('human') || t.includes('contact') || t.includes('support')) return 'The fastest next step is to join early access and leave your details. This assistant can help with basic Rolexa questions, but it is not a live human agent yet.';
+    return 'I can help with Rolexa early access, candidate signups, employer access, the dashboard demo, salary explorer, or what happens after you join the waitlist. What would you like to know?';
+  }
+  async function handleUser(text){
+    const clean = text.trim();
+    if (!clean) return;
+    addMessage(clean,'user');
+    input.value='';
+    typing.classList.add('show');
+    body.scrollTop=body.scrollHeight;
+    const reply = replyFor(clean);
+    setTimeout(()=>{typing.classList.remove('show');addMessage(reply,'bot');}, Math.min(900 + reply.length * 7, 1800));
+  }
+  function saveHistory(){
+    const items = Array.from(body.querySelectorAll('.rx-msg')).slice(-16).map(el => ({from:el.classList.contains('user')?'user':'bot', text:el.textContent}));
+    try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(items)); } catch(e) {}
+  }
+  function loadHistory(){
+    try { const saved = JSON.parse(localStorage.getItem(CONFIG.storageKey) || '[]'); if (saved.length) { saved.forEach(m => addMessage(m.text,m.from)); return true; } } catch(e) {}
+    return false;
+  }
+
   launcher.addEventListener('click', () => { panel.classList.toggle('open'); if (panel.classList.contains('open')) setTimeout(() => input.focus(), 80); });
   close.addEventListener('click', () => panel.classList.remove('open'));
   form.addEventListener('submit', e => { e.preventDefault(); handleUser(input.value); });
 
   addLoginButton();
   enhanceDemoGates();
+  loadCandidateProfileSync();
 
   if (!loadHistory()) {
     addMessage('Hi, I’m the Rolexa support assistant. I can help with early access, candidate signups, employer access and the demo.');
