@@ -17,7 +17,10 @@
   .wrap{max-width:1120px;margin:0 auto;padding:0 28px;}
   nav{background:var(--ink);border-bottom:1px solid rgba(255,255,255,0.08);}
   .nav-inner{max-width:1120px;margin:0 auto;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;gap:18px;}
-  .brand{display:flex;align-items:center;gap:10px;color:var(--white);font-weight:700;font-size:20px;}
+  .brand{display:flex;align-items:center;gap:12px;color:var(--white);font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:27px;letter-spacing:-0.055em;line-height:1;}
+  .brand-mark{width:44px;height:34px;display:block;flex:0 0 auto;}
+  .footer-brand{display:flex;align-items:center;gap:10px;color:var(--white);font-family:Georgia,'Times New Roman',serif;font-size:18px;font-weight:700;letter-spacing:-0.055em;}
+  .footer-brand .brand-mark{width:34px;height:26px;}
   .back{color:var(--sky);border:1px solid rgba(255,255,255,0.22);border-radius:999px;padding:10px 16px;font-size:13px;font-weight:700;}
   .hero{background:linear-gradient(180deg,var(--navy),var(--ink));color:var(--white);padding:58px 0 50px;}
   .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue-light);font-weight:800;margin-bottom:12px;}
@@ -66,6 +69,8 @@
   footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
   @media(max-width:780px){
     .nav-inner{align-items:flex-start;flex-direction:column;padding:22px 24px;}
+    .brand{font-size:28px;}
+    .brand-mark{width:41px;height:32px;}
     .wrap{padding:0 24px;}
     .hero{padding:38px 0 34px;}
     .hero h1{font-size:32px;line-height:1.12;}
@@ -89,7 +94,7 @@
 <nav>
   <div class="nav-inner">
     <a class="brand" href="index.html" aria-label="Rolexa home">
-      <svg width="34" height="34" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="11" fill="#3358F4"/><path d="M10 27 L17 18 L22 23 L30 12" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="30" cy="12" r="3" fill="white"/></svg>
+      <svg class="brand-mark" viewBox="0 0 62 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="rxLogoGradEA" x1="8" y1="6" x2="56" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#1D7BFF"/><stop offset="1" stop-color="#0057FF"/></linearGradient></defs><path d="M9 35V7h17.5c7.4 0 12.2 4.3 12.2 10.7S33.9 28.4 26.5 28.4H18" stroke="url(#rxLogoGradEA)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30.5 21c0-8.4 6.7-15.1 15.1-15.1S60.7 12.6 60.7 21 54 36.1 45.6 36.1 30.5 29.4 30.5 21Z" stroke="url(#rxLogoGradEA)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 28.3L29 35" stroke="url(#rxLogoGradEA)" stroke-width="6.4" stroke-linecap="round"/></svg>
       <span>Rolexa</span>
     </a>
     <a class="back" href="index.html">Back to homepage</a>
@@ -178,7 +183,7 @@
 </main>
 <footer>
   <div class="wrap">
-    <strong style="color:#fff;">Rolexa</strong>
+    <div class="footer-brand"><svg class="brand-mark" viewBox="0 0 62 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="rxLogoGradEAFooter" x1="8" y1="6" x2="56" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#1D7BFF"/><stop offset="1" stop-color="#0057FF"/></linearGradient></defs><path d="M9 35V7h17.5c7.4 0 12.2 4.3 12.2 10.7S33.9 28.4 26.5 28.4H18" stroke="url(#rxLogoGradEAFooter)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30.5 21c0-8.4 6.7-15.1 15.1-15.1S60.7 12.6 60.7 21 54 36.1 45.6 36.1 30.5 29.4 30.5 21Z" stroke="url(#rxLogoGradEAFooter)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 28.3L29 35" stroke="url(#rxLogoGradEAFooter)" stroke-width="6.4" stroke-linecap="round"/></svg><span>Rolexa</span></div>
     <span>UK job platform prototype · early access waitlist</span>
   </div>
 </footer>
@@ -272,6 +277,6 @@ document.getElementById('waitlistForm').addEventListener('submit',async function
 });
 setType(accountType);
 </script>
-<script src="rolexa-support-chat.js" defer></script>
+<script src="rolexa-support-chat.js?v=41" defer></script>
 </body>
 </html>
