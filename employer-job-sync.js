@@ -9,6 +9,7 @@
   let db = null;
   let currentUser = null;
   let employerJobs = [];
+  let editingJobId = null;
 
   const sampleCandidates = [
     { id: 'c1', name: 'Candidate A', role: 'Product Manager', location: 'London', style: 'Hybrid', skills: 'product, operations, customer experience, analytics', score: 88 },
@@ -29,7 +30,7 @@
     el.className = 'statusbar show ' + kind;
     el.textContent = message;
     clearTimeout(window.__rolexaEmployerStatusTimer);
-    window.__rolexaEmployerStatusTimer = setTimeout(() => { el.className = 'statusbar'; }, 3600);
+    window.__rolexaEmployerStatusTimer = setTimeout(() => { el.className = 'statusbar'; }, 4200);
   }
 
   function loadSupabase() {
@@ -66,7 +67,17 @@
       .rx-warning-row{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;margin-top:3px;}
       .rx-warning-chip{display:inline-flex;align-items:center;border-radius:999px;background:#FFF3D6;color:#8A5600;padding:5px 8px;font-size:11.5px;font-weight:900;}
       .rx-warning-chip.good{background:#E1F6EB;color:#176B49;}
-      @media(max-width:900px){.rx-health-wrap{grid-template-columns:1fr}.rx-health-score{font-size:38px;}}
+      .rx-job-card{align-items:flex-start;}
+      .rx-job-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;}
+      .rx-danger-btn{border:1px solid rgba(224,83,63,.22);background:#fff;color:#A33327;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900;}
+      .rx-candidate-card{grid-template-columns:52px minmax(0,1fr) auto;gap:16px;align-items:center;padding:16px;}
+      .rx-candidate-main{min-width:0;display:grid;gap:7px;}
+      .rx-candidate-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:15px;font-weight:900;color:#071025;}
+      .rx-match-score{display:inline-flex;background:#E9EDFF;color:#2946C7;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:900;}
+      .rx-candidate-meta,.rx-candidate-skills{font-size:13px;line-height:1.45;color:#6B7280;}
+      .rx-candidate-skills b{color:#26324C;}
+      .rx-candidate-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+      @media(max-width:900px){.rx-health-wrap{grid-template-columns:1fr}.rx-health-score{font-size:38px}.rx-candidate-card{grid-template-columns:48px 1fr}.rx-candidate-actions{grid-column:2;justify-content:flex-start}.rx-job-actions{justify-content:flex-start}}
     `;
     document.head.appendChild(style);
   }
@@ -118,7 +129,7 @@
   }
 
   function mapJob(row) {
-    return { id: row.id, title: row.title || '', company: row.company || '', location: row.location || 'UK', style: row.work_style || 'Hybrid', salary: row.salary_range || '', skills: row.required_skills || '', description: row.description || '', status: row.is_active ? 'Live' : 'Draft' };
+    return { id: row.id, title: row.title || '', company: row.company || '', location: row.location || 'UK', style: row.work_style || 'Hybrid', salary: row.salary_range || '', skills: row.required_skills || '', description: row.description || '', status: row.is_active ? 'Live' : 'Closed', active: !!row.is_active };
   }
 
   async function loadJobs() {
@@ -169,6 +180,7 @@
     const mustSkills = skillItems(job.skills || '');
     const description = (job.description || '').trim();
     const titleText = `${job.title || ''} ${description}`.toLowerCase();
+    if (!job.active) warnings.push('Closed role');
     if (!/\d/.test(job.salary || '')) warnings.push('Salary missing');
     if (mustSkills.length > 5) warnings.push('Too many must-have skills');
     if (!/nice-to-have skills:/i.test(description)) warnings.push('No nice-to-have skills');
@@ -183,6 +195,7 @@
     const mustSkills = skillItems(job.skills || '');
     const description = (job.description || '').trim();
     const titleText = `${job.title || ''} ${description}`.toLowerCase();
+    if (!job.active) return 'This role is closed. Reopen it if hiring starts again.';
     if (!/\d/.test(job.salary || '')) return 'Add a clear salary range to increase trust and candidate interest.';
     if (mustSkills.length > 5) return 'Move bonus requirements from must-have into nice-to-have to widen the pool.';
     if (!/nice-to-have skills:/i.test(description)) return 'Add nice-to-have skills so bonus experience is captured without making the role too strict.';
@@ -194,7 +207,8 @@
 
   function renderRoleHealth() {
     ensureRoleHealthPanel();
-    const job = employerJobs[0];
+    const activeJobs = employerJobs.filter(job => job.active);
+    const job = activeJobs[0] || employerJobs[0];
     const health = roleHealth(job);
     if (byId('roleHealthRole')) byId('roleHealthRole').textContent = job ? `${job.title || 'Untitled role'} at ${job.company || 'Company'}` : 'No role posted yet';
     if (byId('roleHealthScore')) byId('roleHealthScore').textContent = health.score === null ? '--' : `${health.score}/100`;
@@ -209,27 +223,38 @@
     const warnings = jobRiskWarnings(job);
     const warningHtml = warnings.map(w => `<span class="rx-warning-chip ${w === 'Role looks healthy' ? 'good' : ''}">${esc(w)}</span>`).join('');
     const healthText = health.score === null ? '' : `<span class="tag blue">Health ${health.score}</span>`;
-    return `<div class="item"><div class="logo blue">${esc(initial(job.company))}</div><div><div class="item-title">${esc(job.title)}</div><div class="item-sub">${esc(job.company)}, ${esc(job.location)}, ${esc(job.style)}, ${esc(job.salary)}</div><div class="item-sub">Must-have skills: ${esc(job.skills || 'Not set')}</div></div><div class="actions"><span class="tag blue">${esc(job.status)}</span>${healthText}<button class="small-btn primary-mini" type="button" onclick="window.rolexaEmployerShowView('matches')">View matches</button></div><div class="rx-job-insight"><b>Next best action:</b> ${esc(nextBestAction(job))}</div><div class="rx-warning-row">${warningHtml}</div></div>`;
+    const closeText = job.active ? 'Close role' : 'Reopen role';
+    return `<div class="item rx-job-card"><div class="logo blue">${esc(initial(job.company))}</div><div><div class="item-title">${esc(job.title)}</div><div class="item-sub">${esc(job.company)}, ${esc(job.location)}, ${esc(job.style)}, ${esc(job.salary || 'Salary not set')}</div><div class="item-sub">Must-have skills: ${esc(job.skills || 'Not set')}</div></div><div class="rx-job-actions"><span class="tag blue">${esc(job.status)}</span>${healthText}<button class="small-btn primary-mini" type="button" onclick="window.rolexaEmployerShowView('matches')">View matches</button><button class="small-btn" type="button" onclick="window.rolexaEmployerEditJob('${esc(job.id)}')">Edit</button><button class="small-btn" type="button" onclick="window.rolexaEmployerToggleJob('${esc(job.id)}')">${closeText}</button><button class="rx-danger-btn" type="button" onclick="window.rolexaEmployerDeleteJob('${esc(job.id)}')">Delete</button></div><div class="rx-job-insight"><b>Next best action:</b> ${esc(nextBestAction(job))}</div><div class="rx-warning-row">${warningHtml}</div></div>`;
   }
 
   function candidateCard(candidate) {
     const shortlisted = getJSON(SHORTLIST_KEY, []).includes(candidate.id);
     const initials = candidate.name.split(' ').map(part => part[0]).join('').slice(0, 2);
-    return `<div class="item"><div class="logo green">${esc(initials)}</div><div><div class="item-title">${esc(candidate.name)} <span class="tag blue">${candidate.score}% match</span></div><div class="item-sub">${esc(candidate.role)}, ${esc(candidate.location)}, ${esc(candidate.style)}</div><div class="item-sub">Skills: ${esc(candidate.skills)}</div></div><div class="actions"><span class="tag">Smart match</span><button class="small-btn primary-mini" type="button" onclick="window.rolexaEmployerShortlist('${esc(candidate.id)}')">${shortlisted ? 'Shortlisted' : 'Shortlist'}</button></div></div>`;
+    return `<div class="item rx-candidate-card"><div class="logo green">${esc(initials)}</div><div class="rx-candidate-main"><div class="rx-candidate-head"><span>${esc(candidate.name)}</span><span class="rx-match-score">${candidate.score}% match</span></div><div class="rx-candidate-meta">${esc(candidate.role)} · ${esc(candidate.location)} · ${esc(candidate.style)}</div><div class="rx-candidate-skills"><b>Skills:</b> ${esc(candidate.skills)}</div></div><div class="rx-candidate-actions"><span class="tag">Smart match</span><button class="small-btn primary-mini" type="button" onclick="window.rolexaEmployerShortlist('${esc(candidate.id)}')">${shortlisted ? 'Shortlisted' : 'Shortlist'}</button></div></div>`;
   }
 
   function renderAll() {
     const shortlisted = getJSON(SHORTLIST_KEY, []);
-    if (byId('openRolesCount')) byId('openRolesCount').textContent = employerJobs.length;
-    if (byId('matchCount')) byId('matchCount').textContent = employerJobs.length ? sampleCandidates.length : 0;
+    const activeJobs = employerJobs.filter(job => job.active);
+    if (byId('openRolesCount')) byId('openRolesCount').textContent = activeJobs.length;
+    if (byId('matchCount')) byId('matchCount').textContent = activeJobs.length ? sampleCandidates.length : 0;
     if (byId('shortlistCount')) byId('shortlistCount').textContent = shortlisted.length;
     const emptyJobs = '<div class="empty">No employer jobs in Supabase yet. Post your first role.</div>';
     const emptyMatches = '<div class="empty">Post a job first, then candidate matches will appear here.</div>';
     if (byId('overviewJobs')) byId('overviewJobs').innerHTML = employerJobs.length ? employerJobs.slice(0, 3).map(jobCard).join('') : emptyJobs;
     if (byId('jobsList')) byId('jobsList').innerHTML = employerJobs.length ? employerJobs.map(jobCard).join('') : emptyJobs;
-    if (byId('overviewMatches')) byId('overviewMatches').innerHTML = employerJobs.length ? sampleCandidates.slice(0, 3).map(candidateCard).join('') : emptyMatches;
-    if (byId('matchesList')) byId('matchesList').innerHTML = employerJobs.length ? sampleCandidates.map(candidateCard).join('') : emptyMatches;
+    if (byId('overviewMatches')) byId('overviewMatches').innerHTML = activeJobs.length ? sampleCandidates.slice(0, 3).map(candidateCard).join('') : emptyMatches;
+    if (byId('matchesList')) byId('matchesList').innerHTML = activeJobs.length ? sampleCandidates.map(candidateCard).join('') : emptyMatches;
     renderRoleHealth();
+  }
+
+  function niceFromDescription(description) {
+    const match = String(description || '').match(/nice-to-have skills:\s*([^\n]+)/i);
+    return match ? match[1].trim() : '';
+  }
+
+  function cleanDescription(description) {
+    return String(description || '').replace(/\n\nMust-have skills:[\s\S]*$/i, '').replace(/\n\nNice-to-have skills:[\s\S]*$/i, '').trim();
   }
 
   function descriptionWithSkills(description, must, nice) {
@@ -245,7 +270,7 @@
     event.preventDefault();
     if (!db || !currentUser) { showStatus('bad', 'You need to be logged in to post a job.'); return; }
     const button = byId('saveJobBtn');
-    if (button) { button.disabled = true; button.textContent = 'Publishing...'; }
+    if (button) { button.disabled = true; button.textContent = editingJobId ? 'Saving...' : 'Publishing...'; }
     const title = byId('jobTitle').value.trim();
     const company = byId('company').value.trim();
     const location = byId('jobLocation').value.trim() || 'UK';
@@ -254,15 +279,24 @@
     const must = byId('requiredSkills').value.trim();
     const nice = byId('niceToHaveSkills') ? byId('niceToHaveSkills').value.trim() : '';
     const description = byId('jobDescription').value.trim();
-    const payload = { id: 'emp-' + Date.now() + '-' + Math.random().toString(16).slice(2, 8), employer_user_id: currentUser.id, title, company, location, work_style: style, salary_range: salary, required_skills: must, description: descriptionWithSkills(description, must, nice), logo: initial(company), logo_class: 'blue', tag: 'Employer posted', is_active: true, updated_at: new Date().toISOString() };
-    const { error } = await db.from('jobs').insert(payload);
+    const payload = { employer_user_id: currentUser.id, title, company, location, work_style: style, salary_range: salary, required_skills: must, description: descriptionWithSkills(description, must, nice), logo: initial(company), logo_class: 'blue', tag: 'Employer posted', is_active: true, updated_at: new Date().toISOString() };
+    let error;
+    if (editingJobId) {
+      const result = await db.from('jobs').update(payload).eq('id', editingJobId).eq('employer_user_id', currentUser.id);
+      error = result.error;
+    } else {
+      payload.id = 'emp-' + Date.now() + '-' + Math.random().toString(16).slice(2, 8);
+      const result = await db.from('jobs').insert(payload);
+      error = result.error;
+    }
     if (button) { button.disabled = false; button.textContent = 'Publish job to Supabase'; }
-    if (error) { console.warn('Employer job save error', error); showStatus('bad', error.message || 'Could not publish job to Supabase.'); return; }
+    if (error) { console.warn('Employer job save error', error); showStatus('bad', error.message || 'Could not save job to Supabase.'); return; }
+    editingJobId = null;
     event.target.reset();
     await loadJobs();
     renderAll();
     showView('jobs');
-    showStatus('good', 'Job published to Supabase. Next best action has been updated.');
+    showStatus('good', editingJobId ? 'Job updated.' : 'Job saved.');
   }
 
   async function protect() {
@@ -283,6 +317,51 @@
   }
 
   window.rolexaEmployerShowView = showView;
+  window.rolexaEmployerEditJob = function(id) {
+    const job = employerJobs.find(item => item.id === id);
+    if (!job) { showStatus('bad', 'Could not find that job.'); return; }
+    editingJobId = id;
+    byId('jobTitle').value = job.title || '';
+    byId('company').value = job.company || '';
+    byId('jobLocation').value = job.location || '';
+    byId('jobStyle').value = job.style || 'Hybrid';
+    byId('salaryRange').value = job.salary || '';
+    byId('requiredSkills').value = job.skills || '';
+    if (byId('niceToHaveSkills')) byId('niceToHaveSkills').value = niceFromDescription(job.description);
+    byId('jobDescription').value = cleanDescription(job.description);
+    if (byId('saveJobBtn')) byId('saveJobBtn').textContent = 'Save job changes';
+    showView('postJob');
+    showStatus('info', 'Editing existing job. Save changes when ready.');
+  };
+
+  window.rolexaEmployerToggleJob = async function(id) {
+    const job = employerJobs.find(item => item.id === id);
+    if (!job || !db || !currentUser) return;
+    const nextActive = !job.active;
+    const { error } = await db.from('jobs').update({ is_active: nextActive, updated_at: new Date().toISOString() }).eq('id', id).eq('employer_user_id', currentUser.id);
+    if (error) { showStatus('bad', error.message || 'Could not update role.'); return; }
+    await loadJobs();
+    renderAll();
+    showStatus('good', nextActive ? 'Role reopened.' : 'Role closed. Candidates will no longer see it as active.');
+  };
+
+  window.rolexaEmployerDeleteJob = async function(id) {
+    if (!db || !currentUser) return;
+    if (!confirm('Delete this role? If Supabase blocks deletion, Rolexa will close the role instead.')) return;
+    const result = await db.from('jobs').delete().eq('id', id).eq('employer_user_id', currentUser.id);
+    if (result.error) {
+      const fallback = await db.from('jobs').update({ is_active: false, updated_at: new Date().toISOString() }).eq('id', id).eq('employer_user_id', currentUser.id);
+      if (fallback.error) { showStatus('bad', fallback.error.message || 'Could not delete or close role.'); return; }
+      await loadJobs();
+      renderAll();
+      showStatus('good', 'Supabase blocked delete, so the role was closed instead.');
+      return;
+    }
+    await loadJobs();
+    renderAll();
+    showStatus('good', 'Role deleted.');
+  };
+
   window.rolexaEmployerShortlist = function(id) {
     const items = getJSON(SHORTLIST_KEY, []);
     if (!items.includes(id)) items.push(id);
