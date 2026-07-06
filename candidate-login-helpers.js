@@ -26,6 +26,10 @@
     document.head.appendChild(style);
   }
 
+  function dashboardHref(){
+    return typeof nextUrl !== 'undefined' ? nextUrl : 'candidate-dashboard.html?v=8';
+  }
+
   function buildResetArea(){
     if (byId('resetArea')) return byId('resetArea');
     const card = document.querySelector('.card');
@@ -107,7 +111,7 @@
         resetStatus('good', 'Password updated. You can now open the dashboard or sign out and log in again.');
         const actions = document.createElement('div');
         actions.className = 'actions';
-        actions.innerHTML = '<a class="btn btn-primary" href="candidate-dashboard.html?v=56">Open dashboard</a><button class="btn btn-light" type="button" id="resetSignOut">Sign out</button>';
+        actions.innerHTML = `<a class="btn btn-primary" href="${dashboardHref()}">Open dashboard</a><button class="btn btn-light" type="button" id="resetSignOut">Sign out</button>`;
         if (!byId('resetSignOut')) form.insertAdjacentElement('afterend', actions);
         const signOutBtn = byId('resetSignOut');
         if (signOutBtn) signOutBtn.addEventListener('click', async () => { await dbClient.auth.signOut(); location.href = 'candidate-login.html'; });
