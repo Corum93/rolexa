@@ -47,7 +47,7 @@
     if (!navCta || navCta.querySelector('.rx-login-link')) return;
     const login = document.createElement('a');
     login.className = 'btn btn-ghost rx-login-link';
-    login.href = 'candidate-login.html';
+    login.href = 'login.html';
     login.textContent = 'Login';
     navCta.insertBefore(login, navCta.firstChild);
   }
@@ -155,7 +155,7 @@
     if (t.includes('live') || t.includes('launch') || t.includes('ready')) return 'Rolexa is not fully live yet. Right now you can join early access as a candidate or employer, and the team will use the waitlist to invite people before launch.';
     if (t.includes('candidate') || t.includes('job') || t.includes('work') || t.includes('role')) return 'For candidates, Rolexa is being built to help you create one profile, track applications, see clearer salary guidance and message employers once shortlisted. You can join the candidate waitlist from the early access page.';
     if (t.includes('employer') || t.includes('hire') || t.includes('hiring') || t.includes('company')) return 'For employers, Rolexa will support job posting, candidate review, shortlisting, pipeline tracking and in-app messages. Employer access is waitlist only while the platform is being built.';
-    if (t.includes('account') || t.includes('login') || t.includes('sign in')) return 'Candidate login is being built through the Login page. The dashboard is still a prototype until profile storage is connected.';
+    if (t.includes('account') || t.includes('login') || t.includes('sign in')) return 'Use Login from the homepage, then choose either Candidate login or Employer login. Candidate and employer accounts are kept separate so each side of the marketplace has the right dashboard.';
     if (t.includes('duplicate') || t.includes('already') || t.includes('email')) return 'If your email is already on the list, you do not need to submit again. You can still join the other waitlist type separately, for example candidate and employer.';
     if (t.includes('salary') || t.includes('pay')) return 'The salary explorer is a prototype guide using indicative UK pay bands by region and level. It is there to show the direction of the product, not to guarantee live market salary data yet.';
     if (t.includes('price') || t.includes('pricing') || t.includes('cost') || t.includes('subscription')) return 'Employer pricing is still being finalised for launch. At the moment, the main action is to join employer early access so Rolexa can contact interested companies first.';
