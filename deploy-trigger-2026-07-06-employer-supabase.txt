@@ -1,0 +1,5 @@
+Deployment trigger for GitHub Pages.
+
+Purpose: force a fresh Pages build/deploy from main after the deploy step became stuck.
+
+This file does not change Rolexa website behaviour, Supabase logic, candidate pages, employer pages, or homepage code.
