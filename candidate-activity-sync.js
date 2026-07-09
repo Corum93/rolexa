@@ -60,7 +60,25 @@
     };
   }
 
-  function statusClass(s){ return s === 'Shortlisted' ? 'tag' : s === 'Interviewing' ? 'tag warn' : s === 'Rejected' ? 'tag bad' : 'tag blue'; }
+  function statusClass(s){
+    if (s === 'Shortlisted' || s === 'Hired') return 'tag';
+    if (s === 'Interview' || s === 'Offer') return 'tag warn';
+    if (s === 'Rejected') return 'tag bad';
+    return 'tag blue';
+  }
+
+  function statusMessage(s){
+    const messages = {
+      Applied: 'Application received by the employer.',
+      Shortlisted: 'Good news — you have been shortlisted.',
+      Interview: 'The employer has moved you to interview stage.',
+      Offer: 'The employer has moved you to offer stage.',
+      Hired: 'Congratulations — marked as hired.',
+      Rejected: 'Not a match this time.'
+    };
+    return messages[s] || 'Application status updated.';
+  }
+
   function isSaved(id){ return syncedSaved.some(x => x.job_id === id); }
   function appliedRecord(id){ return syncedApplications.find(x => x.job_id === id); }
 
@@ -77,7 +95,7 @@
     const [jobsRes, savedRes, appsRes, msgRes] = await Promise.all([
       client.from('jobs').select('*').eq('is_active', true).order('created_at', { ascending: true }),
       client.from('candidate_saved_jobs').select('job_id, created_at').eq('user_id', user.id),
-      client.from('candidate_applications').select('job_id, status, applied_at, updated_at').eq('user_id', user.id),
+      client.from('candidate_applications').select('job_id, status, applied_at, updated_at').eq('user_id', user.id).order('updated_at', { ascending: false }),
       client.from('candidate_messages').select('*').eq('user_id', user.id).order('created_at', { ascending: true })
     ]);
     if (jobsRes.error || savedRes.error || appsRes.error || msgRes.error) {
@@ -109,7 +127,7 @@
     byId('applicationsList').innerHTML = syncedApplications.map(a => {
       const j = syncedJobs.find(x => x.id === a.job_id) || { title: a.job_id, company: 'Rolexa', logo: 'R', cls: 'blue' };
       const date = a.applied_at ? new Date(a.applied_at).toLocaleDateString('en-GB') : '';
-      return `<div class="application"><div class="logo ${safe(j.cls)}">${safe(j.logo)}</div><div><div class="item-title">${safe(j.title)}</div><div class="item-sub">${safe(j.company)}${date ? ', applied ' + date : ''}</div></div><span class="${statusClass(a.status)}">${safe(a.status)}</span></div>`;
+      return `<div class="application"><div class="logo ${safe(j.cls)}">${safe(j.logo)}</div><div><div class="item-title">${safe(j.title)}</div><div class="item-sub">${safe(j.company)}${date ? ', applied ' + date : ''}</div><div class="item-sub">${safe(statusMessage(a.status))}</div></div><span class="${statusClass(a.status)}">${safe(a.status)}</span></div>`;
     }).join('');
   }
 
@@ -124,10 +142,19 @@
     const counts = {
       Applied: syncedApplications.filter(a => a.status === 'Applied').length,
       Shortlisted: syncedApplications.filter(a => a.status === 'Shortlisted').length,
-      Interviewing: syncedApplications.filter(a => a.status === 'Interviewing').length,
+      Interview: syncedApplications.filter(a => a.status === 'Interview').length,
+      Offer: syncedApplications.filter(a => a.status === 'Offer').length,
+      Hired: syncedApplications.filter(a => a.status === 'Hired').length,
       Rejected: syncedApplications.filter(a => a.status === 'Rejected').length
     };
-    byId('trackerRows').innerHTML = [['Applied','Jobs you have applied for','save'],['Shortlisted','Applications moving forward','good'],['Interviewing','Interviews in progress','warn'],['Rejected','Not a match this time','bad']].map(r => `<div class="status-row"><div><b class="${r[2]}">${r[0]}</b><span>${r[1]}</span></div><div class="count">${counts[r[0]] || 0}</div></div>`).join('');
+    byId('trackerRows').innerHTML = [
+      ['Applied','Jobs you have applied for','save'],
+      ['Shortlisted','Applications moving forward','good'],
+      ['Interview','Interviews in progress','warn'],
+      ['Offer','Offers received','warn'],
+      ['Hired','Successful applications','good'],
+      ['Rejected','Not a match this time','bad']
+    ].map(r => `<div class="status-row"><div><b class="${r[2]}">${r[0]}</b><span>${r[1]}</span></div><div class="count">${counts[r[0]] || 0}</div></div>`).join('');
   }
 
   function renderRecommended(){
@@ -148,9 +175,7 @@
   async function ensureStarterMessages(){
     if (syncedMessages.length) return;
     const starter = [
-      { user_id: user.id, thread_key: 'support', sender: 'support', sender_name: 'Rolexa Support', body: 'Welcome to your Rolexa candidate dashboard. Your messages are now connected to Supabase.' },
-      { user_id: user.id, thread_key: 'proxima', sender: 'employer', sender_name: 'Laura Harrison', body: 'We’d like to invite you for an interview for the Product Manager role.' },
-      { user_id: user.id, thread_key: 'northbridge', sender: 'employer', sender_name: 'Michael Chen', body: 'Your profile looks like a good match for our product team.' }
+      { user_id: user.id, thread_key: 'support', sender: 'support', sender_name: 'Rolexa Support', body: 'Welcome to your Rolexa candidate dashboard. Your messages are now connected to Supabase.' }
     ];
     await client.from('candidate_messages').insert(starter);
     await loadData();
