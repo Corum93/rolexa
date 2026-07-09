@@ -46,6 +46,26 @@
     });
   }
 
+  function ensureLiveMessageLayout(){
+    const messagesPage = byId('messagesPage');
+    if (!messagesPage) return false;
+    let wrap = byId('rxLiveCandidateMessages');
+    if (wrap) return true;
+
+    const card = messagesPage.querySelector('.card');
+    if (!card) return false;
+    card.innerHTML = `
+      <div class="thread-wrap" id="rxLiveCandidateMessages">
+        <div class="threads" id="threadList"><div class="thread active"><b>Loading messages...</b><p>Checking Supabase inbox.</p></div></div>
+        <div class="chat">
+          <div class="chat-head"><b id="chatName">Messages</b><span class="mini" id="chatSub">Loading inbox...</span></div>
+          <div class="chat-body" id="chatBody"><div class="empty">Loading your messages...</div></div>
+          <form class="chat-form" id="chatForm"><input id="chatInput" placeholder="Reply coming next..." disabled><button class="small-btn primary-mini" type="button" disabled>Send</button></form>
+        </div>
+      </div>`;
+    return true;
+  }
+
   function threadLabel(threadKey){
     if (threadKey === 'support') return { name: 'Rolexa Support', sub: 'Candidate support' };
     if (threadKey && threadKey.startsWith('application:')) {
@@ -68,7 +88,10 @@
       client.from('jobs').select('id,title,company')
     ]);
     if (messagesRes.error) {
+      ensureLiveMessageLayout();
       showStatus('bad', messagesRes.error.message || 'Could not load candidate messages.');
+      const chatBody = byId('chatBody');
+      if (chatBody) chatBody.innerHTML = '<div class="empty">Could not load messages. Supabase may need a SELECT policy for candidate_messages.</div>';
       return false;
     }
     messages = messagesRes.data || [];
@@ -78,6 +101,7 @@
   }
 
   function renderMessages(){
+    ensureLiveMessageLayout();
     const threadList = byId('threadList');
     const chatBody = byId('chatBody');
     const chatName = byId('chatName');
@@ -117,6 +141,7 @@
   }
 
   async function refresh(){
+    ensureLiveMessageLayout();
     const ok = await loadData();
     if (ok) renderMessages();
   }
@@ -124,6 +149,7 @@
   async function init(){
     if (!/candidate-dashboard\.html$/.test(location.pathname)) return;
     try {
+      ensureLiveMessageLayout();
       const lib = await loadSupabase();
       client = lib.createClient(CONFIG.url, CONFIG.key);
       const sessionRes = await client.auth.getSession();
