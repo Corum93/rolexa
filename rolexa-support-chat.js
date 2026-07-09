@@ -54,7 +54,7 @@
 
   function loadScriptOnce(src, marker){
     if (window[marker]) return;
-    if (document.querySelector(`script[src*="${src}"]`)) return;
+    if (document.querySelector(`script[src*="${src.split('?')[0]}"]`)) return;
     window[marker] = true;
     const script = document.createElement('script');
     script.src = src;
@@ -64,9 +64,10 @@
 
   function loadCandidateDashboardSync(){
     if (!/candidate-dashboard\.html$/.test(location.pathname)) return;
-    loadScriptOnce('candidate-profile-sync.js?v=55', '__rolexaProfileSyncRequested');
-    loadScriptOnce('candidate-activity-sync.js?v=55', '__rolexaActivitySyncRequested');
+    loadScriptOnce('candidate-profile-sync.js?v=56', '__rolexaProfileSyncRequested');
+    loadScriptOnce('candidate-activity-sync.js?v=56', '__rolexaActivitySyncRequested');
     loadScriptOnce('candidate-smart-match.js?v=57', '__rolexaSmartMatchRequested');
+    loadScriptOnce('candidate-messaging-inbox.js?v=1', '__rolexaCandidateInboxRequested');
   }
 
   function enhanceDemoGates(){
