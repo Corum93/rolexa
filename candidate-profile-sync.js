@@ -194,7 +194,7 @@
     btn.textContent = 'Sign out';
     btn.type = 'button';
     btn.style.cssText = 'border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:8px 12px;font-weight:900;font-size:12px;';
-    btn.addEventListener('click', async () => { await client.auth.signOut(); location.href = 'candidate-login.html'; });
+    btn.addEventListener('click', async () => { await client.auth.signOut(); location.href = 'index.html?signedOut=1'; });
     userArea.appendChild(btn);
   }
 
@@ -258,15 +258,12 @@
         if (saveError) {
           console.warn('Rolexa profile save error', saveError);
           showSyncStatus('bad', 'Profile saved locally, but Supabase save failed.');
-        } else {
-          if (byId('hasCv')) byId('hasCv').checked = !!payload.has_cv;
-          const input = byId('cvUpload');
-          if (input) input.value = '';
-          showSyncStatus('good', cv ? 'Profile and CV saved to Supabase.' : 'Profile saved to Supabase.');
+          return;
         }
+        showSyncStatus('good', 'Profile saved to Supabase.');
       } catch (err) {
-        console.warn('Rolexa CV upload error', err);
-        showSyncStatus('bad', err.message || 'CV upload failed.');
+        console.warn('Rolexa profile sync error', err);
+        showSyncStatus('bad', err.message || 'Could not save profile to Supabase.');
       }
     });
   }
