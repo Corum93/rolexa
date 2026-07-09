@@ -22,7 +22,7 @@
     if (byId('rxCandidateTimelineStyles')) return;
     const style = document.createElement('style');
     style.id = 'rxCandidateTimelineStyles';
-    style.textContent = `.rx-app-card-live{grid-template-columns:45px minmax(0,1fr) auto;align-items:flex-start}.rx-app-card-live .rx-app-body{min-width:0}.rx-updated{font-size:12px;color:#6B7280;margin-top:3px}.rx-timeline{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:11px}.rx-step{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:900;color:#9AA4B8}.rx-dot{width:10px;height:10px;border-radius:50%;background:#D8E4FB;box-shadow:0 0 0 3px #F5F7FC}.rx-step.done{color:#176B49}.rx-step.done .rx-dot{background:#22A06B}.rx-step.current{color:#2946C7}.rx-step.current .rx-dot{background:#176BFF}.rx-step.rejected{color:#A33327}.rx-step.rejected .rx-dot{background:#E0533F}.rx-line{width:22px;height:2px;background:#D8E4FB;border-radius:999px}.rx-line.done{background:#22A06B}@media(max-width:760px){.rx-app-card-live{grid-template-columns:42px 1fr}.rx-app-card-live > span{grid-column:2;justify-self:flex-start}.rx-line{width:14px}}`;
+    style.textContent = `.rx-app-card-live{grid-template-columns:45px minmax(0,1fr) auto;align-items:flex-start}.rx-app-card-live .rx-app-body{min-width:0}.rx-updated{font-size:12px;color:#6B7280;margin-top:3px}.rx-timeline{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:11px}.rx-step{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:900;color:#9AA4B8}.rx-dot{width:10px;height:10px;border-radius:50%;background:#D8E4FB;box-shadow:0 0 0 3px #F5F7FC}.rx-step.done{color:#176B49}.rx-step.done .rx-dot{background:#22A06B}.rx-step.current{color:#2946C7}.rx-step.current .rx-dot{background:#176BFF}.rx-step.rejected{color:#A33327}.rx-step.rejected .rx-dot{background:#E0533F}.rx-step.withdrawn{color:#6B7280}.rx-step.withdrawn .rx-dot{background:#6B7280}.rx-line{width:22px;height:2px;background:#D8E4FB;border-radius:999px}.rx-line.done{background:#22A06B}.rx-candidate-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.rx-withdraw-btn{border:1px solid rgba(224,83,63,.24);background:#FFF8F6;color:#A33327;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900}.rx-withdraw-btn:disabled{opacity:.6;cursor:not-allowed}@media(max-width:760px){.rx-app-card-live{grid-template-columns:42px 1fr}.rx-app-card-live > .rx-candidate-actions{grid-column:2;justify-content:flex-start}.rx-line{width:14px}}`;
     document.head.appendChild(style);
   }
 
@@ -73,6 +73,7 @@
     if (s === 'Shortlisted' || s === 'Hired') return 'tag';
     if (s === 'Interview' || s === 'Offer') return 'tag warn';
     if (s === 'Rejected') return 'tag bad';
+    if (s === 'Withdrawn') return 'tag blue';
     return 'tag blue';
   }
 
@@ -83,7 +84,8 @@
       Interview: 'The employer has moved you to interview stage.',
       Offer: 'The employer has moved you to offer stage.',
       Hired: 'Congratulations — marked as hired.',
-      Rejected: 'Not a match this time.'
+      Rejected: 'Not a match this time.',
+      Withdrawn: 'You withdrew this application.'
     };
     return messages[s] || 'Application status updated.';
   }
@@ -98,6 +100,9 @@
   function timelineHtml(status){
     if (status === 'Rejected') {
       return `<div class="rx-timeline"><span class="rx-step done"><span class="rx-dot"></span>Applied</span><span class="rx-line done"></span><span class="rx-step rejected current"><span class="rx-dot"></span>Rejected</span></div>`;
+    }
+    if (status === 'Withdrawn') {
+      return `<div class="rx-timeline"><span class="rx-step done"><span class="rx-dot"></span>Applied</span><span class="rx-line done"></span><span class="rx-step withdrawn current"><span class="rx-dot"></span>Withdrawn</span></div>`;
     }
     const stages = ['Applied','Shortlisted','Interview','Offer','Hired'];
     const currentIndex = Math.max(0, stages.indexOf(status || 'Applied'));
@@ -156,7 +161,8 @@
     byId('applicationsList').innerHTML = syncedApplications.map(a => {
       const j = syncedJobs.find(x => x.id === a.job_id) || { title: a.job_id, company: 'Rolexa', logo: 'R', cls: 'blue' };
       const date = a.applied_at ? new Date(a.applied_at).toLocaleDateString('en-GB') : '';
-      return `<div class="application rx-app-card-live"><div class="logo ${safe(j.cls)}">${safe(j.logo)}</div><div class="rx-app-body"><div class="item-title">${safe(j.title)}</div><div class="item-sub">${safe(j.company)}${date ? ', applied ' + date : ''}</div><div class="item-sub">${safe(statusMessage(a.status))}</div><div class="rx-updated">Last updated: ${safe(formatDateTime(a.updated_at || a.applied_at))}</div>${timelineHtml(a.status)}</div><span class="${statusClass(a.status)}">${safe(a.status)}</span></div>`;
+      const actions = a.status === 'Applied' ? `<div class="rx-candidate-actions"><button class="rx-withdraw-btn" type="button" onclick="withdrawApplication('${safe(a.job_id)}')">Withdraw</button></div>` : `<span class="${statusClass(a.status)}">${safe(a.status)}</span>`;
+      return `<div class="application rx-app-card-live"><div class="logo ${safe(j.cls)}">${safe(j.logo)}</div><div class="rx-app-body"><div class="item-title">${safe(j.title)}</div><div class="item-sub">${safe(j.company)}${date ? ', applied ' + date : ''}</div><div class="item-sub">${safe(statusMessage(a.status))}</div><div class="rx-updated">Last updated: ${safe(formatDateTime(a.updated_at || a.applied_at))}</div>${timelineHtml(a.status)}</div>${actions}</div>`;
     }).join('');
   }
 
@@ -247,6 +253,26 @@
     const { error } = await client.from('candidate_saved_jobs').delete().eq('user_id', user.id).eq('job_id', id);
     if (error) { console.warn(error); showStatus('bad', 'Could not remove saved job.'); return; }
     await loadData(); renderAllSynced(); showStatus('good', 'Saved job removed.');
+  };
+
+  window.withdrawApplication = async function(id){
+    if (!client || !user || !id) return;
+    const confirmed = window.confirm('Withdraw this application? You can apply again later if the role is still active.');
+    if (!confirmed) return;
+    const { error } = await client
+      .from('candidate_applications')
+      .update({ status: 'Withdrawn', updated_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+      .eq('job_id', id)
+      .eq('status', 'Applied');
+    if (error) {
+      console.warn(error);
+      showStatus('bad', error.message || 'Could not withdraw application.');
+      return;
+    }
+    await loadData();
+    renderAllSynced();
+    showStatus('good', 'Application withdrawn.');
   };
 
   window.applyJob = async function(id){
