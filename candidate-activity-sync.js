@@ -17,6 +17,15 @@
 
   function byId(id){ return document.getElementById(id); }
   function safe(text){ return String(text ?? '').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+  function addTimelineStyles(){
+    if (byId('rxCandidateTimelineStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'rxCandidateTimelineStyles';
+    style.textContent = `.rx-app-card-live{grid-template-columns:45px minmax(0,1fr) auto;align-items:flex-start}.rx-app-card-live .rx-app-body{min-width:0}.rx-updated{font-size:12px;color:#6B7280;margin-top:3px}.rx-timeline{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:11px}.rx-step{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:900;color:#9AA4B8}.rx-dot{width:10px;height:10px;border-radius:50%;background:#D8E4FB;box-shadow:0 0 0 3px #F5F7FC}.rx-step.done{color:#176B49}.rx-step.done .rx-dot{background:#22A06B}.rx-step.current{color:#2946C7}.rx-step.current .rx-dot{background:#176BFF}.rx-step.rejected{color:#A33327}.rx-step.rejected .rx-dot{background:#E0533F}.rx-line{width:22px;height:2px;background:#D8E4FB;border-radius:999px}.rx-line.done{background:#22A06B}@media(max-width:760px){.rx-app-card-live{grid-template-columns:42px 1fr}.rx-app-card-live > span{grid-column:2;justify-self:flex-start}.rx-line{width:14px}}`;
+    document.head.appendChild(style);
+  }
+
   function showStatus(kind, text){
     let el = document.getElementById('rolexaActivitySyncStatus');
     if (!el) {
@@ -79,6 +88,26 @@
     return messages[s] || 'Application status updated.';
   }
 
+  function formatDateTime(value){
+    try {
+      if (!value) return 'Not updated yet';
+      return new Date(value).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    } catch(e) { return 'Not updated yet'; }
+  }
+
+  function timelineHtml(status){
+    if (status === 'Rejected') {
+      return `<div class="rx-timeline"><span class="rx-step done"><span class="rx-dot"></span>Applied</span><span class="rx-line done"></span><span class="rx-step rejected current"><span class="rx-dot"></span>Rejected</span></div>`;
+    }
+    const stages = ['Applied','Shortlisted','Interview','Offer','Hired'];
+    const currentIndex = Math.max(0, stages.indexOf(status || 'Applied'));
+    return `<div class="rx-timeline">${stages.map((stage, index) => {
+      const state = index < currentIndex ? 'done' : index === currentIndex ? 'current' : '';
+      const line = index < stages.length - 1 ? `<span class="rx-line ${index < currentIndex ? 'done' : ''}"></span>` : '';
+      return `<span class="rx-step ${state}"><span class="rx-dot"></span>${safe(stage)}</span>${line}`;
+    }).join('')}</div>`;
+  }
+
   function isSaved(id){ return syncedSaved.some(x => x.job_id === id); }
   function appliedRecord(id){ return syncedApplications.find(x => x.job_id === id); }
 
@@ -127,7 +156,7 @@
     byId('applicationsList').innerHTML = syncedApplications.map(a => {
       const j = syncedJobs.find(x => x.id === a.job_id) || { title: a.job_id, company: 'Rolexa', logo: 'R', cls: 'blue' };
       const date = a.applied_at ? new Date(a.applied_at).toLocaleDateString('en-GB') : '';
-      return `<div class="application"><div class="logo ${safe(j.cls)}">${safe(j.logo)}</div><div><div class="item-title">${safe(j.title)}</div><div class="item-sub">${safe(j.company)}${date ? ', applied ' + date : ''}</div><div class="item-sub">${safe(statusMessage(a.status))}</div></div><span class="${statusClass(a.status)}">${safe(a.status)}</span></div>`;
+      return `<div class="application rx-app-card-live"><div class="logo ${safe(j.cls)}">${safe(j.logo)}</div><div class="rx-app-body"><div class="item-title">${safe(j.title)}</div><div class="item-sub">${safe(j.company)}${date ? ', applied ' + date : ''}</div><div class="item-sub">${safe(statusMessage(a.status))}</div><div class="rx-updated">Last updated: ${safe(formatDateTime(a.updated_at || a.applied_at))}</div>${timelineHtml(a.status)}</div><span class="${statusClass(a.status)}">${safe(a.status)}</span></div>`;
     }).join('');
   }
 
@@ -197,6 +226,7 @@
   }
 
   function renderAllSynced(){
+    addTimelineStyles();
     renderRecommended();
     renderTracker();
     renderJobSearch();
@@ -245,6 +275,7 @@
 
   async function init(){
     if (!/candidate-dashboard\.html$/.test(location.pathname)) return;
+    addTimelineStyles();
     let lib;
     try { lib = await loadSupabase(); } catch(e) { console.warn(e); return; }
     client = lib.createClient(CONFIG.url, CONFIG.key);
