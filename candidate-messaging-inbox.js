@@ -64,6 +64,17 @@
     return {name:'Message thread',sub:'Conversation'};
   }
 
+  function threadMessages(threadKey){
+    return messages.filter(m => (m.thread_key || 'support') === threadKey);
+  }
+
+  function candidateCanReply(threadKey){
+    const thread = threadMessages(threadKey);
+    if (!thread.length) return false;
+    const latest = thread[thread.length - 1];
+    return latest.sender === 'employer';
+  }
+
   async function loadData(){
     const [m,a,j] = await Promise.all([
       client.from('candidate_messages').select('*').eq('user_id',user.id).order('created_at',{ascending:true}),
@@ -79,25 +90,37 @@
   function render(){
     ensureLayout();
     const keys = [...new Set(messages.map(m => m.thread_key || 'support'))];
+    const input = $('chatInput');
+    const button = $('chatForm')?.querySelector('button');
     if (!keys.length) {
       $('threadList').innerHTML = '<div class="thread active"><b>No messages yet</b><p>Employer messages will appear here.</p></div>';
       $('chatName').textContent = 'Messages';
       $('chatSub').textContent = 'No active conversation';
       $('chatBody').innerHTML = '<div class="empty">No messages yet.</div>';
-      $('chatInput').disabled = true;
+      if (input) { input.disabled = true; input.placeholder = 'Wait for an employer to message you'; }
+      if (button) button.disabled = true;
       return;
     }
     if (!keys.includes(activeThread)) activeThread = keys[keys.length-1];
-    $('chatInput').disabled = false;
+
+    const canReply = candidateCanReply(activeThread);
+    if (input) {
+      input.disabled = !canReply;
+      input.placeholder = canReply ? 'Type your reply...' : 'Waiting for the employer to reply...';
+      if (!canReply) input.value = '';
+    }
+    if (button) button.disabled = !canReply;
+
     $('threadList').innerHTML = keys.map(key => {
       const info = label(key);
       const latest = [...messages].reverse().find(m => (m.thread_key || 'support') === key);
-      return `<div class="thread ${key===activeThread?'active':''}" data-candidate-thread="${safe(key)}"><b>${safe(info.name)}</b><p>${safe(info.sub)}${latest?' · '+safe(latest.body):''}</p></div>`;
+      const waiting = !candidateCanReply(key);
+      return `<div class="thread ${key===activeThread?'active':''}" data-candidate-thread="${safe(key)}"><b>${safe(info.name)}</b><p>${safe(info.sub)}${latest?' · '+safe(latest.body):''}${waiting?' · Waiting for employer':''}</p></div>`;
     }).join('');
     const info = label(activeThread);
     $('chatName').textContent = info.name;
-    $('chatSub').textContent = info.sub;
-    $('chatBody').innerHTML = messages.filter(m => (m.thread_key || 'support') === activeThread).map(m => {
+    $('chatSub').textContent = canReply ? `${info.sub} · You can reply now` : `${info.sub} · Waiting for employer reply`;
+    $('chatBody').innerHTML = threadMessages(activeThread).map(m => {
       const mine = m.sender === 'candidate';
       return `<div class="bubble ${mine?'me':'them'}"><div style="font-size:11px;font-weight:900;opacity:.72;margin-bottom:4px">${safe(m.sender_name || (mine?'You':'Employer'))} · ${safe(time(m.created_at))}</div>${safe(m.body)}</div>`;
     }).join('');
@@ -115,6 +138,7 @@
     const button = event.target.querySelector('button');
     const body = input.value.trim();
     if (!body || !activeThread) return;
+    if (!candidateCanReply(activeThread)) return toast('Please wait for the employer to reply before sending another message.');
     button.disabled = true;
     button.textContent = 'Sending...';
     const {error} = await client.from('candidate_messages').insert({
@@ -124,12 +148,11 @@
       sender_name:'Candidate',
       body
     });
-    button.disabled = false;
     button.textContent = 'Send';
-    if (error) return toast(error.message || 'Could not send reply.');
+    if (error) { button.disabled = false; return toast(error.message || 'Could not send reply.'); }
     input.value = '';
     await refresh();
-    toast('Reply sent.',true);
+    toast('Reply sent. The employer can now respond.',true);
   }
 
   async function init(){
