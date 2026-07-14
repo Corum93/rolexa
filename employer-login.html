@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rolexa | Employer login</title>
+<script>
+if (document.referrer && /employer-dashboard\.html/i.test(document.referrer)) {
+  location.replace('index.html?signedOut=1');
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -37,7 +42,7 @@ function showSession(session){document.getElementById('formArea').classList.add(
 async function checkSession(){const {data}=await db.auth.getSession();if(data&&data.session){if(nextParam){goNext();return;}showSession(data.session);}}
 document.getElementById('authForm').addEventListener('submit',async e=>{e.preventDefault();clearStatus();const email=document.getElementById('email').value.trim().toLowerCase();const password=document.getElementById('password').value;const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent=mode==='login'?'Logging in...':'Creating...';let result;if(mode==='login'){result=await db.auth.signInWithPassword({email,password});}else{result=await db.auth.signUp({email,password,options:{emailRedirectTo:redirectTo}});}btn.disabled=false;btn.textContent=mode==='login'?'Log in':'Create account';if(result.error){showStatus('bad',result.error.message||'Something went wrong.');return;}if(result.data&&result.data.session){goNext();return;}showStatus('good','Account created. Check your email to confirm your account, then come back and log in.');});
 async function resetPassword(){clearStatus();const email=document.getElementById('email').value.trim().toLowerCase();if(!email){showStatus('bad','Enter your work email first, then click forgot password.');return;}const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo});if(error){showStatus('bad',error.message||'Could not send reset email.');return;}showStatus('good','Password reset email sent. Check your inbox.');}
-async function signOut(){await db.auth.signOut();location.reload();}
+async function signOut(){await db.auth.signOut();location.href='index.html?signedOut=1';}
 checkSession();
 </script>
 </body>
