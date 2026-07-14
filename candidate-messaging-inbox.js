@@ -114,6 +114,15 @@
     </div>`;
   }
 
+  function uniqueInterviewSlots(slots){
+    const unique = new Map();
+    for (const slot of slots || []) {
+      const key = [slot.application_id,slot.starts_at,slot.ends_at,slot.meeting_type || 'Interview'].join('|');
+      if (!unique.has(key)) unique.set(key,slot);
+    }
+    return [...unique.values()];
+  }
+
   async function loadData(){
     const [m,a,j] = await Promise.all([
       client.from('candidate_messages').select('*').eq('user_id',user.id).order('created_at',{ascending:true}),
@@ -131,7 +140,7 @@
       .eq('status','available')
       .gte('starts_at',new Date().toISOString())
       .order('starts_at',{ascending:true});
-    interviewSlots = slotsResult.error ? [] : (slotsResult.data || []);
+    interviewSlots = slotsResult.error ? [] : uniqueInterviewSlots(slotsResult.data || []);
   }
 
   function render(){
