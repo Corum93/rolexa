@@ -30,6 +30,14 @@
     document.body.appendChild(script);
   }
 
+  function loadEmployerInterviewConfirmation(){
+    if (!isEmployer || document.querySelector('script[src*="employer-interview-confirmation.js"]')) return;
+    const script = document.createElement('script');
+    script.src = 'employer-interview-confirmation.js?v=1';
+    script.defer = true;
+    document.body.appendChild(script);
+  }
+
   function loadCandidateBooking(){
     if (!isCandidate || document.querySelector('script[src*="candidate-interview-booking.js"]')) return;
     const script = document.createElement('script');
@@ -173,6 +181,7 @@
     addStyles();
     ensureBadge();
     loadEmployerScheduling();
+    loadEmployerInterviewConfirmation();
     loadCandidateBooking();
     const lib = await loadSupabase();
     const config = await readConfig();
