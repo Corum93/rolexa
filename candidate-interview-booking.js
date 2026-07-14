@@ -9,6 +9,7 @@
   let slots = [];
   let bookings = [];
   let busy = false;
+  let chatObserver = null;
 
   const safe = value => String(value ?? '').replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
   const dateLabel = value => new Date(value).toLocaleString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
@@ -90,8 +91,11 @@
     const card = document.querySelector('#chatBody .rx-interview-card');
     const applicationId = activeApplicationId();
     if (!card || !applicationId) return;
+    if (card.classList.contains('rx-booking-enhanced') && !busy) return;
 
     const booking = bookings.find(item => String(item.application_id) === String(applicationId) && item.status === 'confirmed');
+    card.classList.add('rx-booking-enhanced');
+
     if (booking) {
       const slot = booking.interview_slots || {};
       if (!slot.starts_at) return;
@@ -127,6 +131,8 @@
     }
     selectedSlotId = '';
     await loadData();
+    const card = document.querySelector('#chatBody .rx-interview-card');
+    card?.classList.remove('rx-booking-enhanced');
     render();
     toast('Interview confirmed.',true);
   }
@@ -136,6 +142,8 @@
       const slot = event.target.closest?.('[data-booking-slot]');
       if (slot) {
         selectedSlotId = slot.getAttribute('data-booking-slot') || '';
+        const card = document.querySelector('#chatBody .rx-interview-card');
+        card?.classList.remove('rx-booking-enhanced');
         render();
         return;
       }
@@ -143,8 +151,14 @@
     });
   }
 
-  async function refresh(){
-    await loadData();
+  function watchCard(){
+    const body = document.getElementById('chatBody');
+    if (!body || chatObserver) return;
+    chatObserver = new MutationObserver(() => {
+      const card = body.querySelector('.rx-interview-card');
+      if (card && !card.classList.contains('rx-booking-enhanced')) render();
+    });
+    chatObserver.observe(body,{childList:true});
     render();
   }
 
@@ -157,8 +171,17 @@
     user = session.data?.session?.user;
     if (!user) return;
     bind();
-    await refresh();
-    setInterval(() => refresh().catch(()=>{}),4000);
+    await loadData();
+    watchCard();
+    document.addEventListener('click',event => {
+      if (event.target.closest?.('[data-candidate-thread]')) {
+        setTimeout(() => {
+          const card = document.querySelector('#chatBody .rx-interview-card');
+          card?.classList.remove('rx-booking-enhanced');
+          render();
+        },0);
+      }
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
