@@ -172,9 +172,19 @@
     input.value = '';
   }
 
+  function loadCompletedProfileCard(){
+    if (window.__rolexaCandidateProfileCardRequested || document.querySelector('script[src*="candidate-profile-card.js"]')) return;
+    window.__rolexaCandidateProfileCardRequested = true;
+    const script = document.createElement('script');
+    script.src = 'candidate-profile-card.js?v=1';
+    script.defer = true;
+    document.body.appendChild(script);
+  }
+
   async function init(){
     if (!/candidate-dashboard\.html$/.test(location.pathname)) return;
     addPhotoField();
+    loadCompletedProfileCard();
     try {
       const lib = await loadSupabase();
       client = lib.createClient(CONFIG.url, CONFIG.key);
