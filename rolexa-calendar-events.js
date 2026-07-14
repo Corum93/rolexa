@@ -8,6 +8,7 @@
 
   let client = null;
   let user = null;
+  let rows = [];
 
   const safe = value => String(value ?? '').replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]));
   const dayNumber = value => new Date(value).toLocaleDateString('en-GB',{day:'2-digit'});
@@ -48,39 +49,37 @@
     document.head.appendChild(style);
   }
 
+  async function optionalMap(table,select,ids,keyField='id'){
+    if (!ids.length) return new Map();
+    try {
+      const result = await client.from(table).select(select).in(keyField,ids);
+      if (result.error) return new Map();
+      return new Map((result.data || []).map(item => [String(item[keyField]),item]));
+    } catch(error) { return new Map(); }
+  }
+
   async function loadRows(){
-    const bookingQuery = client.from('interview_bookings')
+    const bookingResult = await client.from('interview_bookings')
       .select('id,application_id,slot_id,status,booked_at')
       .eq(isCandidate?'candidate_user_id':'employer_user_id',user.id)
       .eq('status','confirmed')
       .order('booked_at',{ascending:false});
-    const bookingResult = await bookingQuery;
     if (bookingResult.error) throw bookingResult.error;
     const bookings = bookingResult.data || [];
     if (!bookings.length) return [];
 
     const slotIds = [...new Set(bookings.map(item => item.slot_id).filter(Boolean))];
-    const appIds = [...new Set(bookings.map(item => item.application_id).filter(Boolean))];
-    const [slotResult,appResult] = await Promise.all([
-      client.from('interview_slots').select('id,starts_at,ends_at,meeting_type').in('id',slotIds),
-      client.from('candidate_applications').select('id,user_id,job_id').in('id',appIds)
-    ]);
+    const slotResult = await client.from('interview_slots').select('id,starts_at,ends_at,meeting_type').in('id',slotIds);
     if (slotResult.error) throw slotResult.error;
-    if (appResult.error) throw appResult.error;
+    const slotMap = new Map((slotResult.data || []).map(item => [String(item.id),item]));
 
-    const applications = appResult.data || [];
+    const appIds = [...new Set(bookings.map(item => item.application_id).filter(Boolean))];
+    const appMap = await optionalMap('candidate_applications','id,user_id,job_id',appIds);
+    const applications = [...appMap.values()];
     const jobIds = [...new Set(applications.map(item => item.job_id).filter(Boolean))];
     const candidateIds = [...new Set(applications.map(item => item.user_id).filter(Boolean))];
-    const [jobResult,profileResult] = await Promise.all([
-      jobIds.length ? client.from('jobs').select('id,title,company').in('id',jobIds) : Promise.resolve({data:[],error:null}),
-      isEmployer && candidateIds.length ? client.from('candidate_profiles').select('user_id,full_name,email').in('user_id',candidateIds) : Promise.resolve({data:[],error:null})
-    ]);
-    if (jobResult.error) throw jobResult.error;
-
-    const slotMap = new Map((slotResult.data || []).map(item => [String(item.id),item]));
-    const appMap = new Map(applications.map(item => [String(item.id),item]));
-    const jobMap = new Map((jobResult.data || []).map(item => [String(item.id),item]));
-    const profileMap = new Map((profileResult.data || []).map(item => [String(item.user_id),item]));
+    const jobMap = await optionalMap('jobs','id,title,company',jobIds);
+    const profileMap = isEmployer ? await optionalMap('candidate_profiles','user_id,full_name,email',candidateIds,'user_id') : new Map();
 
     return bookings.map(booking => {
       const slot = slotMap.get(String(booking.slot_id)) || {};
@@ -95,20 +94,19 @@
   function eventHtml(row){
     const minutes = Math.max(0,Math.round((new Date(row.slot.ends_at)-new Date(row.slot.starts_at))/60000));
     const title = isCandidate ? `${row.job.title || 'Interview'} interview` : `${row.profile.full_name || row.profile.email || 'Candidate'} interview`;
-    const companyOrRole = isCandidate ? (row.job.company || 'Employer') : (row.job.title || 'Application');
-    return `<div class="rx-calendar-event"><div class="rx-calendar-date">${safe(dayNumber(row.slot.starts_at))}</div><div><div class="rx-calendar-title">${safe(title)}</div><div class="rx-calendar-sub">${safe(dateText(row.slot.starts_at))} · ${safe(timeText(row.slot.starts_at))}<br>${safe(companyOrRole)} · ${safe(`${minutes} minutes · ${row.slot.meeting_type || 'Interview'}`)}</div></div><span class="rx-calendar-tag">Confirmed</span></div>`;
+    const secondary = isCandidate ? (row.job.company || 'Employer') : (row.job.title || 'Application');
+    return `<div class="rx-calendar-event"><div class="rx-calendar-date">${safe(dayNumber(row.slot.starts_at))}</div><div><div class="rx-calendar-title">${safe(title)}</div><div class="rx-calendar-sub">${safe(dateText(row.slot.starts_at))} · ${safe(timeText(row.slot.starts_at))}<br>${safe(secondary)} · ${safe(`${minutes} minutes · ${row.slot.meeting_type || 'Interview'}`)}</div></div><span class="rx-calendar-tag">Confirmed</span></div>`;
   }
 
   function candidateContainer(){
     const heading = [...document.querySelectorAll('#overviewPage .card h2')].find(node => node.textContent.trim() === 'Upcoming');
-    if (!heading) return null;
-    const card = heading.closest('.card');
+    const card = heading?.closest('.card');
     if (!card) return null;
     let list = card.querySelector('.rx-calendar-list');
     if (!list) {
-      const old = card.querySelector('.list');
       list = document.createElement('div');
       list.className = 'rx-calendar-list';
+      const old = card.querySelector('.list');
       if (old) old.replaceWith(list); else card.appendChild(list);
     }
     return list;
@@ -128,15 +126,15 @@
     return card.querySelector('.rx-calendar-list');
   }
 
-  function render(rows){
+  function render(){
     const container = isCandidate ? candidateContainer() : employerContainer();
     if (!container) return;
     container.innerHTML = rows.length ? rows.map(eventHtml).join('') : '<div class="rx-calendar-empty">No confirmed upcoming interviews yet.</div>';
   }
 
   async function refresh(){
-    const rows = await loadRows();
-    render(rows);
+    rows = await loadRows();
+    render();
   }
 
   async function init(){
@@ -148,7 +146,8 @@
     user = session.data?.session?.user;
     if (!user) return;
     await refresh();
-    setInterval(() => refresh().catch(()=>{}),10000);
+    setInterval(() => refresh().catch(()=>{}),5000);
+    setInterval(render,1500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
