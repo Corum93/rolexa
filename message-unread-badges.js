@@ -9,6 +9,7 @@
   let client = null;
   let user = null;
   let allowedThreads = [];
+  let markingThread = '';
 
   function loadSupabase(){
     return new Promise((resolve,reject) => {
@@ -106,15 +107,29 @@
   }
 
   async function markRead(threadKey){
-    if (!threadKey || !client) return;
+    if (!threadKey || !client || markingThread === threadKey) return;
+    markingThread = threadKey;
     const reader = isCandidate ? 'candidate' : 'employer';
     const result = await client.rpc('mark_message_thread_read',{p_thread_key:threadKey,p_reader:reader});
+    markingThread = '';
     if (!result.error) await refreshBadge();
   }
 
   function activeThreadKey(){
     if (isCandidate) return document.querySelector('[data-candidate-thread].active')?.getAttribute('data-candidate-thread') || '';
     return document.querySelector('[data-employer-thread].active')?.getAttribute('data-employer-thread') || '';
+  }
+
+  function messagesPageIsOpen(){
+    return document.getElementById('messagesPage')?.classList.contains('active') || false;
+  }
+
+  async function refreshAndReadVisibleThread(){
+    await refreshBadge();
+    if (messagesPageIsOpen()) {
+      const key = activeThreadKey();
+      if (key) await markRead(key);
+    }
   }
 
   function bindReading(){
@@ -130,6 +145,12 @@
       const nav = event.target.closest?.('.nav [data-view="messages"]');
       if (nav) setTimeout(() => markRead(activeThreadKey()),350);
     });
+
+    document.addEventListener('submit',event => {
+      if (event.target?.id === 'chatForm' || event.target?.id === 'rxEmployerChatForm') {
+        setTimeout(() => markRead(activeThreadKey()),450);
+      }
+    });
   }
 
   async function init(){
@@ -142,8 +163,8 @@
     user = session.data?.session?.user;
     if (!user) return;
     bindReading();
-    await refreshBadge();
-    setInterval(refreshBadge,3000);
+    await refreshAndReadVisibleThread();
+    setInterval(() => refreshAndReadVisibleThread().catch(()=>{}),3000);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
