@@ -114,6 +114,8 @@
     enhanceCalendarCards();
   }
 
+  window.__rolexaInterviewLinksRender = render;
+
   async function saveLink(form){
     if (saving) return;
     const input = form.querySelector('.rx-meeting-link-input');
