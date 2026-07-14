@@ -10,9 +10,7 @@
   let rendering = false;
 
   const safe = value => String(value ?? '').replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]));
-  const dateLabel = value => new Date(value).toLocaleString('en-GB', {
-    weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
-  });
+  const dateLabel = value => new Date(value).toLocaleString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
 
   function loadSupabase(){
     return new Promise((resolve,reject) => {
@@ -57,12 +55,26 @@
 
   async function loadBookings(){
     if (!client || !user) return;
-    const result = await client.from('interview_bookings')
-      .select('id,application_id,status,booked_at,interview_slots(starts_at,ends_at,meeting_type)')
+    const bookingResult = await client.from('interview_bookings')
+      .select('id,slot_id,application_id,status,booked_at')
       .eq('employer_user_id',user.id)
       .eq('status','confirmed')
       .order('booked_at',{ascending:false});
-    bookings = result.error ? [] : (result.data || []);
+    if (bookingResult.error) { bookings = []; return; }
+
+    const rows = bookingResult.data || [];
+    const slotIds = [...new Set(rows.map(row => row.slot_id).filter(Boolean))];
+    let slots = [];
+    if (slotIds.length) {
+      const slotResult = await client.from('interview_slots')
+        .select('id,starts_at,ends_at,meeting_type,status')
+        .in('id',slotIds);
+      if (!slotResult.error) slots = slotResult.data || [];
+    }
+    bookings = rows.map(booking => ({
+      ...booking,
+      interview_slot: slots.find(slot => String(slot.id) === String(booking.slot_id)) || null
+    }));
   }
 
   function render(){
@@ -72,11 +84,8 @@
     if (!body || !applicationId) return;
     const existing = body.querySelector('.rx-employer-interview-confirmed');
     const booking = bookings.find(item => String(item.application_id) === String(applicationId));
-    if (!booking) {
-      existing?.remove();
-      return;
-    }
-    const slot = booking.interview_slots || {};
+    if (!booking) { existing?.remove(); return; }
+    const slot = booking.interview_slot || {};
     if (!slot.starts_at) return;
     const minutes = Math.max(0,Math.round((new Date(slot.ends_at)-new Date(slot.starts_at))/60000));
     const html = `<div class="rx-employer-interview-head"><div class="rx-employer-interview-icon">✓</div><div><h3>Interview confirmed</h3><p>The candidate has selected and confirmed this interview time.</p></div></div><div class="rx-employer-interview-detail">${safe(dateLabel(slot.starts_at))}<span>${safe(`${minutes} minutes · ${slot.meeting_type || 'Interview'}`)}</span></div><div class="rx-employer-interview-pill">Confirmed</div>`;
@@ -95,9 +104,7 @@
   function watchChat(){
     const body = document.getElementById('rxEmployerChatBody');
     if (!body || observer) return;
-    observer = new MutationObserver(() => {
-      if (!rendering) queueMicrotask(render);
-    });
+    observer = new MutationObserver(() => { if (!rendering) queueMicrotask(render); });
     observer.observe(body,{childList:true});
   }
 
