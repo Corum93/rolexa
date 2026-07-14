@@ -22,6 +22,14 @@
     });
   }
 
+  function loadEmployerScheduling(){
+    if (!isEmployer || document.querySelector('script[src*="employer-interview-scheduling.js"]')) return;
+    const script = document.createElement('script');
+    script.src = 'employer-interview-scheduling.js?v=1';
+    script.defer = true;
+    document.body.appendChild(script);
+  }
+
   async function readConfig(){
     for (const file of ['candidate-profile-sync.js','employer-job-sync.js?v=2']) {
       try {
@@ -156,6 +164,7 @@
   async function init(){
     addStyles();
     ensureBadge();
+    loadEmployerScheduling();
     const lib = await loadSupabase();
     const config = await readConfig();
     client = lib.createClient(config.url,config.key);
