@@ -8,13 +8,21 @@
   let messages = [], applications = [], jobs = [];
 
   const $ = id => document.getElementById(id);
-  const safe = value => String(value ?? '').replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
+  const safe = value => String(value ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const time = value => value ? new Date(value).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
 
   function loadUnreadBadges(){
     if (document.querySelector('script[src*="message-unread-badges.js"]')) return;
     const script = document.createElement('script');
     script.src = 'message-unread-badges.js?v=1';
+    script.defer = true;
+    document.body.appendChild(script);
+  }
+
+  function loadInterviewInvitations(){
+    if (document.querySelector('script[src*="candidate-interview-invitations.js"]')) return;
+    const script = document.createElement('script');
+    script.src = 'candidate-interview-invitations.js?v=1';
     script.defer = true;
     document.body.appendChild(script);
   }
@@ -167,6 +175,7 @@
     if (!/candidate-dashboard\.html$/.test(location.pathname)) return;
     ensureLayout();
     loadUnreadBadges();
+    loadInterviewInvitations();
     const lib = await loadSupabase();
     client = lib.createClient(URL,KEY);
     const session = await client.auth.getSession();
