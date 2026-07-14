@@ -29,7 +29,7 @@
   function loadInterviewLinks(){
     if (document.querySelector('script[src*="rolexa-interview-links.js"]')) return;
     const script = document.createElement('script');
-    script.src = `rolexa-interview-links.js?v=2-${Date.now()}`;
+    script.src = `rolexa-interview-links.js?v=3-${Date.now()}`;
     script.defer = true;
     document.body.appendChild(script);
   }
@@ -138,6 +138,7 @@
     const container = isCandidate ? candidateContainer() : employerContainer();
     if (!container) return;
     container.innerHTML = rows.length ? rows.map(eventHtml).join('') : '<div class="rx-calendar-empty">No confirmed upcoming interviews yet.</div>';
+    window.__rolexaInterviewLinksRender?.();
   }
 
   async function refresh(){
@@ -155,8 +156,7 @@
     user = session.data?.session?.user;
     if (!user) return;
     await refresh();
-    setInterval(() => refresh().catch(()=>{}),5000);
-    setInterval(render,1500);
+    setInterval(() => refresh().catch(()=>{}),10000);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
