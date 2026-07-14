@@ -1,13 +1,25 @@
-# Employer company profile test
+# Employer company profile
 
-1. Run `supabase-employer-profile-setup.sql` in the Rolexa Supabase SQL editor.
-2. Deploy or preview the `feature/employer-company-profile` branch.
-3. Sign in with an employer account.
-4. Open `/employer-company-profile.html`.
-5. Add company details and save.
-6. Refresh the page and confirm all fields remain.
-7. Upload a PNG, JPG, WebP or SVG logo under 2 MB and save.
-8. Refresh, sign out and sign back in, then confirm the logo and profile remain.
-9. Confirm another employer account cannot view or overwrite the first employer's profile.
+The employer company profile is connected from the employer dashboard navigation.
 
-The existing employer dashboard, jobs, applications, messaging and interview files are unchanged on this branch.
+## Supabase setup
+
+`supabase-employer-profile-setup.sql` creates:
+
+- `public.employer_profiles`
+- the public `company-logos` storage bucket
+- owner-only insert, update and delete policies
+- per-employer profile row-level security
+
+## Live test
+
+1. Sign in with an employer account.
+2. Open the employer dashboard.
+3. Select **Company profile**.
+4. Add company details and save.
+5. Refresh and confirm all fields remain.
+6. Upload a PNG, JPG, WebP or SVG logo under 2 MB and save.
+7. Refresh, sign out and sign back in, then confirm the logo and details remain.
+8. Confirm another employer account cannot overwrite the first employer's profile.
+
+The existing jobs, applications, messaging and interview JavaScript modules were not changed by this feature.
