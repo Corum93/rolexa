@@ -33,7 +33,7 @@
   function loadEmployerInterviewConfirmation(){
     if (!isEmployer || document.querySelector('script[src*="employer-interview-confirmation.js"]')) return;
     const script = document.createElement('script');
-    script.src = 'employer-interview-confirmation.js?v=1';
+    script.src = 'employer-interview-confirmation.js?v=2';
     script.defer = true;
     document.body.appendChild(script);
   }
@@ -41,7 +41,15 @@
   function loadCandidateBooking(){
     if (!isCandidate || document.querySelector('script[src*="candidate-interview-booking.js"]')) return;
     const script = document.createElement('script');
-    script.src = 'candidate-interview-booking.js?v=1';
+    script.src = 'candidate-interview-booking.js?v=2';
+    script.defer = true;
+    document.body.appendChild(script);
+  }
+
+  function loadCalendarEvents(){
+    if (document.querySelector('script[src*="rolexa-calendar-events.js"]')) return;
+    const script = document.createElement('script');
+    script.src = 'rolexa-calendar-events.js?v=1';
     script.defer = true;
     document.body.appendChild(script);
   }
@@ -183,6 +191,7 @@
     loadEmployerScheduling();
     loadEmployerInterviewConfirmation();
     loadCandidateBooking();
+    loadCalendarEvents();
     const lib = await loadSupabase();
     const config = await readConfig();
     client = lib.createClient(config.url,config.key);
