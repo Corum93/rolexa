@@ -6,11 +6,14 @@
   const SUPABASE_KEY = 'sb_publishable_bHyw-HOLRFv_7FDAI1amhQ_MX-Sjocd';
   let client = null;
   let metricsLoaded = false;
+  let analyticsLoaded = false;
+  let analyticsDays = 90;
 
   const byId = id => document.getElementById(id);
   const show = id => byId(id)?.classList.remove('hidden');
   const hide = id => byId(id)?.classList.add('hidden');
   const number = value => new Intl.NumberFormat('en-GB').format(Number(value || 0));
+  const decimal = value => Number(value || 0).toLocaleString('en-GB', { maximumFractionDigits: 2 });
 
   function loadSupabase() {
     return new Promise((resolve, reject) => {
@@ -49,6 +52,13 @@
     el.className = `metrics-status ${kind}`.trim();
   }
 
+  function setAnalyticsStatus(message, kind = '') {
+    const el = byId('analyticsStatus');
+    if (!el) return;
+    el.textContent = message;
+    el.className = `metrics-status ${kind}`.trim();
+  }
+
   async function loadMetrics(force = false) {
     if (metricsLoaded && !force) return;
     setMetricsStatus('Loading live platform metrics…');
@@ -71,87 +81,143 @@
     } catch (error) {
       console.error('Rolexa metrics load failed', error);
       const missingFunction = /get_rolexa_admin_headline_metrics|schema cache|function/i.test(error?.message || '');
-      setMetricsStatus(missingFunction ? 'The Step 3 Supabase metrics SQL still needs to be applied.' : (error?.message || 'Could not load platform metrics.'), 'bad');
+      setMetricsStatus(missingFunction ? 'The headline metrics Supabase SQL still needs to be applied.' : (error?.message || 'Could not load platform metrics.'), 'bad');
     } finally {
       if (refresh) { refresh.disabled = false; refresh.textContent = 'Refresh data'; }
     }
   }
 
+  function aggregateTimeline(rows, targetPoints = 18) {
+    const clean = Array.isArray(rows) ? rows : [];
+    if (clean.length <= targetPoints) return clean;
+    const bucketSize = Math.ceil(clean.length / targetPoints);
+    const result = [];
+    for (let i = 0; i < clean.length; i += bucketSize) {
+      const bucket = clean.slice(i, i + bucketSize);
+      result.push({
+        date: bucket[bucket.length - 1]?.date,
+        registrations: bucket.reduce((s, r) => s + Number(r.registrations || 0), 0),
+        candidates: bucket.reduce((s, r) => s + Number(r.candidates || 0), 0),
+        employers: bucket.reduce((s, r) => s + Number(r.employers || 0), 0),
+        jobs: bucket.reduce((s, r) => s + Number(r.jobs || 0), 0),
+        applications: bucket.reduce((s, r) => s + Number(r.applications || 0), 0)
+      });
+    }
+    return result;
+  }
+
+  function lineChart(containerId, rows, series) {
+    const container = byId(containerId);
+    if (!container) return;
+    const points = aggregateTimeline(rows);
+    const totals = series.map(item => points.reduce((sum, row) => sum + Number(row[item.key] || 0), 0));
+    if (!points.length || totals.every(total => total === 0)) {
+      container.innerHTML = '<div class="chart-empty">No activity has been recorded in this period yet.</div>';
+      return;
+    }
+
+    const width = 760, height = 245, left = 38, right = 12, top = 18, bottom = 34;
+    const plotWidth = width - left - right, plotHeight = height - top - bottom;
+    const maxValue = Math.max(1, ...series.flatMap(item => points.map(row => Number(row[item.key] || 0))));
+    const x = index => left + (points.length === 1 ? plotWidth / 2 : (index / (points.length - 1)) * plotWidth);
+    const y = value => top + plotHeight - (Number(value || 0) / maxValue) * plotHeight;
+    const gridLines = [0, .25, .5, .75, 1].map(step => {
+      const gy = top + plotHeight - step * plotHeight;
+      return `<line x1="${left}" y1="${gy}" x2="${width-right}" y2="${gy}" stroke="rgba(7,16,37,.08)"/><text class="chart-axis" x="2" y="${gy+3}">${Math.round(maxValue*step)}</text>`;
+    }).join('');
+    const paths = series.map(item => {
+      const d = points.map((row, index) => `${index ? 'L' : 'M'} ${x(index).toFixed(1)} ${y(row[item.key]).toFixed(1)}`).join(' ');
+      const dots = points.map((row, index) => Number(row[item.key] || 0) > 0 ? `<circle cx="${x(index)}" cy="${y(row[item.key])}" r="3" fill="${item.color}"><title>${item.label}: ${number(row[item.key])} on ${row.date}</title></circle>` : '').join('');
+      return `<path d="${d}" fill="none" stroke="${item.color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}`;
+    }).join('');
+    const labelIndexes = [...new Set([0, Math.floor((points.length - 1) / 2), points.length - 1])];
+    const labels = labelIndexes.map(index => {
+      const date = points[index]?.date ? new Date(`${points[index].date}T00:00:00`) : null;
+      return `<text class="chart-axis" text-anchor="middle" x="${x(index)}" y="${height-8}">${date ? date.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : ''}</text>`;
+    }).join('');
+    container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Rolexa analytics line chart">${gridLines}${paths}${labels}</svg>`;
+  }
+
+  function renderAnalytics(data) {
+    const ratios = data?.ratios || {};
+    byId('ratioApplicationsPerJob').textContent = decimal(ratios.applications_per_job);
+    byId('ratioCandidatesPerEmployer').textContent = decimal(ratios.candidates_per_employer);
+    byId('ratioLiveJobsPerCandidate').textContent = decimal(ratios.live_jobs_per_candidate);
+    const timeline = data?.timeline || [];
+    lineChart('growthChart', timeline, [
+      { key: 'registrations', label: 'Users', color: '#176BFF' },
+      { key: 'candidates', label: 'Candidates', color: '#22A06B' },
+      { key: 'employers', label: 'Employers', color: '#8B5CF6' }
+    ]);
+    lineChart('demandChart', timeline, [
+      { key: 'jobs', label: 'Jobs', color: '#F59E0B' },
+      { key: 'applications', label: 'Applications', color: '#E0533F' }
+    ]);
+  }
+
+  async function loadAnalytics(force = false) {
+    if (analyticsLoaded && !force) return;
+    setAnalyticsStatus(`Loading ${analyticsDays}-day growth and demand analytics…`);
+    try {
+      const { data, error } = await client.rpc('get_rolexa_admin_growth_analytics', { days_back: analyticsDays });
+      if (error) throw error;
+      renderAnalytics(data || {});
+      const generated = data?.generated_at ? new Date(data.generated_at) : new Date();
+      setAnalyticsStatus(`${analyticsDays}-day analytics refreshed ${generated.toLocaleString('en-GB')}.`, 'good');
+      analyticsLoaded = true;
+    } catch (error) {
+      console.error('Rolexa analytics load failed', error);
+      const missingFunction = /get_rolexa_admin_growth_analytics|schema cache|function/i.test(error?.message || '');
+      setAnalyticsStatus(missingFunction ? 'The growth analytics Supabase SQL still needs to be applied.' : (error?.message || 'Could not load growth analytics.'), 'bad');
+      byId('growthChart').innerHTML = '<div class="chart-empty">Growth analytics are not available yet.</div>';
+      byId('demandChart').innerHTML = '<div class="chart-empty">Demand analytics are not available yet.</div>';
+    }
+  }
+
   async function verifyStaff(user) {
     if (!user) return null;
-    const { data, error } = await client
-      .from('rolexa_staff_users')
-      .select('user_id,role,is_active,full_name,job_title')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .maybeSingle();
-    if (error) {
-      console.error('Rolexa staff verification failed', error);
-      return null;
-    }
+    const { data, error } = await client.from('rolexa_staff_users').select('user_id,role,is_active,full_name,job_title').eq('user_id', user.id).eq('is_active', true).maybeSingle();
+    if (error) { console.error('Rolexa staff verification failed', error); return null; }
     return data || null;
   }
 
   async function routeSession() {
-    hide('loginGate');
-    hide('deniedGate');
-    hide('adminApp');
-    show('loadingGate');
-
+    hide('loginGate'); hide('deniedGate'); hide('adminApp'); show('loadingGate');
     const { data: { user }, error } = await client.auth.getUser();
     hide('loadingGate');
-
-    if (error || !user) {
-      metricsLoaded = false;
-      show('loginGate');
-      return;
-    }
-
+    if (error || !user) { metricsLoaded = false; analyticsLoaded = false; show('loginGate'); return; }
     const staff = await verifyStaff(user);
-    if (!staff) {
-      metricsLoaded = false;
-      show('deniedGate');
-      return;
-    }
-
+    if (!staff) { metricsLoaded = false; analyticsLoaded = false; show('deniedGate'); return; }
     byId('staffName').textContent = staff.full_name || user.email || 'Rolexa staff';
     byId('staffRole').textContent = [staff.job_title, staff.role].filter(Boolean).join(' · ');
     show('adminApp');
-    await loadMetrics();
+    await Promise.all([loadMetrics(), loadAnalytics()]);
   }
 
   async function signIn(event) {
-    event.preventDefault();
-    clearError();
+    event.preventDefault(); clearError();
     const email = byId('adminEmail').value.trim();
     const password = byId('adminPassword').value;
     const button = byId('adminLoginButton');
-    button.disabled = true;
-    button.textContent = 'Signing in…';
+    button.disabled = true; button.textContent = 'Signing in…';
     try {
       const { data, error } = await client.auth.signInWithPassword({ email, password });
       if (error || !data.user) throw error || new Error('Sign-in failed.');
       const staff = await verifyStaff(data.user);
-      if (!staff) {
-        await client.auth.signOut();
-        throw new Error('This account is not approved for Rolexa internal access.');
-      }
-      metricsLoaded = false;
-      await routeSession();
-    } catch (error) {
-      setError(error?.message || 'Could not sign in.');
-    } finally {
-      button.disabled = false;
-      button.textContent = 'Sign in securely';
-    }
+      if (!staff) { await client.auth.signOut(); throw new Error('This account is not approved for Rolexa internal access.'); }
+      metricsLoaded = false; analyticsLoaded = false; await routeSession();
+    } catch (error) { setError(error?.message || 'Could not sign in.'); }
+    finally { button.disabled = false; button.textContent = 'Sign in securely'; }
   }
 
   async function signOut() {
-    await client.auth.signOut();
-    metricsLoaded = false;
-    hide('adminApp');
-    hide('deniedGate');
-    show('loginGate');
+    await client.auth.signOut(); metricsLoaded = false; analyticsLoaded = false;
+    hide('adminApp'); hide('deniedGate'); show('loginGate');
+  }
+
+  async function refreshAll() {
+    metricsLoaded = false; analyticsLoaded = false;
+    await Promise.all([loadMetrics(true), loadAnalytics(true)]);
   }
 
   async function init() {
@@ -161,14 +227,18 @@
       byId('adminLoginForm')?.addEventListener('submit', signIn);
       byId('adminSignOut')?.addEventListener('click', signOut);
       byId('deniedSignOut')?.addEventListener('click', signOut);
-      byId('refreshMetrics')?.addEventListener('click', () => loadMetrics(true));
+      byId('refreshMetrics')?.addEventListener('click', refreshAll);
+      document.querySelectorAll('[data-days]').forEach(button => button.addEventListener('click', async () => {
+        analyticsDays = Number(button.dataset.days || 90);
+        document.querySelectorAll('[data-days]').forEach(item => item.classList.toggle('active', item === button));
+        analyticsLoaded = false;
+        await loadAnalytics(true);
+      }));
       client.auth.onAuthStateChange(() => setTimeout(routeSession, 0));
       await routeSession();
     } catch (error) {
       console.error('Internal admin startup error', error);
-      hide('loadingGate');
-      show('loginGate');
-      setError('The internal dashboard could not connect securely.');
+      hide('loadingGate'); show('loginGate'); setError('The internal dashboard could not connect securely.');
     }
   }
 
