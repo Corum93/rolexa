@@ -79,25 +79,41 @@
   async function loadData(){
     if (!client || !user) return;
     const [slotResult,bookingResult] = await Promise.all([
-      client.from('interview_slots').select('id,application_id,starts_at,ends_at,meeting_type,status').eq('candidate_user_id',user.id).eq('status','available').gte('starts_at',new Date().toISOString()).order('starts_at',{ascending:true}),
-      client.from('interview_bookings').select('id,slot_id,application_id,status,booked_at,interview_slots(starts_at,ends_at,meeting_type)').eq('candidate_user_id',user.id).eq('status','confirmed').order('booked_at',{ascending:false})
+      client.from('interview_slots').select('id,application_id,starts_at,ends_at,meeting_type,status').eq('candidate_user_id',user.id).in('status',['available','booked']).order('starts_at',{ascending:true}),
+      client.from('interview_bookings').select('id,slot_id,application_id,status,booked_at').eq('candidate_user_id',user.id).eq('status','confirmed').order('booked_at',{ascending:false})
     ]);
     slots = slotResult.error ? [] : uniqueSlots(slotResult.data || []);
-    bookings = bookingResult.error ? [] : (bookingResult.data || []);
-    if (selectedSlotId && !slots.some(slot => String(slot.id) === String(selectedSlotId))) selectedSlotId = '';
+    bookings = bookingResult.error ? [] : (bookingResult.data || []).map(booking => ({
+      ...booking,
+      interview_slot: slots.find(slot => String(slot.id) === String(booking.slot_id)) || null
+    }));
+    if (selectedSlotId && !slots.some(slot => String(slot.id) === String(selectedSlotId) && slot.status === 'available')) selectedSlotId = '';
+  }
+
+  function ensureCard(){
+    const body = document.getElementById('chatBody');
+    if (!body) return null;
+    let card = body.querySelector('.rx-interview-card');
+    if (!card) {
+      card = document.createElement('div');
+      card.className = 'rx-interview-card';
+      body.appendChild(card);
+    }
+    return card;
   }
 
   function render(){
-    const card = document.querySelector('#chatBody .rx-interview-card');
     const applicationId = activeApplicationId();
-    if (!card || !applicationId) return;
-    if (card.classList.contains('rx-booking-enhanced') && !busy) return;
-
+    if (!applicationId) return;
     const booking = bookings.find(item => String(item.application_id) === String(applicationId) && item.status === 'confirmed');
+    let card = document.querySelector('#chatBody .rx-interview-card');
+    if (booking && !card) card = ensureCard();
+    if (!card) return;
+    if (card.classList.contains('rx-booking-enhanced') && !busy) return;
     card.classList.add('rx-booking-enhanced');
 
     if (booking) {
-      const slot = booking.interview_slots || {};
+      const slot = booking.interview_slot || {};
       if (!slot.starts_at) return;
       const minutes = Math.max(0,Math.round((new Date(slot.ends_at)-new Date(slot.starts_at))/60000));
       card.classList.add('rx-booking-confirmed');
@@ -105,8 +121,8 @@
       return;
     }
 
-    const available = slots.filter(slot => String(slot.application_id) === String(applicationId));
-    if (!available.length) return;
+    const available = slots.filter(slot => String(slot.application_id) === String(applicationId) && slot.status === 'available');
+    if (!available.length) { card.remove(); return; }
     const type = available[0].meeting_type || 'Interview';
     const selected = available.find(slot => String(slot.id) === String(selectedSlotId));
     card.classList.remove('rx-booking-confirmed');
@@ -119,17 +135,30 @@
 
   async function confirmBooking(){
     if (!selectedSlotId || busy) return;
+    const chosen = slots.find(slot => String(slot.id) === String(selectedSlotId));
+    if (!chosen) return;
     busy = true;
     const button = document.querySelector('[data-booking-confirm]');
     if (button) { button.disabled = true; button.textContent = 'Confirming...'; }
     const result = await client.rpc('book_interview_slot',{p_slot_id:selectedSlotId});
-    busy = false;
     if (result.error) {
+      busy = false;
       if (button) { button.disabled = false; button.textContent = 'Confirm interview'; }
       toast(result.error.message || 'Could not confirm this interview time.');
       return;
     }
+
+    const minutes = Math.max(0,Math.round((new Date(chosen.ends_at)-new Date(chosen.starts_at))/60000));
+    await client.from('candidate_messages').insert({
+      user_id:user.id,
+      thread_key:`application:${chosen.application_id}`,
+      sender:'candidate',
+      sender_name:'Candidate',
+      body:`Interview confirmed: ${dateLabel(chosen.starts_at)} · ${minutes} minutes · ${chosen.meeting_type || 'Interview'}`
+    });
+
     selectedSlotId = '';
+    busy = false;
     await loadData();
     const card = document.querySelector('#chatBody .rx-interview-card');
     card?.classList.remove('rx-booking-enhanced');
@@ -156,7 +185,7 @@
     if (!body || chatObserver) return;
     chatObserver = new MutationObserver(() => {
       const card = body.querySelector('.rx-interview-card');
-      if (card && !card.classList.contains('rx-booking-enhanced')) render();
+      if ((card && !card.classList.contains('rx-booking-enhanced')) || (!card && bookings.some(item => String(item.application_id) === String(activeApplicationId())))) render();
     });
     chatObserver.observe(body,{childList:true});
     render();
