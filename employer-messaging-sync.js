@@ -10,9 +10,17 @@
 
   const MESSAGE_ENABLED_STATUSES = new Set(['Shortlisted','Interview','Offer','Hired']);
   const byId = id => document.getElementById(id);
-  const safe = value => String(value ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+  const safe = value => String(value ?? '').replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]));
   const shortId = value => String(value || 'candidate').slice(0,8);
   const timeText = value => { try { return value ? new Date(value).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : ''; } catch(e){ return ''; } };
+
+  function loadUnreadBadges(){
+    if (document.querySelector('script[src*="message-unread-badges.js"]')) return;
+    const script = document.createElement('script');
+    script.src = 'message-unread-badges.js?v=1';
+    script.defer = true;
+    document.body.appendChild(script);
+  }
 
   function showStatus(message,type='info'){
     const bar = byId('statusBar');
@@ -37,7 +45,7 @@
   }
 
   async function loadSupabase(){
-    if (window.supabase && window.supabase.createClient) return window.supabase;
+    if (window.supabase?.createClient) return window.supabase;
     await new Promise((resolve,reject) => {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
@@ -51,32 +59,34 @@
   async function readConfig(){
     for (const file of ['candidate-profile-sync.js','employer-job-sync.js?v=2']) {
       try {
-        const res = await fetch(file,{cache:'no-store'});
-        const text = await res.text();
+        const response = await fetch(file,{cache:'no-store'});
+        const text = await response.text();
         const url = (text.match(/https:\/\/[a-z0-9-]+\.supabase\.co/) || [])[0];
         const key = (text.match(/sb_publishable_[A-Za-z0-9_-]+/) || [])[0];
         if (url && key) return {url,key};
-      } catch(e) {}
+      } catch(error) {}
     }
     throw new Error('Supabase config could not be found.');
   }
 
   async function loadApplications(){
     appMap = new Map();
-    const jobsRes = await client.from('jobs').select('id,title,company').eq('employer_user_id',currentUser.id);
-    if (jobsRes.error) throw jobsRes.error;
-    const jobs = jobsRes.data || [];
+    const jobsResult = await client.from('jobs').select('id,title,company').eq('employer_user_id',currentUser.id);
+    if (jobsResult.error) throw jobsResult.error;
+    const jobs = jobsResult.data || [];
     const jobIds = jobs.map(job => job.id).filter(Boolean);
     if (!jobIds.length) return;
-    const appsRes = await client.from('candidate_applications').select('id,user_id,job_id,status').in('job_id',jobIds);
-    if (appsRes.error) throw appsRes.error;
-    const apps = appsRes.data || [];
+
+    const appsResult = await client.from('candidate_applications').select('id,user_id,job_id,status').in('job_id',jobIds);
+    if (appsResult.error) throw appsResult.error;
+    const apps = appsResult.data || [];
     const userIds = [...new Set(apps.map(app => app.user_id).filter(Boolean))];
     let profiles = [];
     if (userIds.length) {
-      const profilesRes = await client.from('candidate_profiles').select('user_id,full_name,email').in('user_id',userIds);
-      if (!profilesRes.error) profiles = profilesRes.data || [];
+      const profilesResult = await client.from('candidate_profiles').select('user_id,full_name,email').in('user_id',userIds);
+      if (!profilesResult.error) profiles = profilesResult.data || [];
     }
+
     const jobMap = new Map(jobs.map(job => [job.id,job]));
     const profileMap = new Map(profiles.map(profile => [profile.user_id,profile]));
     apps.forEach(app => appMap.set(app.id,{app,job:jobMap.get(app.job_id)||{},profile:profileMap.get(app.user_id)||{}}));
@@ -184,18 +194,6 @@
     body.scrollTop = body.scrollHeight;
   }
 
-  function messageModal(appId){
-    const row = appMap.get(appId);
-    if (!row) return showStatus('Could not find this application for messaging.','bad');
-    const name = row.profile.full_name || row.profile.email || `Candidate ${shortId(row.app.user_id)}`;
-    const defaultMessage = row.app.status === 'Shortlisted'
-      ? `Hi ${name}, thanks for applying for ${row.job.title || 'this role'}. We have shortlisted your application and would like to speak with you about next steps.`
-      : `Hi ${name}, I wanted to follow up about your application for ${row.job.title || 'this role'}.`;
-    document.body.insertAdjacentHTML('beforeend',`<div class="rx-modal-backdrop" id="rxMessageModal"><div class="rx-modal"><div class="rx-modal-head"><div><h2>Message ${safe(name)}</h2><p>${safe(row.job.title || row.app.job_id)} · ${safe(row.app.status || 'Application')}</p></div><button class="rx-modal-close" type="button" data-close-message-modal>Close</button></div><div class="rx-modal-body"><div class="rx-message-box"><textarea id="rxEmployerMessageText">${safe(defaultMessage)}</textarea><div class="rx-message-note">This will save the message to the candidate's Rolexa message inbox.</div><div class="rx-message-actions"><button class="rx-status-btn" type="button" data-close-message-modal>Cancel</button><button class="rx-status-btn primary" type="button" data-send-message-app="${safe(appId)}">Send message</button></div></div></div></div></div>`);
-  }
-
-  function closeModal(){ byId('rxMessageModal')?.remove(); }
-
   async function insertEmployerMessage(row,text,button){
     if (!row || !text) return;
     const previous = button?.textContent || 'Send';
@@ -208,35 +206,45 @@
       body:text
     });
     if (button) { button.disabled = false; button.textContent = previous; }
-    if (result.error) throw result.error;
-    activeThread = `application:${row.app.id}`;
+    if (result.error) { showStatus(result.error.message || 'Could not send message.','bad'); return false; }
     await loadMessages();
+    return true;
   }
 
-  async function sendModalMessage(appId,button){
+  function messageModal(appId){
+    const row = appMap.get(appId);
+    if (!row) return showStatus('Could not find this application for messaging.','bad');
+    const name = row.profile.full_name || row.profile.email || `Candidate ${shortId(row.app.user_id)}`;
+    const defaultMessage = row.app.status === 'Shortlisted'
+      ? `Hi ${name}, thanks for applying for ${row.job.title || 'this role'}. We have shortlisted your application and would like to speak with you about next steps.`
+      : `Hi ${name}, I wanted to follow up about your application for ${row.job.title || 'this role'}.`;
+    document.body.insertAdjacentHTML('beforeend',`<div class="rx-modal-backdrop" id="rxMessageModal"><div class="rx-modal"><div class="rx-modal-head"><div><h2>Message ${safe(name)}</h2><p>${safe(row.job.title || row.app.job_id)} · ${safe(row.app.status || 'Application')}</p></div><button class="rx-modal-close" type="button" data-close-message-modal>Close</button></div><div class="rx-modal-body"><div class="rx-message-box"><textarea id="rxEmployerMessageText">${safe(defaultMessage)}</textarea><div class="rx-message-note">This will save the message to the candidate's Rolexa message inbox.</div><div class="rx-message-actions"><button class="rx-status-btn" type="button" data-close-message-modal>Cancel</button><button class="rx-status-btn primary" type="button" data-send-message-app="${safe(appId)}">Send message</button></div></div></div></div></div>`);
+  }
+
+  async function sendFromModal(appId,button){
     const row = appMap.get(appId);
     const text = byId('rxEmployerMessageText')?.value.trim() || '';
+    if (!row) return showStatus('Could not find this application for messaging.','bad');
     if (!text) return showStatus('Write a message before sending.','bad');
-    try {
-      await insertEmployerMessage(row,text,button);
-      closeModal();
+    const ok = await insertEmployerMessage(row,text,button);
+    if (ok) {
+      byId('rxMessageModal')?.remove();
       showStatus('Message sent to candidate.','good');
-    } catch(error){ showStatus(error.message || 'Could not send message.','bad'); }
+    }
   }
 
-  async function sendInboxMessage(event){
+  async function sendFromInbox(event){
     event.preventDefault();
     const row = rowForThread(activeThread);
     const input = byId('rxEmployerChatInput');
     const button = byId('rxEmployerChatSend');
     const text = input?.value.trim() || '';
-    if (!row) return showStatus('Open a conversation before replying.','bad');
-    if (!text) return showStatus('Write a message before sending.','bad');
-    try {
-      await insertEmployerMessage(row,text,button);
+    if (!row || !text) return;
+    const ok = await insertEmployerMessage(row,text,button);
+    if (ok) {
       input.value = '';
-      showStatus('Message sent. The candidate can reply again.','good');
-    } catch(error){ showStatus(error.message || 'Could not send employer reply.','bad'); }
+      showStatus('Reply sent to candidate.','good');
+    }
   }
 
   async function refresh(){
@@ -248,6 +256,7 @@
   async function init(){
     addStyles();
     ensureInbox();
+    loadUnreadBadges();
     try {
       const lib = await loadSupabase();
       const config = await readConfig();
@@ -261,15 +270,18 @@
         if (thread) { activeThread = thread.dataset.employerThread; renderInbox(); return; }
         const messageButton = event.target.closest?.('[data-message-app]');
         if (messageButton) { messageModal(messageButton.dataset.messageApp); return; }
-        const modalSend = event.target.closest?.('[data-send-message-app]');
-        if (modalSend) { sendModalMessage(modalSend.dataset.sendMessageApp,modalSend); return; }
-        if (event.target.matches?.('[data-close-message-modal]') || event.target.id === 'rxMessageModal') closeModal();
+        const sendButton = event.target.closest?.('[data-send-message-app]');
+        if (sendButton) { sendFromModal(sendButton.dataset.sendMessageApp,sendButton); return; }
+        if (event.target.matches?.('[data-close-message-modal]') || event.target.id === 'rxMessageModal') byId('rxMessageModal')?.remove();
       });
-      document.addEventListener('submit',event => { if (event.target.id === 'rxEmployerChatForm') sendInboxMessage(event); });
+      document.addEventListener('submit',event => { if (event.target.id === 'rxEmployerChatForm') sendFromInbox(event); });
 
       await refresh();
       setInterval(() => refresh().catch(()=>{}),5000);
-    } catch(error){ console.warn('Rolexa employer messaging init failed',error); }
+    } catch(error) {
+      console.warn('Rolexa employer messaging failed',error);
+      showStatus(error.message || 'Could not load employer messages.','bad');
+    }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
