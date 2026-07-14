@@ -26,6 +26,14 @@
     });
   }
 
+  function loadInterviewLinks(){
+    if (document.querySelector('script[src*="rolexa-interview-links.js"]')) return;
+    const script = document.createElement('script');
+    script.src = `rolexa-interview-links.js?v=2-${Date.now()}`;
+    script.defer = true;
+    document.body.appendChild(script);
+  }
+
   async function readConfig(){
     for (const file of ['candidate-profile-sync.js','employer-job-sync.js?v=2']) {
       try {
@@ -139,6 +147,7 @@
 
   async function init(){
     addStyles();
+    loadInterviewLinks();
     const lib = await loadSupabase();
     const config = await readConfig();
     client = lib.createClient(config.url,config.key);
