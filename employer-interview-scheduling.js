@@ -102,10 +102,11 @@
       <div class="rx-interview-modal" role="dialog" aria-modal="true" aria-labelledby="rxInterviewTitle">
         <div class="rx-interview-head"><div><h2 id="rxInterviewTitle">Propose interview times</h2><p>${safe(context.job.title || 'Application')} at ${safe(context.job.company || 'Employer')} · Times use your current device timezone</p></div><button class="rx-interview-close" type="button" data-close-interview>Close</button></div>
         <div class="rx-interview-body">
-          <div><label style="font-size:12px;font-weight:900;color:#101F4A;text-transform:uppercase;letter-spacing:.04em">Available times</label><div class="rx-slot-list" id="rxSlotList">${defaults.map(slotRow).join('')}</div></div>
+          <div><label style="font-size:12px;font-weight:900;color:#101F4A;text-transform:uppercase;letter-spacing:.04em">Choose interview options</label><div class="rx-slot-list" id="rxSlotList">${defaults.map(slotRow).join('')}</div></div>
           <button class="rx-interview-secondary" id="rxAddSlot" type="button">+ Add another time</button>
           <div><label style="font-size:12px;font-weight:900;color:#101F4A;text-transform:uppercase;letter-spacing:.04em">Interview duration</label><select id="rxInterviewDuration"><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">60 minutes</option></select></div>
-          <div class="rx-interview-note">Choose between 2 and 5 future options. In the next step, these will appear as a booking card for the candidate.</div>
+          <div><label style="font-size:12px;font-weight:900;color:#101F4A;text-transform:uppercase;letter-spacing:.04em">Interview type</label><select id="rxInterviewType"><option value="Video interview">Video interview</option><option value="Phone call">Phone call</option><option value="In person">In person</option></select></div>
+          <div class="rx-interview-note">Choose between 2 and 5 future options. The candidate will see these as an interview invitation inside Rolexa.</div>
           <div class="rx-interview-actions"><span></span><div class="rx-interview-actions-right"><button class="rx-interview-secondary" type="button" data-close-interview>Cancel</button><button class="rx-interview-primary" id="rxSaveInterviewSlots" type="button" data-application-id="${safe(applicationId)}">Save proposed times</button></div></div>
         </div>
       </div></div>`);
@@ -127,13 +128,14 @@
     catch(error){ return showStatus(error.message || 'Could not load this application.','bad'); }
 
     const duration = Number(byId('rxInterviewDuration')?.value || 30);
+    const meetingType = byId('rxInterviewType')?.value || 'Video interview';
     const rows = starts.map(start => ({
       application_id:context.application.id,
       employer_user_id:user.id,
       candidate_user_id:context.application.user_id,
       starts_at:start.toISOString(),
       ends_at:new Date(start.getTime()+duration*60000).toISOString(),
-      meeting_type:'Video call',
+      meeting_type:meetingType,
       status:'available'
     }));
 
@@ -145,7 +147,7 @@
     button.textContent = previous;
     if (result.error) return showStatus(result.error.message || 'Could not save interview times.','bad');
     closeModal();
-    showStatus(`${rows.length} interview times saved for the candidate.`, 'good');
+    showStatus(`${rows.length} ${meetingType.toLowerCase()} times saved for the candidate.`, 'good');
   }
 
   function ensureButton(){
