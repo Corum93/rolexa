@@ -11,7 +11,6 @@
 
   let client = null;
   let user = null;
-  let currentPath = '';
 
   function byId(id){ return document.getElementById(id); }
 
@@ -46,7 +45,7 @@
     if (byId('rolexaCandidatePhotoStyles')) return;
     const style = document.createElement('style');
     style.id = 'rolexaCandidatePhotoStyles';
-    style.textContent = '.rx-photo-field{grid-column:1/-1}.rx-photo-upload-wrap{display:flex;align-items:center;gap:16px;border:1px solid rgba(7,16,37,.1);background:#F5F7FC;border-radius:16px;padding:14px}.rx-photo-preview{width:72px;height:72px;border-radius:50%;object-fit:cover;background:#176BFF;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;flex:0 0 auto}.rx-photo-copy{display:grid;gap:7px;min-width:0}.rx-photo-copy input{max-width:100%}.rx-photo-help{font-size:12px;color:#6B7280;line-height:1.45}@media(max-width:620px){.rx-photo-upload-wrap{align-items:flex-start;flex-direction:column}}';
+    style.textContent = '.rx-photo-field{grid-column:1/-1}.rx-photo-upload-wrap{display:flex;align-items:center;gap:16px;border:1px solid rgba(7,16,37,.1);background:#F5F7FC;border-radius:16px;padding:14px}.rx-photo-preview{width:72px;height:72px;border-radius:50%;object-fit:cover;background:#176BFF;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;flex:0 0 auto}.rx-photo-copy{display:grid;gap:7px;min-width:0}.rx-photo-copy input{max-width:100%}.rx-photo-help{font-size:12px;color:#6B7280;line-height:1.45}.avatar.rx-has-photo{background-color:#176BFF!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;color:transparent!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}@media(max-width:620px){.rx-photo-upload-wrap{align-items:flex-start;flex-direction:column}}';
     document.head.appendChild(style);
   }
 
@@ -66,6 +65,20 @@
     } else {
       preview.style.backgroundImage = '';
       preview.textContent = initials();
+    }
+  }
+
+  function setTopAvatar(url){
+    const avatar = byId('topAvatar');
+    if (!avatar) return;
+    if (url) {
+      avatar.textContent = '';
+      avatar.style.backgroundImage = `url("${url}")`;
+      avatar.classList.add('rx-has-photo');
+    } else {
+      avatar.style.backgroundImage = '';
+      avatar.classList.remove('rx-has-photo');
+      avatar.textContent = initials();
     }
   }
 
@@ -113,12 +126,21 @@
     });
   }
 
+  async function applySignedPhoto(path){
+    if (!path) { setTopAvatar(''); return; }
+    const signed = await client.storage.from(CONFIG.bucket).createSignedUrl(path, 3600);
+    if (!signed.error && signed.data && signed.data.signedUrl) {
+      setPreview(signed.data.signedUrl);
+      setTopAvatar(signed.data.signedUrl);
+    } else {
+      setTopAvatar('');
+    }
+  }
+
   async function loadCurrentPhoto(){
     const { data, error } = await client.from('candidate_profiles').select('photo_file_path,photo_file_name').eq('user_id', user.id).maybeSingle();
-    if (error || !data || !data.photo_file_path) return;
-    currentPath = data.photo_file_path;
-    const signed = await client.storage.from(CONFIG.bucket).createSignedUrl(currentPath, 3600);
-    if (!signed.error && signed.data && signed.data.signedUrl) setPreview(signed.data.signedUrl);
+    if (error || !data || !data.photo_file_path) { setTopAvatar(''); return; }
+    await applySignedPhoto(data.photo_file_path);
     const helper = byId('candidatePhotoUploadStatus');
     if (helper) helper.textContent = `Current photo: ${data.photo_file_name || 'Profile photo'}`;
   }
@@ -144,9 +166,7 @@
     }).eq('user_id', user.id);
     if (update.error) throw update.error;
 
-    currentPath = path;
-    const signed = await client.storage.from(CONFIG.bucket).createSignedUrl(path, 3600);
-    if (!signed.error && signed.data && signed.data.signedUrl) setPreview(signed.data.signedUrl);
+    await applySignedPhoto(path);
     const helper = byId('candidatePhotoUploadStatus');
     if (helper) helper.textContent = `Current photo: ${file.name}`;
     input.value = '';
