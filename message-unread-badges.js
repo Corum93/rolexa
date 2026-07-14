@@ -30,6 +30,14 @@
     document.body.appendChild(script);
   }
 
+  function loadCandidateBooking(){
+    if (!isCandidate || document.querySelector('script[src*="candidate-interview-booking.js"]')) return;
+    const script = document.createElement('script');
+    script.src = 'candidate-interview-booking.js?v=1';
+    script.defer = true;
+    document.body.appendChild(script);
+  }
+
   async function readConfig(){
     for (const file of ['candidate-profile-sync.js','employer-job-sync.js?v=2']) {
       try {
@@ -165,6 +173,7 @@
     addStyles();
     ensureBadge();
     loadEmployerScheduling();
+    loadCandidateBooking();
     const lib = await loadSupabase();
     const config = await readConfig();
     client = lib.createClient(config.url,config.key);
