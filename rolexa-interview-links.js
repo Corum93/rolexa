@@ -43,6 +43,8 @@
     style.id = 'rxInterviewLinkStyles';
     style.textContent = `
       .rx-meeting-link-area{margin-top:12px;padding-top:12px;border-top:1px solid rgba(7,16,37,.09)}
+      .rx-meeting-link-panel{margin-top:12px;padding:14px;border:1px solid rgba(23,107,255,.18);border-radius:14px;background:#F7F9FF}
+      .rx-meeting-link-panel-title{font-size:13px;font-weight:900;margin-bottom:8px;color:#071025}
       .rx-meeting-link-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
       .rx-meeting-link-input{flex:1;min-width:220px;border:1px solid rgba(7,16,37,.14);border-radius:11px;padding:10px 12px;font:inherit;background:#fff}
       .rx-meeting-link-save,.rx-join-interview{border:0;border-radius:999px;padding:10px 15px;font-weight:900;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
@@ -82,20 +84,49 @@
     return `<div class="rx-meeting-link-area"><form class="rx-meeting-link-form" data-booking-id="${safe(row.id)}"><input class="rx-meeting-link-input" type="url" required placeholder="Paste Zoom, Google Meet or Teams link" aria-label="Interview meeting link"><button class="rx-meeting-link-save" type="submit">Save interview link</button></form><div class="rx-meeting-link-error" hidden></div></div>`;
   }
 
+  function stableEmployerPanel(id,row,title){
+    let panel = document.getElementById(id);
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = id;
+      panel.className = 'rx-meeting-link-panel';
+    }
+    panel.innerHTML = `<div class="rx-meeting-link-panel-title">${safe(title)}</div>${actionHtml(row)}`;
+    return panel;
+  }
+
   function enhanceMessageCard(){
     const applicationId = activeApplicationId();
     if (!applicationId) return;
     const row = rows.find(item => String(item.application_id) === String(applicationId));
     if (!row) return;
-    const card = document.querySelector('#chatBody .rx-booking-confirmed, #rxEmployerChatBody .rx-employer-confirmed-card, #rxEmployerChatBody .rx-booking-confirmed');
+
+    if (isEmployer) {
+      const form = document.getElementById('rxEmployerChatForm');
+      if (!form?.parentElement) return;
+      const panel = stableEmployerPanel('rxEmployerMeetingLinkPanel',row,row.meeting_url ? 'Interview meeting link' : 'Add interview meeting link');
+      if (!panel.isConnected) form.parentElement.insertBefore(panel,form);
+      return;
+    }
+
+    const card = document.querySelector('#chatBody .rx-booking-confirmed');
     if (!card) return;
     let area = card.querySelector('.rx-meeting-link-area');
     const desired = actionHtml(row);
     if (!area) card.insertAdjacentHTML('beforeend',desired);
-    else if ((row.meeting_url && !area.querySelector('.rx-join-interview')) || (!row.meeting_url && isEmployer && !area.querySelector('form'))) area.outerHTML = desired;
+    else if (row.meeting_url && !area.querySelector('.rx-join-interview')) area.outerHTML = desired;
   }
 
   function enhanceCalendarCards(){
+    if (isEmployer) {
+      const card = document.getElementById('rxEmployerCalendarCard');
+      const row = rows[0];
+      if (!card || !row) return;
+      const panel = stableEmployerPanel('rxEmployerCalendarMeetingLinkPanel',row,row.meeting_url ? 'Interview meeting link' : 'Add interview meeting link');
+      if (!panel.isConnected) card.appendChild(panel);
+      return;
+    }
+
     const cards = [...document.querySelectorAll('.rx-calendar-event')];
     if (!cards.length) return;
     const ordered = [...rows].sort((a,b) => new Date(a.booked_at)-new Date(b.booked_at));
@@ -105,7 +136,7 @@
       let area = card.querySelector('.rx-meeting-link-area');
       const desired = actionHtml(row);
       if (!area) card.insertAdjacentHTML('beforeend',desired);
-      else if ((row.meeting_url && !area.querySelector('.rx-join-interview')) || (!row.meeting_url && isEmployer && !area.querySelector('form'))) area.outerHTML = desired;
+      else if (row.meeting_url && !area.querySelector('.rx-join-interview')) area.outerHTML = desired;
     });
   }
 
@@ -141,7 +172,7 @@
       return;
     }
     await loadRows();
-    document.querySelectorAll('.rx-meeting-link-area').forEach(node => node.remove());
+    document.querySelectorAll('.rx-meeting-link-panel,.rx-meeting-link-area').forEach(node => node.remove());
     render();
   }
 
