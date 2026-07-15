@@ -72,6 +72,7 @@
       .rx-booking-option{width:100%;display:flex;gap:10px;align-items:flex-start;text-align:left;cursor:pointer}.rx-booking-option:hover{border-color:#176BFF}.rx-booking-option.selected{border-color:#176BFF;background:#EAF1FF;box-shadow:0 0 0 2px rgba(23,107,255,.10)}
       .rx-booking-radio{width:18px;height:18px;border-radius:50%;border:2px solid #9DB8EE;display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:1px}.rx-booking-option.selected .rx-booking-radio{background:#176BFF;border-color:#176BFF;color:#fff}.rx-booking-copy{min-width:0}.rx-booking-copy span{display:block;color:#6B7280;font-size:11.5px;font-weight:600;margin-top:3px}
       .rx-booking-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:13px}.rx-booking-selection{font-size:11.5px;color:#6B7280}.rx-booking-confirm{border:0;background:#176BFF;color:#fff;border-radius:999px;padding:10px 14px;font-size:12px;font-weight:900}.rx-booking-confirm:disabled{opacity:.45;cursor:not-allowed}.rx-booking-confirmed{border-color:rgba(34,160,107,.28)!important;background:#FBFFFD!important}.rx-booking-pill{display:inline-flex;background:#E1F6EB;color:#176B49;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;margin-top:10px}
+      .rx-booking-link-area{margin-top:12px;padding-top:12px;border-top:1px solid rgba(7,16,37,.09)}.rx-booking-join{border:0;border-radius:999px;padding:10px 15px;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;background:#176BFF;color:#fff}.rx-booking-link-pending{font-size:12.5px;color:#6B7280;font-weight:700}
     `;
     document.head.appendChild(style);
   }
@@ -80,7 +81,7 @@
     if (!client || !user) return;
     const [slotResult,bookingResult] = await Promise.all([
       client.from('interview_slots').select('id,application_id,starts_at,ends_at,meeting_type,status').eq('candidate_user_id',user.id).in('status',['available','booked']).order('starts_at',{ascending:true}),
-      client.from('interview_bookings').select('id,slot_id,application_id,status,booked_at').eq('candidate_user_id',user.id).eq('status','confirmed').order('booked_at',{ascending:false})
+      client.from('interview_bookings').select('id,slot_id,application_id,status,booked_at,meeting_url').eq('candidate_user_id',user.id).eq('status','confirmed').order('booked_at',{ascending:false})
     ]);
     slots = slotResult.error ? [] : uniqueSlots(slotResult.data || []);
     bookings = bookingResult.error ? [] : (bookingResult.data || []).map(booking => ({
@@ -102,6 +103,13 @@
     return card;
   }
 
+  function confirmedActionHtml(booking){
+    if (booking.meeting_url) {
+      return `<div class="rx-booking-link-area"><a class="rx-booking-join rx-join-interview" href="${safe(booking.meeting_url)}" target="_blank" rel="noopener noreferrer">Join interview</a></div>`;
+    }
+    return '<div class="rx-booking-link-area"><span class="rx-booking-link-pending">Meeting link will be added by the employer.</span></div>';
+  }
+
   function render(){
     const applicationId = activeApplicationId();
     if (!applicationId) return;
@@ -117,7 +125,7 @@
       if (!slot.starts_at) return;
       const minutes = Math.max(0,Math.round((new Date(slot.ends_at)-new Date(slot.starts_at))/60000));
       card.classList.add('rx-booking-confirmed');
-      card.innerHTML = `<div class="rx-interview-card-head"><div class="rx-interview-icon">✓</div><div><h3>Interview confirmed</h3><p>Your interview time has been booked successfully.</p></div></div><div class="rx-interview-option selected" style="cursor:default"><b>${safe(dateLabel(slot.starts_at))}</b><span>${safe(`${minutes} minutes · ${slot.meeting_type || 'Interview'}`)}</span></div><div class="rx-booking-pill">Confirmed</div>`;
+      card.innerHTML = `<div class="rx-interview-card-head"><div class="rx-interview-icon">✓</div><div><h3>Interview confirmed</h3><p>Your interview time has been booked successfully.</p></div></div><div class="rx-interview-option selected" style="cursor:default"><b>${safe(dateLabel(slot.starts_at))}</b><span>${safe(`${minutes} minutes · ${slot.meeting_type || 'Interview'}`)}</span></div><div class="rx-booking-pill">Confirmed</div>${confirmedActionHtml(booking)}`;
       return;
     }
 
