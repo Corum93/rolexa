@@ -102,16 +102,18 @@
         .rx-profile-intro{grid-column:1/-1;margin-top:0}
         .rx-profile-actions{grid-column:1/-1;justify-content:flex-start}
         .rx-profile-action{flex:1;text-align:center;min-width:130px}
-        .rx-profile-links{padding:13px;gap:8px}
-        .rx-profile-links-title{width:100%;margin:0 0 2px}
-        .rx-profile-link{flex:1;justify-content:center;min-width:130px}
+        .rx-profile-links{display:grid;grid-template-columns:1fr;padding:14px;gap:10px;border-radius:16px}
+        .rx-profile-links-title{width:auto;margin:0 0 2px;font-size:14px}
+        .rx-profile-link{width:100%;min-width:0;justify-content:flex-start;padding:12px 14px;border-radius:14px;font-size:13px}
+        .rx-profile-link-icon{width:24px;height:24px;border-radius:8px}
       }
       @media(max-width:420px){
         .rx-profile-hero{grid-template-columns:68px minmax(0,1fr);padding:18px 15px}
         .rx-profile-photo{width:66px;height:66px;border-radius:17px}
         .rx-profile-name{font-size:22px}
         .rx-profile-kicker{font-size:10px}
-        .rx-profile-link{min-width:calc(50% - 4px);padding:9px 10px}
+        .rx-profile-links{padding:12px}
+        .rx-profile-link{padding:11px 12px}
       }
     `;
     document.head.appendChild(style);
