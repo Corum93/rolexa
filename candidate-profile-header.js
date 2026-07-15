@@ -3,6 +3,10 @@
   window.__rolexaCandidateProfileHeader = true;
   if (!/candidate-dashboard\.html$/.test(location.pathname)) return;
 
+  const SUPABASE_URL = 'https://hndzomiigjjyyconeqpc.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_bHyw-HOLRFv_7FDAI1amhQ_MX-Sjocd';
+  const CV_BUCKET = 'candidate-cvs';
+
   function esc(value) {
     return String(value || '').replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]));
   }
@@ -54,6 +58,7 @@
       .rx-profile-actions{position:relative;z-index:1;display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
       .rx-profile-action{border-radius:999px;padding:11px 15px;font-size:13px;font-weight:900;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;white-space:nowrap}
       .rx-profile-action.primary{background:#fff;color:#071025;border-color:#fff}
+      .rx-profile-action:disabled{opacity:.65;cursor:wait}
       #profilePage.rx-profile-enhanced>.page-head{margin-bottom:14px}
       #profilePage.rx-profile-enhanced>.page-head .head-actions{display:none!important}
       #profilePage.rx-profile-enhanced .two>article:first-child>h2:first-child,
@@ -115,6 +120,59 @@
     fillEditorFallback();
   }
 
+  function loadSupabase() {
+    return new Promise((resolve, reject) => {
+      if (window.supabase?.createClient) return resolve(window.supabase);
+      const existing = document.querySelector('script[data-rx-cv-supabase]');
+      if (existing) {
+        existing.addEventListener('load', () => resolve(window.supabase), { once:true });
+        existing.addEventListener('error', () => reject(new Error('Supabase could not load')), { once:true });
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      script.dataset.rxCvSupabase = 'true';
+      script.onload = () => resolve(window.supabase);
+      script.onerror = () => reject(new Error('Supabase could not load'));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function openCv(button) {
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Opening CV…';
+    const popup = window.open('', '_blank');
+    try {
+      const lib = await loadSupabase();
+      const client = lib.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const { data: sessionData } = await client.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) throw new Error('Please sign in again to view your CV.');
+
+      let path = storedProfile().cvFilePath || '';
+      if (!path) {
+        const { data, error } = await client.from('candidate_profiles').select('cv_file_path').eq('user_id', user.id).maybeSingle();
+        if (error) throw error;
+        path = data?.cv_file_path || '';
+      }
+      if (!path) throw new Error('No CV has been uploaded yet. Use Edit profile to upload one.');
+
+      const { data: signed, error: signedError } = await client.storage.from(CV_BUCKET).createSignedUrl(path, 300);
+      if (signedError) throw signedError;
+      if (!signed?.signedUrl) throw new Error('The CV link could not be created.');
+
+      if (popup) popup.location.href = signed.signedUrl;
+      else window.open(signed.signedUrl, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      if (popup) popup.close();
+      alert(error?.message || 'Your CV could not be opened. Please try again.');
+    } finally {
+      button.disabled = false;
+      button.textContent = originalText;
+    }
+  }
+
   function render() {
     const page = document.getElementById('profilePage');
     if (!page) return;
@@ -146,6 +204,8 @@
       </div>`;
     page.classList.add('rx-profile-enhanced');
     hero.querySelector('#rxProfileEdit')?.addEventListener('click', openEditor);
+    const cvButton = hero.querySelector('#rxProfileCv');
+    cvButton?.addEventListener('click', () => openCv(cvButton));
   }
 
   function scheduleRender() { setTimeout(render, 80); }
