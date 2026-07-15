@@ -16,6 +16,11 @@
   };
 
   function byId(id){ return document.getElementById(id); }
+  function normaliseUrl(value){
+    const trimmed = String(value || '').trim();
+    if (!trimmed) return null;
+    return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  }
   function showSyncStatus(kind, text){
     let el = document.getElementById('rolexaProfileSyncStatus');
     if (!el) {
@@ -65,6 +70,10 @@
       salary: row.minimum_salary || '',
       skills: row.skills || '',
       summary: row.profile_summary || '',
+      linkedinUrl: row.linkedin_url || '',
+      portfolioUrl: row.portfolio_url || '',
+      websiteUrl: row.website_url || '',
+      githubUrl: row.github_url || '',
       hasCv: !!row.has_cv || !!row.cv_file_path,
       cvFileName: row.cv_file_name || '',
       cvFilePath: row.cv_file_path || '',
@@ -86,6 +95,10 @@
       minimum_salary: byId('salary') ? byId('salary').value.trim() : null,
       skills: byId('skills') ? byId('skills').value.trim() : null,
       profile_summary: byId('summary') ? byId('summary').value.trim() : null,
+      linkedin_url: normaliseUrl(byId('linkedinUrl')?.value),
+      portfolio_url: normaliseUrl(byId('portfolioUrl')?.value),
+      website_url: normaliseUrl(byId('websiteUrl')?.value),
+      github_url: normaliseUrl(byId('githubUrl')?.value),
       has_cv: byId('hasCv') ? byId('hasCv').checked : false,
       open_to_work: byId('openToWork') ? byId('openToWork').checked : true,
       open_to_relocate: byId('relocate') ? byId('relocate').checked : false,
@@ -95,7 +108,11 @@
 
   function fillFormFromLocal(profile){
     if (!profile) return;
-    const map = { fullName: 'fullName', email: 'email', location: 'location', targetRole: 'targetRole', level: 'level', workStyle: 'workStyle', salary: 'salary', skills: 'skills', summary: 'summary' };
+    const map = {
+      fullName: 'fullName', email: 'email', location: 'location', targetRole: 'targetRole',
+      level: 'level', workStyle: 'workStyle', salary: 'salary', skills: 'skills', summary: 'summary',
+      linkedinUrl: 'linkedinUrl', portfolioUrl: 'portfolioUrl', websiteUrl: 'websiteUrl', githubUrl: 'githubUrl'
+    };
     Object.entries(map).forEach(([key, id]) => { if (byId(id)) byId(id).value = profile[key] || ''; });
     if (byId('hasCv')) byId('hasCv').checked = !!profile.hasCv;
     if (byId('openToWork')) byId('openToWork').checked = profile.openToWork !== false;
@@ -227,6 +244,7 @@
       const localProfile = dbToLocal(data);
       localStorage.setItem(CONFIG.profileKey, JSON.stringify(localProfile));
       fillFormFromLocal(localProfile);
+      window.dispatchEvent(new CustomEvent('rolexa:candidate-profile-updated', { detail: localProfile }));
       if (typeof window.showApp === 'function') window.showApp();
       else if (typeof window.renderAll === 'function') window.renderAll();
       showSyncStatus('good', 'Profile loaded from Supabase.');
@@ -260,12 +278,26 @@
           showSyncStatus('bad', 'Profile saved locally, but Supabase save failed.');
           return;
         }
+        const refreshed = dbToLocal({ ...payload, cv_file_path: payload.cv_file_path || storedCvPath(), cv_file_name: payload.cv_file_name || storedCvName() });
+        localStorage.setItem(CONFIG.profileKey, JSON.stringify(refreshed));
+        fillFormFromLocal(refreshed);
+        window.dispatchEvent(new CustomEvent('rolexa:candidate-profile-updated', { detail: refreshed }));
+        window.dispatchEvent(new CustomEvent('rolexa:candidate-links-updated', { detail: refreshed }));
         showSyncStatus('good', 'Profile saved to Supabase.');
       } catch (err) {
         console.warn('Rolexa profile sync error', err);
         showSyncStatus('bad', err.message || 'Could not save profile to Supabase.');
       }
     });
+  }
+
+  function storedCvPath(){
+    try { return JSON.parse(localStorage.getItem(CONFIG.profileKey) || '{}').cvFilePath || ''; }
+    catch (_) { return ''; }
+  }
+  function storedCvName(){
+    try { return JSON.parse(localStorage.getItem(CONFIG.profileKey) || '{}').cvFileName || ''; }
+    catch (_) { return ''; }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
