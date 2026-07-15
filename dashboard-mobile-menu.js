@@ -15,7 +15,8 @@
         ['Messages','messages'],
         ['Profile','profile'],
         ['Salary Insights','salary'],
-        ['Edit profile','editProfile']
+        ['Edit profile','editProfile'],
+        ['Sign out','signOut']
       ]
     : [
         ['Overview','overview'],
@@ -23,7 +24,8 @@
         ['Jobs','jobs'],
         ['Applications','matches'],
         ['Messages','messages'],
-        ['Company profile','companyProfile']
+        ['Company profile','companyProfile'],
+        ['Sign out','signOut']
       ];
 
   const style = document.createElement('style');
@@ -35,8 +37,12 @@
       .mobile-top{display:none!important}
       .topbar{position:sticky!important;top:0!important;z-index:130!important}
       .topbar .user{flex-wrap:wrap;justify-content:flex-end}
-      .rx-mobile-menu-button{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:9px 13px;font-weight:900;font-size:12px;display:inline-flex;align-items:center;gap:7px}
-      .rx-mobile-menu-button:after{content:'⌄';font-size:13px;line-height:1}
+      .topbar .user>.signout,.topbar .user>.rx-profile-sync-signout{display:none!important}
+      .rx-mobile-menu-button{width:54px;height:54px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;border-radius:50%;padding:0;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex:0 0 auto;box-shadow:0 8px 24px rgba(0,0,0,.16)}
+      .rx-mobile-menu-button span{display:block;width:23px;height:3px;border-radius:999px;background:#fff;transition:transform .2s ease,opacity .2s ease}
+      .rx-mobile-menu-button[aria-expanded="true"] span:nth-child(1){transform:translateY(8px) rotate(45deg)}
+      .rx-mobile-menu-button[aria-expanded="true"] span:nth-child(2){opacity:0}
+      .rx-mobile-menu-button[aria-expanded="true"] span:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
       .rx-mobile-dashboard-backdrop{position:fixed;inset:0;z-index:998;background:rgba(2,8,24,.58);backdrop-filter:blur(2px)}
       .rx-mobile-dashboard-backdrop.open{display:block}
       .rx-mobile-dashboard-menu{position:fixed;z-index:999;top:0;right:0;width:min(88vw,360px);height:100dvh;background:linear-gradient(180deg,#071025,#091A42);color:#fff;padding:calc(20px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));box-shadow:-18px 0 60px rgba(0,0,0,.35);overflow:auto;transform:translateX(105%);transition:transform .22s ease;display:block}
@@ -48,6 +54,8 @@
       .rx-mobile-menu-link{width:100%;border:0;background:transparent;color:#C7D3FF;border-radius:14px;padding:15px 16px;font-size:16px;font-weight:850;text-align:left}
       .rx-mobile-menu-link.active{background:#176BFF;color:#fff}
       .rx-mobile-menu-link:hover{background:rgba(255,255,255,.08);color:#fff}
+      .rx-mobile-menu-link.sign-out{margin-top:10px;padding-top:18px;border-top:1px solid rgba(255,255,255,.14);border-radius:0;color:#FFCEC8}
+      .rx-mobile-menu-link.sign-out:hover{background:transparent;color:#fff}
 
       .rx-mobile-dashboard-menu.employer-match{left:0;right:auto;width:100vw;max-width:none;padding:calc(28px + env(safe-area-inset-top)) 18px calc(30px + env(safe-area-inset-bottom));box-shadow:18px 0 60px rgba(0,0,0,.35);transform:translateX(-105%)}
       .rx-mobile-dashboard-menu.employer-match.open{transform:translateX(0)}
@@ -58,18 +66,14 @@
       .rx-mobile-dashboard-menu.employer-match .rx-mobile-menu-links{gap:14px;padding:0}
       .rx-mobile-dashboard-menu.employer-match .rx-mobile-menu-link{border-radius:22px;padding:20px 26px;font-size:20px;font-weight:800}
       .rx-mobile-dashboard-menu.employer-match .rx-mobile-menu-link.active{box-shadow:0 12px 30px rgba(23,107,255,.25)}
+      .rx-mobile-dashboard-menu.employer-match .rx-mobile-menu-link.sign-out{border-radius:0}
     }
     @media(max-width:760px){
       .topbar{padding:14px 16px!important}
-      .topbar .user{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px!important}
+      .topbar .user{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px!important}
       .topbar .user>div:nth-child(2){min-width:0}
       .topbar .user b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
-      .rx-mobile-menu-button,.signout,.rx-profile-sync-signout{white-space:nowrap}
-    }
-    @media(max-width:520px){
-      .topbar .user{grid-template-columns:auto minmax(0,1fr) auto!important}
-      .rx-mobile-menu-button{grid-column:3;grid-row:1}
-      .topbar .user .signout,.topbar .user .rx-profile-sync-signout{grid-column:3;grid-row:2;justify-self:end}
+      .rx-mobile-menu-button{grid-column:3;grid-row:1;width:52px;height:52px}
     }
   `;
   document.head.appendChild(style);
@@ -80,7 +84,8 @@
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'rx-mobile-menu-button';
-  button.textContent = 'Menu';
+  button.innerHTML = '<span></span><span></span><span></span>';
+  button.setAttribute('aria-label','Open menu');
   button.setAttribute('aria-expanded','false');
   button.setAttribute('aria-controls','rxDashboardMobileMenu');
   userArea.appendChild(button);
@@ -102,10 +107,24 @@
   options.forEach(([label,view],index) => {
     const item = document.createElement('button');
     item.type = 'button';
-    item.className = 'rx-mobile-menu-link' + (index === 0 ? ' active' : '');
+    item.className = 'rx-mobile-menu-link' + (index === 0 ? ' active' : '') + (view === 'signOut' ? ' sign-out' : '');
     item.textContent = label;
     item.dataset.view = view;
-    item.addEventListener('click',() => {
+    item.addEventListener('click',async () => {
+      if (view === 'signOut') {
+        closeMenu();
+        if (isEmployer && typeof window.rolexaEmployerSignOut === 'function') {
+          await window.rolexaEmployerSignOut();
+          return;
+        }
+        const existing = document.querySelector('.topbar .rx-profile-sync-signout, .topbar .signout');
+        if (existing) {
+          existing.click();
+          return;
+        }
+        location.href = isCandidate ? 'candidate-login.html' : 'employer-login.html';
+        return;
+      }
       if (view === 'companyProfile') {
         location.href = 'employer-company-profile.html';
         return;
@@ -128,19 +147,21 @@
   });
 
   function setActive(view){
-    menu.querySelectorAll('.rx-mobile-menu-link').forEach(item => item.classList.toggle('active',item.dataset.view === view));
+    menu.querySelectorAll('.rx-mobile-menu-link:not(.sign-out)').forEach(item => item.classList.toggle('active',item.dataset.view === view));
   }
   function openMenu(){
     menu.classList.add('open');
     backdrop.classList.add('open');
     document.body.classList.add('rx-dashboard-menu-open');
     button.setAttribute('aria-expanded','true');
+    button.setAttribute('aria-label','Close menu');
   }
   function closeMenu(){
     menu.classList.remove('open');
     backdrop.classList.remove('open');
     document.body.classList.remove('rx-dashboard-menu-open');
     button.setAttribute('aria-expanded','false');
+    button.setAttribute('aria-label','Open menu');
   }
 
   button.addEventListener('click',() => menu.classList.contains('open') ? closeMenu() : openMenu());
