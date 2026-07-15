@@ -10,6 +10,11 @@
   let user = null;
   let allowedThreads = [];
   let markingThread = '';
+  let employerProfile = null;
+  const candidateBrands = new Map();
+
+  const safe = value => String(value ?? '').replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]));
+  const initials = value => String(value || 'Company').trim().split(/\s+/).slice(0,2).map(part => part[0] || '').join('').toUpperCase() || 'C';
 
   function loadSupabase(){
     return new Promise((resolve,reject) => {
@@ -83,8 +88,120 @@
       .rx-nav-message-label{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%}
       .rx-unread-badge{display:none;min-width:21px;height:21px;padding:0 6px;border-radius:999px;background:#F8C9C5;color:#8F251D;font-size:11px;font-weight:900;align-items:center;justify-content:center;line-height:1;box-shadow:0 0 0 1px rgba(224,83,63,.18)}
       .rx-unread-badge.show{display:inline-flex}
+      .rx-company-avatar{width:38px;height:38px;border-radius:11px;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;background:#0A1738;color:#fff;font-weight:900;font-size:13px;border:1px solid rgba(7,16,37,.1)}
+      .rx-company-avatar img{width:100%;height:100%;object-fit:contain;background:#fff}
+      .rx-candidate-brand-head{display:flex;align-items:center;gap:11px}
+      .rx-candidate-brand-copy{min-width:0}.rx-candidate-brand-copy b{display:block}.rx-candidate-brand-copy span{display:block}
+      .rx-thread-brand{display:grid!important;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:center}
+      .rx-thread-brand .rx-company-avatar{width:34px;height:34px;border-radius:9px;grid-row:1/3}
+      .rx-thread-brand b,.rx-thread-brand p{grid-column:2;margin:0!important;min-width:0}
     `;
     document.head.appendChild(style);
+  }
+
+  function brandAvatar(profile,sizeClass=''){
+    const name = profile?.company_name || 'Employer';
+    return `<span class="rx-company-avatar ${sizeClass}">${profile?.logo_url ? `<img src="${safe(profile.logo_url)}" alt="${safe(name)} logo">` : safe(initials(name).slice(0,2))}</span>`;
+  }
+
+  async function loadEmployerIdentity(){
+    if (!isEmployer || !client || !user) return;
+    const result = await client.from('employer_profiles').select('company_name,logo_url').eq('user_id',user.id).maybeSingle();
+    if (!result.error) employerProfile = result.data || null;
+    applyEmployerIdentity();
+  }
+
+  function applyEmployerIdentity(){
+    if (!isEmployer || !employerProfile) return;
+    const name = employerProfile.company_name || 'Employer';
+    const topName = document.getElementById('topName');
+    const topAvatar = document.getElementById('topAvatar');
+    if (topName) topName.textContent = name;
+    if (topAvatar) topAvatar.innerHTML = employerProfile.logo_url
+      ? `<img src="${safe(employerProfile.logo_url)}" alt="${safe(name)} logo" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:inherit">`
+      : safe(initials(name).slice(0,1));
+  }
+
+  async function loadCandidateBrands(){
+    if (!isCandidate || !client || !user) return;
+    const apps = await client.from('candidate_applications').select('id').eq('user_id',user.id);
+    if (apps.error) return;
+    await Promise.all((apps.data || []).map(async app => {
+      const result = await client.rpc('get_employer_brand_for_application',{p_application_id:app.id});
+      if (result.error) return;
+      const row = Array.isArray(result.data) ? result.data[0] : result.data;
+      if (row) candidateBrands.set(String(app.id),row);
+    }));
+    applyCandidateIdentity();
+  }
+
+  function activeCandidateApplicationId(){
+    const key = document.querySelector('[data-candidate-thread].active')?.getAttribute('data-candidate-thread') || '';
+    return key.startsWith('application:') ? key.slice('application:'.length) : '';
+  }
+
+  function decorateCandidateChatHead(){
+    const appId = activeCandidateApplicationId();
+    const profile = candidateBrands.get(String(appId));
+    const head = document.querySelector('#rxLiveCandidateMessages .chat-head');
+    const name = document.getElementById('chatName');
+    const sub = document.getElementById('chatSub');
+    if (!head || !name || !profile) return;
+    name.textContent = profile.company_name || 'Employer';
+    if (!head.classList.contains('rx-candidate-brand-head')) {
+      const copy = document.createElement('div');
+      copy.className = 'rx-candidate-brand-copy';
+      name.parentNode.insertBefore(copy,name);
+      copy.append(name);
+      if (sub) copy.append(sub);
+      head.insertAdjacentHTML('afterbegin',brandAvatar(profile));
+      head.classList.add('rx-candidate-brand-head');
+    } else {
+      const avatar = head.querySelector('.rx-company-avatar');
+      if (avatar) avatar.outerHTML = brandAvatar(profile);
+    }
+  }
+
+  function decorateCandidateThreads(){
+    document.querySelectorAll('[data-candidate-thread]').forEach(thread => {
+      const key = thread.getAttribute('data-candidate-thread') || '';
+      if (!key.startsWith('application:')) return;
+      const profile = candidateBrands.get(key.slice('application:'.length));
+      if (!profile) return;
+      const title = thread.querySelector('b');
+      if (title) title.textContent = profile.company_name || 'Employer';
+      if (!thread.classList.contains('rx-thread-brand')) {
+        thread.insertAdjacentHTML('afterbegin',brandAvatar(profile));
+        thread.classList.add('rx-thread-brand');
+      }
+    });
+  }
+
+  function decorateEmployerBubbleNames(){
+    const appId = activeCandidateApplicationId();
+    const profile = candidateBrands.get(String(appId));
+    if (!profile) return;
+    document.querySelectorAll('#chatBody .bubble.them > div:first-child').forEach(meta => {
+      const parts = meta.textContent.split(' · ');
+      if (parts.length > 1) meta.textContent = `${profile.company_name || 'Employer'} · ${parts.slice(1).join(' · ')}`;
+      else meta.textContent = profile.company_name || 'Employer';
+    });
+  }
+
+  function applyCandidateIdentity(){
+    if (!isCandidate) return;
+    decorateCandidateChatHead();
+    decorateCandidateThreads();
+    decorateEmployerBubbleNames();
+  }
+
+  function observeBranding(){
+    const target = document.getElementById('messagesPage') || document.body;
+    const observer = new MutationObserver(() => {
+      if (isEmployer) applyEmployerIdentity();
+      if (isCandidate) applyCandidateIdentity();
+    });
+    observer.observe(target,{childList:true,subtree:true});
   }
 
   function messageNav(){
@@ -170,6 +287,8 @@
       const key = activeThreadKey();
       if (key) await markRead(key);
     }
+    if (isEmployer) applyEmployerIdentity();
+    if (isCandidate) applyCandidateIdentity();
   }
 
   function bindReading(){
@@ -179,7 +298,10 @@
         : event.target.closest?.('[data-employer-thread]');
       if (thread) {
         const key = isCandidate ? thread.getAttribute('data-candidate-thread') : thread.getAttribute('data-employer-thread');
-        setTimeout(() => markRead(key),100);
+        setTimeout(() => {
+          markRead(key);
+          if (isCandidate) applyCandidateIdentity();
+        },100);
         return;
       }
       const nav = event.target.closest?.('.nav [data-view="messages"]');
@@ -208,6 +330,9 @@
     user = session.data?.session?.user;
     if (!user) return;
     bindReading();
+    observeBranding();
+    if (isEmployer) await loadEmployerIdentity();
+    if (isCandidate) await loadCandidateBrands();
     await refreshAndReadVisibleThread();
     setInterval(() => refreshAndReadVisibleThread().catch(()=>{}),3000);
   }
