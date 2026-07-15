@@ -34,6 +34,14 @@
     document.body.appendChild(script);
   }
 
+  function loadCandidateMobileUi(){
+    if (!isCandidate || document.querySelector('script[src*="candidate-mobile-ui.js"]')) return;
+    const script = document.createElement('script');
+    script.src = 'candidate-mobile-ui.js?v=1';
+    script.defer = true;
+    document.body.appendChild(script);
+  }
+
   async function readConfig(){
     for (const file of ['candidate-profile-sync.js','employer-job-sync.js?v=2']) {
       try {
@@ -148,6 +156,7 @@
 
   async function init(){
     addStyles();
+    loadCandidateMobileUi();
     loadInterviewLinks();
     const lib = await loadSupabase();
     const config = await readConfig();
