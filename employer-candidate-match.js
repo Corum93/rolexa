@@ -53,29 +53,24 @@
   }
 
   function workStyleCompatibility(candidateStyle, jobStyle) {
-    if (!jobStyle) return null;
-    if (!candidateStyle) return null;
+    if (!jobStyle || !candidateStyle) return null;
     if (/flexible/i.test(jobStyle)) return true;
     return normalise(candidateStyle) === normalise(jobStyle);
   }
 
   function parseMoneyValues(value) {
     const text = String(value || '').replace(/,/g, '');
-    const values = [...text.matchAll(/£?\s*(\d+(?:\.\d+)?)\s*(k)?/gi)].map(match => {
+    return [...text.matchAll(/£?\s*(\d+(?:\.\d+)?)\s*(k)?/gi)].map(match => {
       const number = Number(match[1]);
       return match[2] ? number * 1000 : number;
     }).filter(Number.isFinite);
-    return values;
   }
 
   function salaryCompatibility(candidateMinimum, jobSalary) {
     const candidateValues = parseMoneyValues(candidateMinimum);
     const jobValues = parseMoneyValues(jobSalary);
-    if (!jobValues.length) return null;
-    if (!candidateValues.length) return null;
-    const candidate = candidateValues[0];
-    const jobMax = Math.max(...jobValues);
-    return jobMax >= candidate;
+    if (!jobValues.length || !candidateValues.length) return null;
+    return Math.max(...jobValues) >= candidateValues[0];
   }
 
   function seniorityToken(value) {
@@ -92,15 +87,13 @@
 
   function seniorityCompatibility(candidateLevel, jobText) {
     const jobLevel = seniorityToken(jobText);
-    if (!jobLevel) return null;
     const candidate = seniorityToken(candidateLevel);
-    if (!candidate) return null;
+    if (!jobLevel || !candidate) return null;
     return candidate === jobLevel;
   }
 
   function roleCompatibility(candidateRole, jobTitle) {
-    if (!jobTitle) return null;
-    if (!candidateRole) return null;
+    if (!jobTitle || !candidateRole) return null;
     return overlap(candidateRole, jobTitle) >= 0.34;
   }
 
@@ -109,23 +102,34 @@
     const style = document.createElement('style');
     style.id = 'rxEmployerMatchStyles';
     style.textContent = `
-      .rx-role-match{border:1px solid rgba(23,107,255,.18);background:linear-gradient(135deg,#F7F9FF,#EDF3FF);border-radius:18px;padding:16px;display:grid;grid-template-columns:120px minmax(0,1fr);gap:18px;align-items:center}
-      .rx-role-match-score{width:104px;height:104px;border-radius:50%;background:#fff;border:9px solid #176BFF;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 10px 28px rgba(23,107,255,.12)}
-      .rx-role-match-score strong{font-family:'Space Grotesk',Inter,sans-serif;font-size:28px;line-height:1;color:#071025}
-      .rx-role-match-score span{font-size:10px;font-weight:900;color:#176BFF;margin-top:5px;text-transform:uppercase;letter-spacing:.05em}
+      .rx-role-match{border:1px solid rgba(23,107,255,.18);background:linear-gradient(135deg,#F8FAFF,#EEF4FF);border-radius:18px;padding:16px}
+      .rx-role-match-top{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;margin-bottom:14px}
+      .rx-role-match-score{width:76px;height:76px;border-radius:18px;background:#176BFF;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(23,107,255,.18)}
+      .rx-role-match-score strong{font-family:'Space Grotesk',Inter,sans-serif;font-size:25px;line-height:1}
+      .rx-role-match-score span{font-size:8.5px;font-weight:900;margin-top:5px;text-transform:uppercase;letter-spacing:.07em}
       .rx-role-match-copy h3{font-family:'Space Grotesk',Inter,sans-serif;font-size:17px;margin:0 0 4px;color:#071025}
-      .rx-role-match-copy>p{font-size:12.5px;color:#6B7280;line-height:1.45;margin:0 0 12px}
-      .rx-role-match-signals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-      .rx-role-match-signal{display:flex;align-items:center;gap:7px;border:1px solid rgba(7,16,37,.08);background:#fff;border-radius:11px;padding:9px 10px;font-size:11.5px;font-weight:800;color:#26324C}
-      .rx-role-match-dot{width:9px;height:9px;border-radius:50%;background:#B9C0CF;flex:0 0 auto}
+      .rx-role-match-copy>p{font-size:12.5px;color:#6B7280;line-height:1.4;margin:0}
+      .rx-role-match-signals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+      .rx-role-match-signal{display:grid;grid-template-columns:9px minmax(0,1fr);gap:7px;align-items:center;border:1px solid rgba(7,16,37,.08);background:#fff;border-radius:11px;padding:9px 10px;font-size:11.5px;font-weight:800;color:#26324C;min-width:0}
+      .rx-role-match-signal span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .rx-role-match-dot{width:8px;height:8px;border-radius:50%;background:#B9C0CF}
       .rx-role-match-signal.good .rx-role-match-dot{background:#22A06B}
       .rx-role-match-signal.bad .rx-role-match-dot{background:#E0533F}
       .rx-role-match-signal.unknown .rx-role-match-dot{background:#AAB2C3}
       .rx-role-match-note{font-size:10.5px;color:#6B7280;margin-top:10px;line-height:1.4}
       @media(max-width:760px){
-        .rx-role-match{grid-template-columns:1fr;text-align:center;padding:14px}
-        .rx-role-match-score{margin:0 auto;width:96px;height:96px}
-        .rx-role-match-signals{grid-template-columns:1fr;text-align:left}
+        .rx-role-match{padding:13px}
+        .rx-role-match-top{grid-template-columns:68px minmax(0,1fr);gap:11px;margin-bottom:12px}
+        .rx-role-match-score{width:68px;height:68px;border-radius:16px}
+        .rx-role-match-score strong{font-size:22px}
+        .rx-role-match-copy h3{font-size:15.5px}
+        .rx-role-match-copy>p{font-size:11.5px}
+        .rx-role-match-signals{grid-template-columns:1fr 1fr}
+        .rx-role-match-signal{font-size:10.8px;padding:8px 9px}
+      }
+      @media(max-width:430px){
+        .rx-role-match-signals{grid-template-columns:1fr}
+        .rx-role-match-signal span:last-child{white-space:normal}
       }
     `;
     document.head.appendChild(style);
@@ -166,7 +170,7 @@
   function signal(label, result) {
     const state = result === true ? 'good' : result === false ? 'bad' : 'unknown';
     const suffix = result === true ? 'Compatible' : result === false ? 'Needs review' : 'Not enough data';
-    return `<div class="rx-role-match-signal ${state}"><span class="rx-role-match-dot"></span><span>${safe(label)} · ${safe(suffix)}</span></div>`;
+    return `<div class="rx-role-match-signal ${state}" title="${safe(label)} · ${safe(suffix)}"><span class="rx-role-match-dot"></span><span>${safe(label)} · ${safe(suffix)}</span></div>`;
   }
 
   function cardHtml(profile, job) {
@@ -182,7 +186,7 @@
     const matched = known.filter(([, result]) => result === true).length;
     const score = known.length ? Math.round((matched / known.length) * 100) : 0;
     const label = score >= 80 ? 'Strong structured match' : score >= 60 ? 'Good structured match' : score >= 40 ? 'Possible structured match' : 'More review needed';
-    return `<section class="rx-role-match" id="rxEmployerRolexaMatch"><div class="rx-role-match-score"><strong>${score}%</strong><span>Rolexa Match</span></div><div class="rx-role-match-copy"><h3>${safe(label)}</h3><p>Calculated from the candidate profile and this job’s structured information.</p><div class="rx-role-match-signals">${results.map(([name,result]) => signal(name,result)).join('')}</div><div class="rx-role-match-note">Phase 1 uses structured data only. It does not analyse the CV or use semantic AI.</div></div></section>`;
+    return `<section class="rx-role-match" id="rxEmployerRolexaMatch"><div class="rx-role-match-top"><div class="rx-role-match-score"><strong>${score}%</strong><span>Rolexa Match</span></div><div class="rx-role-match-copy"><h3>${safe(label)}</h3><p>Based on this candidate’s profile and the role’s structured information.</p></div></div><div class="rx-role-match-signals">${results.map(([name,result]) => signal(name,result)).join('')}</div><div class="rx-role-match-note">Structured data only. CV analysis and semantic AI are not included yet.</div></section>`;
   }
 
   async function render(applicationId) {
