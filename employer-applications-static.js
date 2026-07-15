@@ -54,7 +54,59 @@
     if (byId('rxApplicationsLiveStyles')) return;
     const style = document.createElement('style');
     style.id = 'rxApplicationsLiveStyles';
-    style.textContent = `.rx-app-card{grid-template-columns:45px minmax(0,1fr) auto;align-items:flex-start}.rx-app-main{min-width:0;display:grid;gap:5px}.rx-app-title{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px;font-weight:900;color:#071025}.rx-app-meta{font-size:12.5px;color:#6B7280;line-height:1.45}.rx-app-meta b{color:#26324C}.rx-app-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:420px}.rx-app-warning{grid-column:1/-1;border:1px solid rgba(224,83,63,.18);background:#FFF8F6;border-radius:13px;padding:10px 11px;font-size:12.8px;line-height:1.45;color:#A33327}.rx-status-btn{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900}.rx-status-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.rx-status-btn.danger{border-color:rgba(224,83,63,.25);color:#A33327;background:#FFF8F6}.rx-status-btn:disabled{opacity:.6;cursor:not-allowed}.rx-modal-backdrop{position:fixed;inset:0;background:rgba(7,16,37,.58);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px}.rx-modal{width:min(760px,100%);max-height:88vh;overflow:auto;background:#fff;border-radius:24px;border:1px solid var(--line);box-shadow:0 30px 80px rgba(7,16,37,.35)}.rx-modal-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding:22px 24px;border-bottom:1px solid var(--line)}.rx-modal-head h2{margin:0;font-size:25px}.rx-modal-head p{margin:5px 0 0;color:#6B7280;font-size:13px}.rx-modal-close{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 13px;font-weight:900}.rx-modal-body{padding:22px 24px;display:grid;gap:14px}.rx-profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.rx-profile-field{border:1px solid var(--line);background:#F5F7FC;border-radius:14px;padding:13px}.rx-profile-field b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#6B7280;margin-bottom:5px}.rx-profile-field span{font-size:14px;color:#071025;font-weight:800;line-height:1.4}.rx-profile-field.full{grid-column:1/-1}.rx-modal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}@media(max-width:760px){.rx-app-card{grid-template-columns:42px 1fr}.rx-app-actions{grid-column:2;justify-content:flex-start}.rx-app-warning{grid-column:1/-1}.rx-profile-grid{grid-template-columns:1fr}}`;
+    style.textContent = `
+      .rx-app-card{grid-template-columns:45px minmax(0,1fr) auto;align-items:flex-start}
+      .rx-app-main{min-width:0;display:grid;gap:5px}
+      .rx-app-title{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px;font-weight:900;color:#071025}
+      .rx-app-meta{font-size:12.5px;color:#6B7280;line-height:1.45}
+      .rx-app-meta b{color:#26324C}
+      .rx-app-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:420px}
+      .rx-app-warning{grid-column:1/-1;border:1px solid rgba(224,83,63,.18);background:#FFF8F6;border-radius:13px;padding:10px 11px;font-size:12.8px;line-height:1.45;color:#A33327}
+      .rx-status-btn{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900}
+      .rx-status-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+      .rx-status-btn.danger{border-color:rgba(224,83,63,.25);color:#A33327;background:#FFF8F6}
+      .rx-status-btn:disabled{opacity:.6;cursor:not-allowed}
+      .rx-modal-backdrop{position:fixed;inset:0;background:rgba(7,16,37,.58);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px}
+      .rx-modal{width:min(760px,100%);max-height:88vh;overflow:auto;background:#fff;border-radius:24px;border:1px solid var(--line);box-shadow:0 30px 80px rgba(7,16,37,.35)}
+      .rx-modal-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;padding:22px 24px;border-bottom:1px solid var(--line)}
+      .rx-candidate-head{display:grid;grid-template-columns:82px minmax(0,1fr);gap:16px;align-items:center;min-width:0}
+      .rx-candidate-photo{width:82px;height:82px;border-radius:21px;background:linear-gradient(135deg,#176BFF,#8CA6FF);display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:900;overflow:hidden;border:3px solid #fff;box-shadow:0 10px 24px rgba(7,16,37,.18)}
+      .rx-candidate-photo img{width:100%;height:100%;object-fit:cover;display:block}
+      .rx-candidate-copy{min-width:0}
+      .rx-candidate-copy h2{margin:0;font-size:25px;overflow-wrap:anywhere}
+      .rx-candidate-role{font-size:14px;font-weight:800;color:#26324C;margin-top:5px}
+      .rx-candidate-meta{font-size:12.5px;color:#6B7280;margin-top:5px;line-height:1.45;display:flex;gap:7px;flex-wrap:wrap}
+      .rx-candidate-privacy{display:inline-flex;align-items:center;gap:6px;color:#176B49;background:#E1F6EB;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;margin-top:8px}
+      .rx-modal-close{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 13px;font-weight:900;flex:0 0 auto}
+      .rx-modal-body{padding:22px 24px;display:grid;gap:14px}
+      .rx-profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+      .rx-profile-field{border:1px solid var(--line);background:#F5F7FC;border-radius:14px;padding:13px}
+      .rx-profile-field b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#6B7280;margin-bottom:5px}
+      .rx-profile-field span{font-size:14px;color:#071025;font-weight:800;line-height:1.4}
+      .rx-profile-field.full{grid-column:1/-1}
+      .rx-modal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+      @media(max-width:760px){
+        .rx-app-card{grid-template-columns:42px 1fr}
+        .rx-app-actions{grid-column:2;justify-content:flex-start}
+        .rx-app-warning{grid-column:1/-1}
+        .rx-profile-grid{grid-template-columns:1fr}
+        .rx-modal-backdrop{padding:10px;align-items:flex-end}
+        .rx-modal{max-height:92vh;border-radius:22px 22px 0 0}
+        .rx-modal-head{padding:18px 16px;gap:10px}
+        .rx-candidate-head{grid-template-columns:64px minmax(0,1fr);gap:12px}
+        .rx-candidate-photo{width:64px;height:64px;border-radius:17px;font-size:19px}
+        .rx-candidate-copy h2{font-size:21px}
+        .rx-candidate-role{font-size:13px}
+        .rx-candidate-meta{font-size:11.5px}
+        .rx-modal-body{padding:16px}
+      }
+      @media(max-width:420px){
+        .rx-modal-head{display:grid;grid-template-columns:1fr auto}
+        .rx-candidate-head{grid-template-columns:56px minmax(0,1fr)}
+        .rx-candidate-photo{width:56px;height:56px;border-radius:15px}
+        .rx-modal-close{padding:8px 10px;font-size:12px}
+      }
+    `;
     document.head.appendChild(style);
   }
 
@@ -102,7 +154,7 @@
     if (userIds.length) {
       const pRes = await client
         .from('candidate_profiles')
-        .select('user_id,full_name,email,target_role,current_level,location,work_style,minimum_salary,skills,profile_summary,has_cv,cv_file_path,cv_file_name,cv_file_type,open_to_work,open_to_relocate')
+        .select('user_id,full_name,email,target_role,current_level,location,work_style,minimum_salary,skills,profile_summary,has_cv,cv_file_path,cv_file_name,cv_file_type,open_to_work,open_to_relocate,photo_file_path,photo_file_name,photo_file_type')
         .in('user_id', userIds);
       if (pRes.error) profileWarning = pRes.error.message || 'Candidate profile access blocked.';
       else profiles = pRes.data || [];
@@ -167,15 +219,29 @@
     return `<div class="rx-profile-field ${full ? 'full' : ''}"><b>${safe(label)}</b><span>${safe(value || 'Not added')}</span></div>`;
   }
 
-  function showProfile(applicationId){
+  async function candidatePhotoUrl(profile){
+    if (!profile?.photo_file_path || !client) return '';
+    const { data, error } = await client.storage.from('candidate-photos').createSignedUrl(profile.photo_file_path, 60 * 10);
+    if (error || !data?.signedUrl) return '';
+    return data.signedUrl;
+  }
+
+  async function showProfile(applicationId){
     const row = findApplication(applicationId);
     if (!row) { showStatus('Could not find candidate profile.', 'bad'); return; }
     const profile = row.profile || {};
     const job = row.job || {};
     const app = row.app || {};
     const name = profile.full_name || profile.email || `Candidate ${shortId(app.user_id)}`;
-    const html = `<div class="rx-modal-backdrop" id="rxProfileModal"><div class="rx-modal"><div class="rx-modal-head"><div><h2>${safe(name)}</h2><p>${safe(profile.email || 'No email visible')} · Applied for ${safe(job.title || app.job_id)} · ${safe(app.status || 'Applied')}</p></div><button class="rx-modal-close" type="button" data-close-modal>Close</button></div><div class="rx-modal-body"><div class="rx-profile-grid">${modalField('Target role', profile.target_role)}${modalField('Current level', profile.current_level)}${modalField('Location', profile.location)}${modalField('Work style', profile.work_style)}${modalField('Minimum salary', profile.minimum_salary)}${modalField('Open to relocate', profile.open_to_relocate === true ? 'Yes' : profile.open_to_relocate === false ? 'No' : '')}${modalField('Skills', profile.skills, true)}${modalField('Profile summary', profile.profile_summary, true)}${modalField('CV', profile.cv_file_name || (profile.has_cv ? 'CV uploaded' : 'No CV uploaded yet'), true)}</div><div class="rx-modal-actions"><button class="rx-status-btn" type="button" data-review-cv="${safe(app.id)}" ${(profile.cv_file_path || profile.cv_file_name || profile.has_cv) ? '' : 'disabled'}>View CV</button></div></div></div></div>`;
+    const role = profile.target_role || 'Candidate profile';
+    const locationBits = [profile.location, profile.work_style, profile.current_level].filter(Boolean);
+    const html = `<div class="rx-modal-backdrop" id="rxProfileModal"><div class="rx-modal"><div class="rx-modal-head"><div class="rx-candidate-head"><div class="rx-candidate-photo" id="rxEmployerCandidatePhoto">${safe(initials(name))}</div><div class="rx-candidate-copy"><h2>${safe(name)}</h2><div class="rx-candidate-role">${safe(role)}</div>${locationBits.length ? `<div class="rx-candidate-meta">${locationBits.map(bit => `<span>${safe(bit)}</span>`).join('<span>•</span>')}</div>` : ''}<div class="rx-candidate-privacy"><span>✓</span><span>Contact protected by Rolexa</span></div><div class="rx-candidate-meta"><span>Applied for ${safe(job.title || app.job_id)}</span><span>•</span><span>${safe(app.status || 'Applied')}</span></div></div></div><button class="rx-modal-close" type="button" data-close-modal>Close</button></div><div class="rx-modal-body"><div class="rx-profile-grid">${modalField('Target role', profile.target_role)}${modalField('Current level', profile.current_level)}${modalField('Location', profile.location)}${modalField('Work style', profile.work_style)}${modalField('Minimum salary', profile.minimum_salary)}${modalField('Open to relocate', profile.open_to_relocate === true ? 'Yes' : profile.open_to_relocate === false ? 'No' : '')}${modalField('Skills', profile.skills, true)}${modalField('Profile summary', profile.profile_summary, true)}${modalField('CV', profile.cv_file_name || (profile.has_cv ? 'CV uploaded' : 'No CV uploaded yet'), true)}</div><div class="rx-modal-actions"><button class="rx-status-btn" type="button" data-review-cv="${safe(app.id)}" ${(profile.cv_file_path || profile.cv_file_name || profile.has_cv) ? '' : 'disabled'}>View CV</button></div></div></div></div>`;
     document.body.insertAdjacentHTML('beforeend', html);
+    const photoUrl = await candidatePhotoUrl(profile);
+    const photo = byId('rxEmployerCandidatePhoto');
+    if (photoUrl && photo && byId('rxProfileModal')) {
+      photo.innerHTML = `<img src="${safe(photoUrl)}" alt="${safe(name)} profile photo">`;
+    }
   }
 
   async function openCv(applicationId, button){
