@@ -45,6 +45,8 @@
       .rx-employer-document-type{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#6B7280;font-weight:900;margin-bottom:4px}
       .rx-employer-document-name{font-size:13.5px;color:#071025;font-weight:850;overflow-wrap:anywhere}
       .rx-employer-document-row .rx-status-btn{white-space:nowrap;background:#176BFF;border-color:#176BFF;color:#fff}
+      .rx-employer-activity{display:inline-flex;align-items:center;gap:7px;margin-top:8px;padding:6px 10px;border-radius:999px;background:#EEF3FF;color:#2946C7;font-size:11px;font-weight:900}
+      .rx-employer-activity-dot{width:7px;height:7px;border-radius:50%;background:#176BFF;flex:0 0 auto}
       @media(max-width:760px){
         .rx-employer-profile-links{display:grid;grid-template-columns:1fr;padding:13px;gap:8px}
         .rx-employer-profile-links-title{margin:0 0 2px}
@@ -116,14 +118,7 @@
     const grid = modal?.querySelector('.rx-profile-grid');
     if (!grid || grid.querySelector('.rx-employer-preferences')) return;
 
-    const wanted = new Set([
-      'target role',
-      'current level',
-      'location',
-      'work style',
-      'minimum salary',
-      'open to relocate'
-    ]);
+    const wanted = new Set(['target role','current level','location','work style','minimum salary','open to relocate']);
     const fields = [...grid.children].filter(node => node.classList?.contains('rx-profile-field') && wanted.has(fieldLabel(node)));
     if (!fields.length) return;
 
@@ -145,12 +140,9 @@
 
     const valueNode = skillsField.querySelector('span');
     const raw = valueNode?.textContent?.trim() || '';
-    const skills = raw
-      .split(/[,;\n]+/)
-      .map(skill => skill.trim())
-      .filter(Boolean);
-
+    const skills = raw.split(/[,;\n]+/).map(skill => skill.trim()).filter(Boolean);
     if (!skills.length || /^not added$/i.test(raw)) return;
+
     addStyles();
     skillsField.classList.add('rx-skills-field');
     valueNode.innerHTML = `<div class="rx-employer-skill-list">${skills.map(skill => `<span class="rx-employer-skill-pill">${safe(skill)}</span>`).join('')}</div>`;
@@ -168,18 +160,39 @@
 
     const fileName = cvField?.querySelector('span')?.textContent?.trim() || 'CV uploaded';
     addStyles();
-
     const section = document.createElement('section');
     section.className = 'rx-employer-documents';
     section.innerHTML = `<h3 class="rx-employer-documents-title">Documents</h3><div class="rx-employer-document-row"><div class="rx-employer-document-icon">▤</div><div class="rx-employer-document-copy"><div class="rx-employer-document-type">Curriculum vitae</div><div class="rx-employer-document-name">${safe(fileName)}</div></div></div>`;
-
     const row = section.querySelector('.rx-employer-document-row');
     if (cvButton) row.appendChild(cvButton);
     cvField?.remove();
     grid.appendChild(section);
-
     const actions = modal.querySelector('.rx-modal-actions');
     if (actions && !actions.children.length) actions.remove();
+  }
+
+  function activityText(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const days = Math.max(0, Math.floor((Date.now() - date.getTime()) / 86400000));
+    if (days === 0) return 'Active today';
+    if (days === 1) return 'Active yesterday';
+    if (days < 7) return `Last active ${days} days ago`;
+    if (days < 14) return 'Last active 1 week ago';
+    const weeks = Math.floor(days / 7);
+    if (weeks < 8) return `Last active ${weeks} weeks ago`;
+    return `Profile updated ${date.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}`;
+  }
+
+  function renderActivity(updatedAt) {
+    const modal = document.getElementById('rxProfileModal');
+    const copy = modal?.querySelector('.rx-candidate-copy');
+    if (!copy || copy.querySelector('.rx-employer-activity')) return;
+    const text = activityText(updatedAt);
+    if (!text) return;
+    addStyles();
+    copy.insertAdjacentHTML('beforeend', `<div class="rx-employer-activity"><span class="rx-employer-activity-dot"></span><span>${safe(text)}</span></div>`);
   }
 
   async function render(applicationId) {
@@ -190,30 +203,27 @@
     groupPreferences();
     enhanceSkills();
     enhanceDocuments();
-    if (document.getElementById('rxEmployerCandidateProfessionalLinks')) return;
 
     try {
       const client = await getClient();
-      const { data: application, error: applicationError } = await client
-        .from('candidate_applications')
-        .select('user_id')
-        .eq('id', applicationId)
-        .maybeSingle();
+      const { data: application, error: applicationError } = await client.from('candidate_applications').select('user_id').eq('id', applicationId).maybeSingle();
       if (applicationError || !application?.user_id) return;
 
       const { data: profile, error: profileError } = await client
         .from('candidate_profiles')
-        .select('linkedin_url,portfolio_url,website_url,github_url')
+        .select('linkedin_url,portfolio_url,website_url,github_url,updated_at')
         .eq('user_id', application.user_id)
         .maybeSingle();
       if (profileError || !profile || !document.getElementById('rxProfileModal')) return;
 
+      renderActivity(profile.updated_at);
+      if (document.getElementById('rxEmployerCandidateProfessionalLinks')) return;
       const html = linksHtml(profile);
       if (!html) return;
       addStyles();
       body.insertAdjacentHTML('afterbegin', html);
     } catch (error) {
-      console.warn('Rolexa employer candidate links error', error);
+      console.warn('Rolexa employer candidate profile enhancement error', error);
     }
   }
 
