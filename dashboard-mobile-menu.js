@@ -181,4 +181,12 @@
     profileScript.dataset.rxProfileHeader = 'true';
     document.head.appendChild(profileScript);
   }
+
+  if (isEmployer && !document.querySelector('script[data-rx-employer-candidate-links]')) {
+    const linksScript = document.createElement('script');
+    linksScript.src = 'employer-candidate-professional-links.js?v=1';
+    linksScript.defer = true;
+    linksScript.dataset.rxEmployerCandidateLinks = 'true';
+    document.head.appendChild(linksScript);
+  }
 })();
