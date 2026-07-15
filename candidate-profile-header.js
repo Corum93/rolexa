@@ -7,9 +7,13 @@
     return String(value || '').replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]));
   }
 
+  function storedProfile() {
+    try { return JSON.parse(localStorage.getItem('rolexa_candidate_profile_v2') || '{}'); }
+    catch (_) { return {}; }
+  }
+
   function profileData() {
-    let stored = {};
-    try { stored = JSON.parse(localStorage.getItem('rolexa_candidate_profile_v2') || '{}'); } catch (_) {}
+    const stored = storedProfile();
     const name = document.getElementById('profileName')?.textContent?.trim() || stored.fullName || 'Candidate';
     const metaText = document.getElementById('profileMeta')?.textContent?.trim() || '';
     const role = stored.targetRole || metaText.split(',')[0]?.trim() || 'Professional';
@@ -51,9 +55,12 @@
       .rx-profile-action{border-radius:999px;padding:11px 15px;font-size:13px;font-weight:900;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;white-space:nowrap}
       .rx-profile-action.primary{background:#fff;color:#071025;border-color:#fff}
       #profilePage.rx-profile-enhanced>.page-head{margin-bottom:14px}
+      #profilePage.rx-profile-enhanced>.page-head .head-actions{display:none!important}
       #profilePage.rx-profile-enhanced .two>article:first-child>h2:first-child,
       #profilePage.rx-profile-enhanced #profileMeta{display:none}
       #profilePage.rx-profile-enhanced .two>article:first-child:before{content:'About';display:block;font-family:'Space Grotesk',Inter,sans-serif;font-size:20px;font-weight:800;margin-bottom:10px;color:#071025}
+      .side .nav button[onclick*="editProfile"]{display:none!important}
+      .rx-mobile-menu-link[data-view="editProfile"]{display:none!important}
       @media(max-width:760px){
         .rx-profile-hero{grid-template-columns:82px minmax(0,1fr);padding:20px 18px;gap:15px;border-radius:20px}
         .rx-profile-photo{width:80px;height:80px;border-radius:20px;border-width:3px;font-size:23px}
@@ -73,10 +80,46 @@
     document.head.appendChild(style);
   }
 
+  function removeDuplicateEditLinks() {
+    document.querySelectorAll('.side .nav button').forEach(button => {
+      if (/edit profile/i.test(button.textContent || '')) button.remove();
+    });
+    document.querySelectorAll('.rx-mobile-menu-link[data-view="editProfile"]').forEach(button => button.remove());
+  }
+
+  function fillEditorFallback() {
+    const p = storedProfile();
+    const textFields = ['fullName','email','location','targetRole','level','workStyle','salary','skills','summary'];
+    textFields.forEach(id => {
+      const input = document.getElementById(id);
+      if (input) input.value = p[id] || '';
+    });
+    const hasCv = document.getElementById('hasCv');
+    const openToWork = document.getElementById('openToWork');
+    const relocate = document.getElementById('relocate');
+    if (hasCv) hasCv.checked = !!p.hasCv;
+    if (openToWork) openToWork.checked = !!p.openToWork;
+    if (relocate) relocate.checked = !!p.relocate;
+    const setup = document.getElementById('setupView');
+    const app = document.getElementById('appView');
+    if (setup) setup.style.display = 'block';
+    if (app) app.style.display = 'none';
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function openEditor() {
+    if (typeof window.editProfile === 'function') {
+      window.editProfile();
+      return;
+    }
+    fillEditorFallback();
+  }
+
   function render() {
     const page = document.getElementById('profilePage');
     if (!page) return;
     addStyles();
+    removeDuplicateEditLinks();
     const data = profileData();
     const src = avatarSource();
     let hero = document.getElementById('rxCandidateProfileHero');
@@ -102,11 +145,7 @@
         <button type="button" class="rx-profile-action" id="rxProfileCv">View my CV</button>
       </div>`;
     page.classList.add('rx-profile-enhanced');
-    hero.querySelector('#rxProfileEdit')?.addEventListener('click', () => window.editProfile?.());
-    hero.querySelector('#rxProfileCv')?.addEventListener('click', () => {
-      const existing = Array.from(document.querySelectorAll('button,a')).find(el => /view my cv/i.test(el.textContent || '') && !hero.contains(el));
-      if (existing) existing.click();
-    });
+    hero.querySelector('#rxProfileEdit')?.addEventListener('click', openEditor);
   }
 
   function scheduleRender() { setTimeout(render, 80); }
@@ -114,11 +153,7 @@
     const target = event.target.closest?.('[data-view="profile"],.rx-mobile-menu-link[data-view="profile"]');
     if (target) scheduleRender();
   });
-  const observer = new MutationObserver(() => {
-    const page = document.getElementById('profilePage');
-    if (page?.classList.contains('active')) scheduleRender();
-  });
-  observer.observe(document.documentElement, {subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});
+  window.addEventListener('rolexa:candidate-profile-updated', scheduleRender);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleRender);
   else scheduleRender();
 })();
