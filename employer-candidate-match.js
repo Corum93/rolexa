@@ -104,9 +104,9 @@
     style.textContent = `
       .rx-role-match{border:1px solid rgba(23,107,255,.18);background:linear-gradient(135deg,#F8FAFF,#EEF4FF);border-radius:18px;padding:16px}
       .rx-role-match-top{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;margin-bottom:14px}
-      .rx-role-match-score{width:76px;height:76px;border-radius:18px;background:#176BFF;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(23,107,255,.18)}
+      .rx-role-match-score{width:76px;height:76px;border-radius:18px;background:#176BFF;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;box-shadow:0 10px 24px rgba(23,107,255,.18)}
       .rx-role-match-score strong{font-family:'Space Grotesk',Inter,sans-serif;font-size:25px;line-height:1}
-      .rx-role-match-score span{font-size:8.5px;font-weight:900;margin-top:5px;text-transform:uppercase;letter-spacing:.07em}
+      .rx-role-match-score span{display:block;width:100%;font-size:8.5px;font-weight:900;margin-top:5px;text-transform:uppercase;letter-spacing:.07em;text-align:center;line-height:1.05}
       .rx-role-match-copy h3{font-family:'Space Grotesk',Inter,sans-serif;font-size:17px;margin:0 0 4px;color:#071025}
       .rx-role-match-copy>p{font-size:12.5px;color:#6B7280;line-height:1.4;margin:0}
       .rx-role-match-signals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
