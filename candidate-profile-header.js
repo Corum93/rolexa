@@ -173,6 +173,15 @@
     }
   }
 
+  function loadProfessionalLinksEditor() {
+    if (document.querySelector('script[data-rx-professional-links-editor]')) return;
+    const script = document.createElement('script');
+    script.src = 'candidate-professional-links-editor.js?v=1';
+    script.defer = true;
+    script.dataset.rxProfessionalLinksEditor = 'true';
+    document.head.appendChild(script);
+  }
+
   function render() {
     const page = document.getElementById('profilePage');
     if (!page) return;
@@ -214,6 +223,7 @@
     if (target) scheduleRender();
   });
   window.addEventListener('rolexa:candidate-profile-updated', scheduleRender);
+  loadProfessionalLinksEditor();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleRender);
   else scheduleRender();
 })();
