@@ -48,6 +48,16 @@
       .rx-mobile-menu-link{width:100%;border:0;background:transparent;color:#C7D3FF;border-radius:14px;padding:15px 16px;font-size:16px;font-weight:850;text-align:left}
       .rx-mobile-menu-link.active{background:#176BFF;color:#fff}
       .rx-mobile-menu-link:hover{background:rgba(255,255,255,.08);color:#fff}
+
+      .rx-mobile-dashboard-menu.employer-match{left:0;right:auto;width:100vw;max-width:none;padding:calc(28px + env(safe-area-inset-top)) 18px calc(30px + env(safe-area-inset-bottom));box-shadow:18px 0 60px rgba(0,0,0,.35);transform:translateX(-105%)}
+      .rx-mobile-dashboard-menu.employer-match.open{transform:translateX(0)}
+      .rx-mobile-dashboard-menu.employer-match .rx-mobile-menu-head{margin-bottom:28px;padding:0 16px}
+      .rx-mobile-dashboard-menu.employer-match .rx-mobile-menu-brand{display:flex;align-items:center;gap:12px}
+      .rx-mobile-dashboard-menu.employer-match .rx-mobile-menu-brand-mark{width:58px;height:42px;display:block}
+      .rx-mobile-dashboard-menu.employer-match .rx-mobile-menu-brand-word{font-family:Georgia,'Times New Roman',serif;font-size:38px;font-weight:700;letter-spacing:-.055em;line-height:1}
+      .rx-mobile-dashboard-menu.employer-match .rx-mobile-menu-links{gap:14px;padding:0}
+      .rx-mobile-dashboard-menu.employer-match .rx-mobile-menu-link{border-radius:22px;padding:20px 26px;font-size:20px;font-weight:800}
+      .rx-mobile-dashboard-menu.employer-match .rx-mobile-menu-link.active{box-shadow:0 12px 30px rgba(23,107,255,.25)}
     }
     @media(max-width:760px){
       .topbar{padding:14px 16px!important}
@@ -80,9 +90,12 @@
 
   const menu = document.createElement('aside');
   menu.id = 'rxDashboardMobileMenu';
-  menu.className = 'rx-mobile-dashboard-menu';
+  menu.className = `rx-mobile-dashboard-menu${isEmployer ? ' employer-match' : ''}`;
   menu.setAttribute('aria-label',isCandidate ? 'Candidate dashboard navigation' : 'Employer dashboard navigation');
-  menu.innerHTML = `<div class="rx-mobile-menu-head"><div class="rx-mobile-menu-title">${isCandidate ? 'Candidate menu' : 'Employer menu'}</div><button class="rx-mobile-menu-close" type="button" aria-label="Close menu">×</button></div><nav class="rx-mobile-menu-links"></nav>`;
+
+  const employerBrand = `<div class="rx-mobile-menu-brand"><svg class="rx-mobile-menu-brand-mark" viewBox="0 0 62 42" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="rxEmployerMenu" x1="8" y1="6" x2="56" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#1D7BFF"/><stop offset="1" stop-color="#0057FF"/></linearGradient></defs><path d="M9 35V7h17.5c7.4 0 12.2 4.3 12.2 10.7S33.9 28.4 26.5 28.4H18" stroke="url(#rxEmployerMenu)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30.5 21c0-8.4 6.7-15.1 15.1-15.1S60.7 12.6 60.7 21 54 36.1 45.6 36.1 30.5 29.4 30.5 21Z" stroke="url(#rxEmployerMenu)" stroke-width="6.4"/><path d="M32.7 31.9 24.5 24" stroke="url(#rxEmployerMenu)" stroke-width="6.4" stroke-linecap="round"/></svg><span class="rx-mobile-menu-brand-word">Rolexa</span></div>`;
+
+  menu.innerHTML = `<div class="rx-mobile-menu-head">${isEmployer ? employerBrand : `<div class="rx-mobile-menu-title">Candidate menu</div>`}<button class="rx-mobile-menu-close" type="button" aria-label="Close menu">×</button></div><nav class="rx-mobile-menu-links"></nav>`;
   document.body.append(backdrop,menu);
 
   const links = menu.querySelector('.rx-mobile-menu-links');
