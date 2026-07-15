@@ -189,4 +189,12 @@
     linksScript.dataset.rxEmployerCandidateLinks = 'true';
     document.head.appendChild(linksScript);
   }
+
+  if (isEmployer && !document.querySelector('script[data-rx-employer-role-match]')) {
+    const matchScript = document.createElement('script');
+    matchScript.src = 'employer-candidate-match.js?v=1';
+    matchScript.defer = true;
+    matchScript.dataset.rxEmployerRoleMatch = 'true';
+    document.head.appendChild(matchScript);
+  }
 })();
