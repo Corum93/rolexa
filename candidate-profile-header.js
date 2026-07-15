@@ -6,13 +6,14 @@
   const SUPABASE_URL = 'https://hndzomiigjjyyconeqpc.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_bHyw-HOLRFv_7FDAI1amhQ_MX-Sjocd';
   const CV_BUCKET = 'candidate-cvs';
+  const PROFILE_KEY = 'rolexa_candidate_profile_v2';
 
   function esc(value) {
     return String(value || '').replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]));
   }
 
   function storedProfile() {
-    try { return JSON.parse(localStorage.getItem('rolexa_candidate_profile_v2') || '{}'); }
+    try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}'); }
     catch (_) { return {}; }
   }
 
@@ -25,6 +26,28 @@
     const style = stored.workStyle || metaText.split(',')[2]?.trim() || '';
     const summary = document.getElementById('profileSummary')?.textContent?.trim() || stored.summary || '';
     return { name, role, location, style, summary };
+  }
+
+  function professionalLinks() {
+    const stored = storedProfile();
+    return [
+      { label:'LinkedIn', url:stored.linkedinUrl || '', icon:'in' },
+      { label:'Portfolio', url:stored.portfolioUrl || '', icon:'◫' },
+      { label:'Website', url:stored.websiteUrl || '', icon:'↗' },
+      { label:'GitHub', url:stored.githubUrl || '', icon:'GH' }
+    ].filter(link => link.url);
+  }
+
+  function safeUrl(value) {
+    const trimmed = String(value || '').trim();
+    if (!trimmed) return '';
+    const normalised = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    try {
+      const parsed = new URL(normalised);
+      return ['http:','https:'].includes(parsed.protocol) ? parsed.href : '';
+    } catch (_) {
+      return '';
+    }
   }
 
   function avatarSource() {
@@ -45,7 +68,7 @@
     const style = document.createElement('style');
     style.id = 'rxCandidateProfileHeaderStyles';
     style.textContent = `
-      .rx-profile-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#071025 0%,#0A1738 58%,#176BFF 140%);color:#fff;border-radius:24px;padding:28px;display:grid;grid-template-columns:112px minmax(0,1fr) auto;gap:22px;align-items:center;margin-bottom:18px;box-shadow:0 18px 50px rgba(7,16,37,.16)}
+      .rx-profile-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#071025 0%,#0A1738 58%,#176BFF 140%);color:#fff;border-radius:24px;padding:28px;display:grid;grid-template-columns:112px minmax(0,1fr) auto;gap:22px;align-items:center;margin-bottom:14px;box-shadow:0 18px 50px rgba(7,16,37,.16)}
       .rx-profile-hero:after{content:'';position:absolute;width:300px;height:300px;border-radius:50%;right:-120px;top:-170px;background:rgba(255,255,255,.06);pointer-events:none}
       .rx-profile-photo{position:relative;z-index:1;width:108px;height:108px;border-radius:24px;object-fit:cover;border:4px solid rgba(255,255,255,.9);box-shadow:0 12px 30px rgba(0,0,0,.28);background:#176BFF;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:#fff;overflow:hidden}
       .rx-profile-photo img{width:100%;height:100%;object-fit:cover;display:block}
@@ -59,6 +82,11 @@
       .rx-profile-action{border-radius:999px;padding:11px 15px;font-size:13px;font-weight:900;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;white-space:nowrap}
       .rx-profile-action.primary{background:#fff;color:#071025;border-color:#fff}
       .rx-profile-action:disabled{opacity:.65;cursor:wait}
+      .rx-profile-links{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid rgba(7,16,37,.1);border-radius:18px;padding:13px 16px;margin-bottom:18px;box-shadow:0 10px 30px rgba(7,16,37,.06)}
+      .rx-profile-links-title{font-family:'Space Grotesk',Inter,sans-serif;font-size:13px;font-weight:800;color:#596279;margin-right:2px}
+      .rx-profile-link{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:#071025;background:#F2F5FC;border:1px solid rgba(23,107,255,.12);border-radius:999px;padding:9px 13px;font-size:12.5px;font-weight:900;transition:transform .16s ease,background .16s ease,border-color .16s ease}
+      .rx-profile-link:hover{transform:translateY(-1px);background:#EAF0FF;border-color:rgba(23,107,255,.3)}
+      .rx-profile-link-icon{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:7px;background:#176BFF;color:#fff;font-size:10px;font-weight:900;line-height:1}
       #profilePage.rx-profile-enhanced>.page-head{margin-bottom:14px}
       #profilePage.rx-profile-enhanced>.page-head .head-actions{display:none!important}
       #profilePage.rx-profile-enhanced .two>article:first-child>h2:first-child,
@@ -74,12 +102,16 @@
         .rx-profile-intro{grid-column:1/-1;margin-top:0}
         .rx-profile-actions{grid-column:1/-1;justify-content:flex-start}
         .rx-profile-action{flex:1;text-align:center;min-width:130px}
+        .rx-profile-links{padding:13px;gap:8px}
+        .rx-profile-links-title{width:100%;margin:0 0 2px}
+        .rx-profile-link{flex:1;justify-content:center;min-width:130px}
       }
       @media(max-width:420px){
         .rx-profile-hero{grid-template-columns:68px minmax(0,1fr);padding:18px 15px}
         .rx-profile-photo{width:66px;height:66px;border-radius:17px}
         .rx-profile-name{font-size:22px}
         .rx-profile-kicker{font-size:10px}
+        .rx-profile-link{min-width:calc(50% - 4px);padding:9px 10px}
       }
     `;
     document.head.appendChild(style);
@@ -182,6 +214,28 @@
     document.head.appendChild(script);
   }
 
+  function renderLinks(hero) {
+    let container = document.getElementById('rxCandidateProfessionalLinks');
+    const links = professionalLinks().map(link => ({ ...link, url:safeUrl(link.url) })).filter(link => link.url);
+
+    if (!links.length) {
+      container?.remove();
+      return;
+    }
+
+    if (!container) {
+      container = document.createElement('section');
+      container.id = 'rxCandidateProfessionalLinks';
+      container.className = 'rx-profile-links';
+      hero.insertAdjacentElement('afterend', container);
+    }
+
+    container.innerHTML = `
+      <span class="rx-profile-links-title">Professional links</span>
+      ${links.map(link => `<a class="rx-profile-link" href="${esc(link.url)}" target="_blank" rel="noopener noreferrer"><span class="rx-profile-link-icon">${esc(link.icon)}</span><span>${esc(link.label)}</span></a>`).join('')}
+    `;
+  }
+
   function render() {
     const page = document.getElementById('profilePage');
     if (!page) return;
@@ -215,6 +269,7 @@
     hero.querySelector('#rxProfileEdit')?.addEventListener('click', openEditor);
     const cvButton = hero.querySelector('#rxProfileCv');
     cvButton?.addEventListener('click', () => openCv(cvButton));
+    renderLinks(hero);
   }
 
   function scheduleRender() { setTimeout(render, 80); }
@@ -223,6 +278,7 @@
     if (target) scheduleRender();
   });
   window.addEventListener('rolexa:candidate-profile-updated', scheduleRender);
+  window.addEventListener('rolexa:candidate-links-updated', scheduleRender);
   loadProfessionalLinksEditor();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleRender);
   else scheduleRender();
