@@ -106,15 +106,10 @@
       if (!form?.parentElement) return;
       const panel = stableEmployerPanel('rxEmployerMeetingLinkPanel',row,row.meeting_url ? 'Interview meeting link' : 'Add interview meeting link');
       if (!panel.isConnected) form.parentElement.insertBefore(panel,form);
-      return;
     }
 
-    const card = document.querySelector('#chatBody .rx-booking-confirmed');
-    if (!card) return;
-    let area = card.querySelector('.rx-meeting-link-area');
-    const desired = actionHtml(row);
-    if (!area) card.insertAdjacentHTML('beforeend',desired);
-    else if (row.meeting_url && !area.querySelector('.rx-join-interview')) area.outerHTML = desired;
+    // Candidate message cards are owned entirely by candidate-interview-booking.js.
+    // Keeping one renderer prevents duplicate buttons and five-second flicker.
   }
 
   function enhanceCalendarCards(){
