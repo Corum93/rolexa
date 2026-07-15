@@ -31,6 +31,10 @@
       .rx-employer-profile-link{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;color:#071025;background:#F2F5FC;border:1px solid rgba(23,107,255,.15);border-radius:999px;padding:9px 13px;font-size:12.5px;font-weight:900;transition:transform .16s ease,background .16s ease,border-color .16s ease}
       .rx-employer-profile-link:hover{transform:translateY(-1px);background:#EAF0FF;border-color:rgba(23,107,255,.32)}
       .rx-employer-profile-link-icon{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:7px;background:#176BFF;color:#fff;font-size:10px;font-weight:900;line-height:1}
+      .rx-employer-preferences{grid-column:1/-1;border:1px solid rgba(7,16,37,.10);background:#fff;border-radius:17px;padding:15px}
+      .rx-employer-preferences-title{font-family:'Space Grotesk',Inter,sans-serif;font-size:15px;font-weight:800;color:#071025;margin:0 0 12px}
+      .rx-employer-preferences-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      .rx-employer-preferences .rx-profile-field{background:#F5F7FC;padding:12px}
       .rx-profile-field.rx-skills-field{background:#fff}
       .rx-employer-skill-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
       .rx-employer-skill-pill{display:inline-flex;align-items:center;min-height:30px;border-radius:999px;padding:7px 11px;background:#EAF0FF;border:1px solid rgba(23,107,255,.14);color:#2345B8;font-size:12px;font-weight:900;line-height:1.15}
@@ -38,6 +42,8 @@
         .rx-employer-profile-links{display:grid;grid-template-columns:1fr;padding:13px;gap:8px}
         .rx-employer-profile-links-title{margin:0 0 2px}
         .rx-employer-profile-link{width:100%;min-height:44px}
+        .rx-employer-preferences{padding:13px}
+        .rx-employer-preferences-grid{grid-template-columns:1fr;gap:8px}
         .rx-employer-skill-list{gap:7px}
         .rx-employer-skill-pill{font-size:11.5px;padding:7px 10px}
       }
@@ -91,11 +97,40 @@
     return `<section class="rx-employer-profile-links" id="rxEmployerCandidateProfessionalLinks"><span class="rx-employer-profile-links-title">Professional links</span>${links.map(link => `<a class="rx-employer-profile-link" href="${safe(link.url)}" target="_blank" rel="noopener noreferrer"><span class="rx-employer-profile-link-icon">${safe(link.icon)}</span><span>${safe(link.label)}</span></a>`).join('')}</section>`;
   }
 
+  function fieldLabel(field) {
+    return field.querySelector('b')?.textContent?.trim().toLowerCase() || '';
+  }
+
+  function groupPreferences() {
+    const modal = document.getElementById('rxProfileModal');
+    const grid = modal?.querySelector('.rx-profile-grid');
+    if (!grid || grid.querySelector('.rx-employer-preferences')) return;
+
+    const wanted = new Set([
+      'target role',
+      'current level',
+      'location',
+      'work style',
+      'minimum salary',
+      'open to relocate'
+    ]);
+    const fields = [...grid.children].filter(node => node.classList?.contains('rx-profile-field') && wanted.has(fieldLabel(node)));
+    if (!fields.length) return;
+
+    addStyles();
+    const section = document.createElement('section');
+    section.className = 'rx-employer-preferences';
+    section.innerHTML = '<h3 class="rx-employer-preferences-title">Employment preferences</h3><div class="rx-employer-preferences-grid"></div>';
+    const inner = section.querySelector('.rx-employer-preferences-grid');
+    fields.forEach(field => inner.appendChild(field));
+    grid.prepend(section);
+  }
+
   function enhanceSkills() {
     const modal = document.getElementById('rxProfileModal');
     if (!modal) return;
     const fields = [...modal.querySelectorAll('.rx-profile-field')];
-    const skillsField = fields.find(field => field.querySelector('b')?.textContent?.trim().toLowerCase() === 'skills');
+    const skillsField = fields.find(field => fieldLabel(field) === 'skills');
     if (!skillsField || skillsField.classList.contains('rx-skills-field')) return;
 
     const valueNode = skillsField.querySelector('span');
@@ -116,6 +151,7 @@
     const body = modal?.querySelector('.rx-modal-body');
     if (!modal || !body) return;
 
+    groupPreferences();
     enhanceSkills();
     if (document.getElementById('rxEmployerCandidateProfessionalLinks')) return;
 
