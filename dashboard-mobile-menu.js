@@ -173,4 +173,12 @@
     const original = event.target.closest?.('.side .nav [data-view]');
     if (original) setActive(original.dataset.view);
   });
+
+  if (isCandidate && !document.querySelector('script[data-rx-profile-header]')) {
+    const profileScript = document.createElement('script');
+    profileScript.src = 'candidate-profile-header.js?v=1';
+    profileScript.defer = true;
+    profileScript.dataset.rxProfileHeader = 'true';
+    document.head.appendChild(profileScript);
+  }
 })();
