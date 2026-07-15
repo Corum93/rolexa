@@ -29,7 +29,7 @@
   const style = document.createElement('style');
   style.id = 'rxDashboardMobileMenuStyles';
   style.textContent = `
-    .rx-mobile-dashboard-menu,.rx-mobile-dashboard-backdrop{display:none}
+    .rx-mobile-menu-button,.rx-mobile-dashboard-menu,.rx-mobile-dashboard-backdrop{display:none}
     @media(max-width:1100px){
       body.rx-dashboard-menu-open{overflow:hidden}
       .mobile-top{display:none!important}
