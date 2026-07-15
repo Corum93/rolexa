@@ -1,0 +1,62 @@
+name: Apply employer login mobile layout live
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .employer-login-mobile-trigger-main
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tighten employer login mobile layout
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('employer-login.html')
+          text = path.read_text()
+          marker = '/* employer-login-mobile-compact-v1 */'
+          css = r'''
+/* employer-login-mobile-compact-v1 */
+@media(max-width:600px){
+  .wrap{padding:0 18px}
+  .nav-inner{padding:12px 0 10px;gap:10px}
+  .brand{font-size:25px}.brand svg{width:40px;height:31px}
+  .back{padding:9px 14px;font-size:12px}
+  .main{padding:22px 0 28px;gap:24px;align-items:start}
+  .pill{margin-bottom:12px;padding:7px 11px;font-size:11px}
+  .hero h1{font-size:36px;line-height:1.06;margin-bottom:12px}
+  .hero p{font-size:15px;line-height:1.52}
+  .points{margin-top:18px;gap:10px}
+  .point{padding:12px 13px;border-radius:14px;font-size:13px;line-height:1.42}
+  .card{padding:24px 20px;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .card h2{font-size:28px}.card p{margin-bottom:16px}
+  .tabs{margin-bottom:15px}.tab{padding:9px 8px;font-size:13px}
+  .field{margin-bottom:11px}.field input{font-size:16px;padding:12px 13px}
+  .primary{padding:12px 16px}
+  .small{margin-top:12px!important;line-height:1.45}
+}
+@media(max-width:430px){
+  .hero h1{font-size:33px}
+  .hero p{font-size:14.5px}
+  .point{font-size:12.5px}
+  .card{padding:22px 18px}
+}
+'''
+          if marker not in text:
+              text = text.replace('</style>', css + '\n</style>')
+              path.write_text(text)
+          PY
+      - name: Commit mobile layout fix
+        run: |
+          git config user.name "Rolexa GitHub Action"
+          git config user.email "actions@users.noreply.github.com"
+          git add employer-login.html
+          git diff --cached --quiet || git commit -m "Tighten employer login mobile layout"
+          git push
