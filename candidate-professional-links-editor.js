@@ -3,8 +3,6 @@
   window.__rolexaProfessionalLinksEditor = true;
   if (!/candidate-dashboard\.html$/.test(location.pathname)) return;
 
-  const SUPABASE_URL = 'https://hndzomiigjjyyconeqpc.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_bHyw-HOLRFv_7FDAI1amhQ_MX-Sjocd';
   const PROFILE_KEY = 'rolexa_candidate_profile_v2';
 
   function byId(id) { return document.getElementById(id); }
@@ -62,34 +60,18 @@
       </div>
     `;
     summaryField.insertAdjacentElement('afterend', section);
+    fillFromStoredProfile();
     return true;
   }
 
-  function loadSupabase() {
-    return new Promise((resolve, reject) => {
-      if (window.supabase?.createClient) return resolve(window.supabase);
-      const existing = document.querySelector('script[data-rx-links-supabase],script[src*="@supabase/supabase-js"]');
-      if (existing) {
-        if (window.supabase?.createClient) return resolve(window.supabase);
-        existing.addEventListener('load', () => resolve(window.supabase), { once:true });
-        existing.addEventListener('error', () => reject(new Error('Supabase could not load')), { once:true });
-        return;
-      }
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-      script.dataset.rxLinksSupabase = 'true';
-      script.onload = () => resolve(window.supabase);
-      script.onerror = () => reject(new Error('Supabase could not load'));
-      document.head.appendChild(script);
-    });
-  }
-
-  function fillFields(data) {
+  function fillFromStoredProfile() {
+    let profile = {};
+    try { profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}'); } catch (_) {}
     const values = {
-      linkedinUrl: data?.linkedin_url || '',
-      portfolioUrl: data?.portfolio_url || '',
-      websiteUrl: data?.website_url || '',
-      githubUrl: data?.github_url || ''
+      linkedinUrl: profile.linkedinUrl || '',
+      portfolioUrl: profile.portfolioUrl || '',
+      websiteUrl: profile.websiteUrl || '',
+      githubUrl: profile.githubUrl || ''
     };
     Object.entries(values).forEach(([id, value]) => {
       const input = byId(id);
@@ -97,79 +79,28 @@
     });
   }
 
-  function payloadFromFields(userId) {
-    const values = {
-      user_id: userId,
-      linkedin_url: normaliseUrl(byId('linkedinUrl')?.value),
-      portfolio_url: normaliseUrl(byId('portfolioUrl')?.value),
-      website_url: normaliseUrl(byId('websiteUrl')?.value),
-      github_url: normaliseUrl(byId('githubUrl')?.value),
-      updated_at: new Date().toISOString()
-    };
-    Object.keys(values).forEach(key => {
-      if (key !== 'user_id' && key !== 'updated_at' && !values[key]) values[key] = null;
-    });
-    return values;
-  }
-
-  function updateLocalProfile(payload) {
-    let profile = {};
-    try { profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}'); } catch (_) {}
-    profile.linkedinUrl = payload.linkedin_url || '';
-    profile.portfolioUrl = payload.portfolio_url || '';
-    profile.websiteUrl = payload.website_url || '';
-    profile.githubUrl = payload.github_url || '';
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-  }
-
-  async function init() {
-    if (!addFields()) return;
-
-    let lib;
-    try { lib = await loadSupabase(); }
-    catch (error) { console.warn('Rolexa professional links load error', error); return; }
-
-    const client = lib.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const { data: sessionData } = await client.auth.getSession();
-    const user = sessionData?.session?.user;
-    if (!user) return;
-
-    const { data, error } = await client
-      .from('candidate_profiles')
-      .select('linkedin_url,portfolio_url,website_url,github_url')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (error) console.warn('Rolexa professional links fetch error', error);
-    else fillFields(data);
-
+  function attachValidation() {
     const form = byId('profileForm');
-    if (!form || form.dataset.professionalLinksAttached) return;
-    form.dataset.professionalLinksAttached = 'true';
-
-    form.addEventListener('submit', async event => {
+    if (!form || form.dataset.professionalLinksValidationAttached) return;
+    form.dataset.professionalLinksValidationAttached = 'true';
+    form.addEventListener('submit', event => {
       const rawValues = ['linkedinUrl','portfolioUrl','websiteUrl','githubUrl'].map(id => byId(id)?.value || '');
       if (rawValues.some(value => !isValidUrl(value))) {
         event.preventDefault();
+        event.stopImmediatePropagation();
         alert('Please check your professional links. Each link should be a valid website address.');
-        return;
       }
-
-      const payload = payloadFromFields(user.id);
-      const { error: saveError } = await client
-        .from('candidate_profiles')
-        .upsert(payload, { onConflict:'user_id' });
-
-      if (saveError) {
-        console.warn('Rolexa professional links save error', saveError);
-        return;
-      }
-
-      fillFields(payload);
-      updateLocalProfile(payload);
-      window.dispatchEvent(new CustomEvent('rolexa:candidate-links-updated', { detail: payload }));
-    });
+    }, true);
   }
+
+  function init() {
+    if (!addFields()) return;
+    attachValidation();
+  }
+
+  window.addEventListener('rolexa:candidate-profile-updated', () => {
+    if (addFields()) fillFromStoredProfile();
+  });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once:true });
   else init();
