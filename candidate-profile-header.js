@@ -67,30 +67,93 @@
       #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card .rx-quality-note{position:relative;margin-top:18px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);font-size:11.5px;line-height:1.5;color:#9fb0d7!important}
       #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card .rx-quality-note b{color:#dbe5ff}
 
+      #overviewPage.rx-overview-premium>.grid>.card.rx-recommended-card{position:relative;padding:24px;overflow:hidden;background:linear-gradient(145deg,#fff 0%,#f8faff 100%)}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-recommended-card:before{content:'';position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,#176bff,#6e8fff,#22a06b)}
+      #overviewPage.rx-overview-premium .rx-recommended-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:17px}
+      #overviewPage.rx-overview-premium .rx-recommended-head h2{font-size:22px;margin:0}
+      #overviewPage.rx-overview-premium .rx-match-summary{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #dce5ff;border-radius:999px;background:#eef3ff;color:#2853c8;font-size:10.5px;font-weight:900;white-space:nowrap}
+      #overviewPage.rx-overview-premium .rx-match-summary:before{content:'✦';font-size:11px}
+      #overviewPage.rx-overview-premium .rx-recommended-card>.list>.empty,#overviewPage.rx-overview-premium .rx-recommended-card .list>.empty{padding:20px 22px;border-color:#dfe7f8;background:rgba(248,250,255,.82);text-align:left}
+      #overviewPage.rx-overview-premium .rx-recommended-card .list{gap:12px}
+      #overviewPage.rx-overview-premium .rx-recommended-card .job{position:relative;grid-template-columns:52px minmax(0,1fr) auto;gap:14px;padding:16px;border:1px solid rgba(7,16,37,.075);border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(7,16,37,.035);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+      #overviewPage.rx-overview-premium .rx-recommended-card .job:hover{transform:translateY(-2px);border-color:rgba(23,107,255,.18);box-shadow:0 14px 32px rgba(7,16,37,.07)}
+      #overviewPage.rx-overview-premium .rx-recommended-card .job .logo{width:52px;height:52px;border-radius:15px;box-shadow:0 9px 20px rgba(7,16,37,.13)}
+      #overviewPage.rx-overview-premium .rx-recommended-card .item-title{font-size:15px;letter-spacing:-.015em}
+      #overviewPage.rx-overview-premium .rx-recommended-card .item-sub{line-height:1.38}
+      #overviewPage.rx-overview-premium .rx-recommended-card .job-actions{align-items:center;gap:7px}
+      #overviewPage.rx-overview-premium .rx-recommended-card .tag{padding:7px 10px;font-size:10.5px}
+      #overviewPage.rx-overview-premium .rx-recommended-card .small-btn{padding:9px 12px;border-color:#dfe4ef;background:#fff;font-size:11px;box-shadow:none}
+      #overviewPage.rx-overview-premium .rx-recommended-card .small-btn:hover{border-color:#b9c9ee;background:#f7f9ff}
+      #overviewPage.rx-overview-premium .rx-recommended-card .small-btn.primary-mini{background:#176bff;border-color:#176bff;color:#fff;box-shadow:0 8px 18px rgba(23,107,255,.2)}
+      #overviewPage.rx-overview-premium .rx-recommended-card .small-btn.rx-action-applied{background:#edf2ff;border-color:#dce6ff;color:#2b57cf;box-shadow:none}
+      #overviewPage.rx-overview-premium .rx-match-reasons{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px}
+      #overviewPage.rx-overview-premium .rx-match-reasons-label{color:#667087;font-size:10.5px;font-weight:900}
+      #overviewPage.rx-overview-premium .rx-match-reason{display:inline-flex;padding:4px 7px;border:1px solid #dfe7f8;border-radius:999px;background:#f5f8ff;color:#51617c;font-size:10px;font-weight:800}
+
+      #overviewPage.rx-overview-premium>.grid>.card.rx-upcoming-card{position:relative;align-self:stretch;padding:24px;background:linear-gradient(180deg,#fff,#fbfcff)}
+      #overviewPage.rx-overview-premium .rx-upcoming-card h2{font-size:22px;margin-bottom:17px}
+      #overviewPage.rx-overview-premium .rx-upcoming-card .list{height:calc(100% - 40px)}
+      #overviewPage.rx-overview-premium .rx-upcoming-empty{height:100%;min-height:245px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:25px 20px;border:1px dashed #ced9ef;border-radius:18px;background:linear-gradient(145deg,#f9fbff,#f3f7ff);text-align:center}
+      #overviewPage.rx-overview-premium .rx-upcoming-icon{display:flex;width:48px;height:48px;align-items:center;justify-content:center;margin-bottom:14px;border-radius:15px;background:linear-gradient(135deg,#176bff,#6d8fff);color:#fff;font-size:20px;box-shadow:0 10px 24px rgba(23,107,255,.2)}
+      #overviewPage.rx-overview-premium .rx-upcoming-empty strong{font-family:'Space Grotesk',sans-serif;font-size:16px;letter-spacing:-.02em}
+      #overviewPage.rx-overview-premium .rx-upcoming-empty p{max-width:245px;margin:7px auto 15px;color:#727d94;font-size:11.5px;line-height:1.5}
+      #overviewPage.rx-overview-premium .rx-upcoming-empty button{border:1px solid #d6e0f5;background:#fff;color:#173a91;border-radius:999px;padding:9px 13px;font-size:11px;font-weight:900;box-shadow:0 7px 18px rgba(7,16,37,.055)}
+      #overviewPage.rx-overview-premium .rx-upcoming-empty button:hover{border-color:#aac0f0;background:#f7f9ff}
+
       @media(max-width:1180px){
         #overviewPage.rx-overview-premium>.grid{grid-template-columns:1fr 1fr}
         #overviewPage.rx-overview-premium .rx-quality-card{grid-column:1/-1}
+        #overviewPage.rx-overview-premium .rx-recommended-card{grid-column:1/-1}
+      }
+      @media(max-width:900px){
+        #overviewPage.rx-overview-premium .rx-recommended-card .job{grid-template-columns:48px minmax(0,1fr)}
+        #overviewPage.rx-overview-premium .rx-recommended-card .job-actions{grid-column:2;justify-content:flex-start}
       }
       @media(max-width:760px){
         #overviewPage.rx-overview-premium .page-head{margin-bottom:17px}
         #overviewPage.rx-overview-premium .page-head h1{font-size:30px}
         #overviewPage.rx-overview-premium>.grid{grid-template-columns:1fr;gap:14px}
-        #overviewPage.rx-overview-premium .rx-quality-card{grid-column:auto}
+        #overviewPage.rx-overview-premium .rx-quality-card,#overviewPage.rx-overview-premium .rx-recommended-card{grid-column:auto}
         #overviewPage.rx-overview-premium>.grid>.profile-card{grid-template-columns:1fr;padding:21px 18px}
         #overviewPage.rx-overview-premium .profile-card .ring{width:138px;height:138px;margin:2px auto 6px}
         #overviewPage.rx-overview-premium .profile-card .ring:after{width:101px;height:101px}
-        #overviewPage.rx-overview-premium .rx-tracker-card,#overviewPage.rx-overview-premium .rx-quality-card{padding:21px 18px}
+        #overviewPage.rx-overview-premium .rx-tracker-card,#overviewPage.rx-overview-premium .rx-quality-card,#overviewPage.rx-overview-premium>.grid>.card.rx-recommended-card,#overviewPage.rx-overview-premium>.grid>.card.rx-upcoming-card{padding:21px 18px}
         #overviewPage.rx-overview-premium .status-row{min-height:66px;padding-left:55px}
-        #overviewPage.rx-overview-premium .status-row:hover{transform:none}
+        #overviewPage.rx-overview-premium .status-row:hover,#overviewPage.rx-overview-premium .rx-recommended-card .job:hover{transform:none}
         #overviewPage.rx-overview-premium .rx-quality-card .salary-big{font-size:43px}
+        #overviewPage.rx-overview-premium .rx-recommended-head{display:block}
+        #overviewPage.rx-overview-premium .rx-match-summary{margin-top:9px}
+        #overviewPage.rx-overview-premium .rx-upcoming-empty{min-height:210px}
+      }
+      @media(max-width:520px){
+        #overviewPage.rx-overview-premium .rx-recommended-card .job{grid-template-columns:44px minmax(0,1fr);padding:14px 12px}
+        #overviewPage.rx-overview-premium .rx-recommended-card .job .logo{width:44px;height:44px;border-radius:13px}
+        #overviewPage.rx-overview-premium .rx-recommended-card .job-actions{grid-column:1/-1;padding-left:0}
       }
       @media(max-width:420px){
         #overviewPage.rx-overview-premium .page-head h1{font-size:27px}
         #overviewPage.rx-overview-premium>.grid>.card{border-radius:20px}
-        #overviewPage.rx-overview-premium>.grid>.profile-card,#overviewPage.rx-overview-premium .rx-tracker-card,#overviewPage.rx-overview-premium .rx-quality-card{padding:19px 15px}
+        #overviewPage.rx-overview-premium>.grid>.profile-card,#overviewPage.rx-overview-premium .rx-tracker-card,#overviewPage.rx-overview-premium .rx-quality-card,#overviewPage.rx-overview-premium>.grid>.card.rx-recommended-card,#overviewPage.rx-overview-premium>.grid>.card.rx-upcoming-card{padding:19px 15px}
       }
     `;
     document.head.appendChild(style);
+  };
+
+  const decorateRecommendedJobs = card => {
+    if (!card) return;
+    card.querySelectorAll('.job').forEach(job => {
+      job.querySelectorAll('button').forEach(button => {
+        const label = (button.textContent || '').trim().toLowerCase();
+        button.classList.toggle('rx-action-applied',label === 'applied');
+      });
+      const reason = [...job.querySelectorAll('.item-sub,div,p')].find(node => /Why Rolexa matched this:/i.test(node.textContent || ''));
+      if (!reason || reason.dataset.rxMatchDecorated === 'true') return;
+      const raw = (reason.textContent || '').replace(/Why Rolexa matched this:/i,'').trim().replace(/\.$/,'');
+      const reasons = raw.split(',').map(item => item.trim()).filter(Boolean).slice(0,4);
+      reason.className = 'rx-match-reasons';
+      reason.innerHTML = `<span class="rx-match-reasons-label">Why it matches</span>${reasons.map(item => `<span class="rx-match-reason">${item.replace(/\bfit\b/gi,'fit')}</span>`).join('')}`;
+      reason.dataset.rxMatchDecorated = 'true';
+    });
   };
 
   const enhance = () => {
@@ -101,6 +164,8 @@
     const directCards = [...page.querySelectorAll(':scope > .grid > .card')];
     const trackerCard = directCards.find(card => /Application tracker/i.test(card.querySelector('h2')?.textContent || ''));
     const qualityCard = directCards.find(card => /Profile strength|Profile quality/i.test(card.querySelector('h2')?.textContent || ''));
+    const recommendedCard = directCards.find(card => /Recommended jobs for you/i.test(card.querySelector('h2')?.textContent || ''));
+    const upcomingCard = directCards.find(card => /^Upcoming$/i.test((card.querySelector('h2')?.textContent || '').trim()));
 
     if (trackerCard) {
       trackerCard.classList.add('rx-tracker-card');
@@ -119,6 +184,33 @@
       }
       if (!qualityCard.querySelector('.rx-quality-note')) {
         qualityCard.insertAdjacentHTML('beforeend','<p class="rx-quality-note"><b>Completion</b> means every key section is filled in. <b>Quality</b> reflects how strong and detailed that information is.</p>');
+      }
+    }
+
+    if (recommendedCard) {
+      recommendedCard.classList.add('rx-recommended-card');
+      const heading = recommendedCard.querySelector('h2');
+      if (heading && !recommendedCard.querySelector('.rx-recommended-head')) {
+        const head = document.createElement('div');
+        head.className = 'rx-recommended-head';
+        heading.parentNode.insertBefore(head,heading);
+        head.appendChild(heading);
+        head.insertAdjacentHTML('beforeend','<span class="rx-match-summary">Personalised matches</span>');
+      }
+      decorateRecommendedJobs(recommendedCard);
+      const list = recommendedCard.querySelector('.list');
+      if (list && !list.dataset.rxRecommendationObserver) {
+        list.dataset.rxRecommendationObserver = 'true';
+        new MutationObserver(() => decorateRecommendedJobs(recommendedCard)).observe(list,{childList:true,subtree:true});
+      }
+    }
+
+    if (upcomingCard) {
+      upcomingCard.classList.add('rx-upcoming-card');
+      const empty = upcomingCard.querySelector('.empty');
+      if (empty && /No confirmed upcoming interviews/i.test(empty.textContent || '') && !empty.classList.contains('rx-upcoming-empty')) {
+        empty.className = 'rx-upcoming-empty';
+        empty.innerHTML = '<span class="rx-upcoming-icon">◷</span><strong>No interviews booked yet</strong><p>When an employer confirms a time, it will appear here automatically.</p><button type="button" onclick="showView(\'applications\')">View applications</button>';
       }
     }
     return true;
