@@ -9,7 +9,7 @@
   if (!document.querySelector('link[data-rx-sidebar-premium]')) {
     const sidebarTheme = document.createElement('link');
     sidebarTheme.rel = 'stylesheet';
-    sidebarTheme.href = 'dashboard-sidebar-premium.css?v=1';
+    sidebarTheme.href = 'dashboard-sidebar-premium.css?v=4';
     sidebarTheme.dataset.rxSidebarPremium = 'true';
     document.head.appendChild(sidebarTheme);
   }
@@ -157,6 +157,18 @@
   function setActive(view){
     menu.querySelectorAll('.rx-mobile-menu-link:not(.sign-out)').forEach(item => item.classList.toggle('active',item.dataset.view === view));
   }
+
+  function applyEmployerHashView(){
+    if (!isEmployer) return;
+    const view = location.hash.replace(/^#/,'');
+    const allowed = ['overview','postJob','jobs','matches','messages'];
+    if (!allowed.includes(view)) return;
+    if (typeof window.rolexaEmployerShowView === 'function') {
+      window.rolexaEmployerShowView(view);
+      setActive(view);
+    }
+  }
+
   function openMenu(){
     menu.classList.add('open');
     backdrop.classList.add('open');
@@ -181,6 +193,11 @@
     const original = event.target.closest?.('.side .nav [data-view]');
     if (original) setActive(original.dataset.view);
   });
+
+  if (isEmployer) {
+    applyEmployerHashView();
+    window.addEventListener('hashchange',applyEmployerHashView);
+  }
 
   if (isCandidate && !document.querySelector('script[data-rx-profile-header]')) {
     const profileScript = document.createElement('script');
