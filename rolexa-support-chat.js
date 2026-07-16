@@ -13,4 +13,5 @@
   load('demo-experience.js?v=1', '__rolexaDemoExperienceRequested');
   load('homepage-improvements-premium.js?v=1', '__rolexaHomepageImprovementsPremiumRequested');
   load('premium-homepage-hero.js?v=1', '__rolexaPremiumHomepageHeroRequested');
+  load('homepage-honesty-premium.js?v=1', '__rolexaHomepageHonestyPremiumRequested');
 })();
