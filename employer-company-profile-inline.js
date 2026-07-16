@@ -26,6 +26,29 @@
   `;
   document.head.appendChild(style);
 
+  function hideInternalConnectionNotice() {
+    const statusBar = document.getElementById('statusBar');
+    if (!statusBar) return;
+    const message = (statusBar.textContent || '').trim();
+    if (/^Employer dashboard connected to Supabase\.?$/i.test(message)) {
+      console.info('[Rolexa] Employer dashboard connected to Supabase.');
+      statusBar.className = 'statusbar';
+      statusBar.textContent = '';
+    }
+  }
+
+  const statusBar = document.getElementById('statusBar');
+  if (statusBar) {
+    hideInternalConnectionNotice();
+    new MutationObserver(hideInternalConnectionNotice).observe(statusBar, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+
   function closeMobileMenu() {
     document.querySelector('.rx-mobile-dashboard-menu')?.classList.remove('open');
     document.querySelector('.rx-mobile-dashboard-backdrop')?.classList.remove('open');
