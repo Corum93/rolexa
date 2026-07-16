@@ -2,6 +2,30 @@
   if (window.__rolexaInlineCompanyProfileNavigation) return;
   window.__rolexaInlineCompanyProfileNavigation = true;
 
+  const style = document.createElement('style');
+  style.id = 'rxEmployerCompanyProfileMobilePolish';
+  style.textContent = `
+    @media(max-width:760px){
+      #companyProfilePage .page-head{display:block!important;margin-bottom:16px!important}
+      #companyProfilePage .page-head h1{font-size:30px!important;line-height:1.12!important}
+      #companyProfilePage .page-head p{font-size:14px!important;line-height:1.5!important}
+      #companyProfilePage .rx-company-profile-layout,
+      #companyProfilePage .rx-company-profile-grid,
+      #companyProfilePage .form-grid{grid-template-columns:1fr!important}
+      #companyProfilePage .card{padding:17px!important;border-radius:18px!important}
+      #companyProfilePage input,
+      #companyProfilePage select,
+      #companyProfilePage textarea{font-size:16px!important}
+      #companyProfilePage .primary,
+      #companyProfilePage .small-btn{min-height:44px}
+    }
+    @media(max-width:420px){
+      #companyProfilePage .page-head h1{font-size:27px!important}
+      #companyProfilePage .card{padding:15px!important}
+    }
+  `;
+  document.head.appendChild(style);
+
   function closeMobileMenu() {
     document.querySelector('.rx-mobile-dashboard-menu')?.classList.remove('open');
     document.querySelector('.rx-mobile-dashboard-backdrop')?.classList.remove('open');
