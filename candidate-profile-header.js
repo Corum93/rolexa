@@ -94,6 +94,7 @@
       #profilePage.rx-profile-enhanced .two>article:first-child:before{content:'About';display:block;font-family:'Space Grotesk',Inter,sans-serif;font-size:20px;font-weight:800;margin-bottom:10px;color:#071025}
       .side .nav button[onclick*="editProfile"]{display:none!important}
       .rx-mobile-menu-link[data-view="editProfile"]{display:none!important}
+      #overviewPage .head-actions .danger{display:none!important}
       @media(max-width:760px){
         .rx-profile-hero{grid-template-columns:82px minmax(0,1fr);padding:20px 18px;gap:15px;border-radius:20px}
         .rx-profile-photo{width:80px;height:80px;border-radius:20px;border-width:3px;font-size:23px}
