@@ -10,6 +10,7 @@
   let user = null;
   let rows = [];
   let saving = false;
+  const candidatePhotoUrls = new Map();
 
   const safe = value => String(value ?? '').replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]));
 
@@ -107,9 +108,6 @@
       const panel = stableEmployerPanel('rxEmployerMeetingLinkPanel',row,row.meeting_url ? 'Interview meeting link' : 'Add interview meeting link');
       if (!panel.isConnected) form.parentElement.insertBefore(panel,form);
     }
-
-    // Candidate message cards are owned entirely by candidate-interview-booking.js.
-    // Keeping one renderer prevents duplicate buttons and five-second flicker.
   }
 
   function enhanceCalendarCards(){
@@ -135,9 +133,54 @@
     });
   }
 
+  async function loadCandidatePhotoUrls(){
+    if (!isEmployer) return;
+    const jobs = await client.from('jobs').select('id').eq('employer_user_id',user.id);
+    if (jobs.error || !jobs.data?.length) return;
+    const apps = await client.from('candidate_applications').select('id,user_id').in('job_id',jobs.data.map(job => job.id));
+    if (apps.error || !apps.data?.length) return;
+    const userIds = [...new Set(apps.data.map(app => app.user_id).filter(Boolean))];
+    const profiles = await client.from('candidate_profiles').select('user_id,photo_file_path').in('user_id',userIds);
+    if (profiles.error) return;
+    const profileMap = new Map((profiles.data || []).map(profile => [profile.user_id,profile]));
+    await Promise.all((apps.data || []).map(async app => {
+      const path = profileMap.get(app.user_id)?.photo_file_path;
+      if (!path) {
+        candidatePhotoUrls.delete(String(app.id));
+        return;
+      }
+      const signed = await client.storage.from('candidate-photos').createSignedUrl(path,600);
+      if (!signed.error && signed.data?.signedUrl) candidatePhotoUrls.set(String(app.id),signed.data.signedUrl);
+    }));
+  }
+
+  function applyCandidatePhotoUrls(){
+    if (!isEmployer) return;
+    document.querySelectorAll('[data-employer-thread]').forEach(thread => {
+      const key = thread.getAttribute('data-employer-thread') || '';
+      const appId = key.startsWith('application:') ? key.slice('application:'.length) : '';
+      const url = candidatePhotoUrls.get(String(appId));
+      const avatar = thread.querySelector('.rx-candidate-avatar');
+      if (url && avatar && avatar.dataset.photoApplication !== appId) {
+        const name = thread.querySelector('b')?.textContent?.trim() || 'Candidate';
+        avatar.innerHTML = `<img src="${safe(url)}" alt="${safe(name)} profile photo">`;
+        avatar.dataset.photoApplication = appId;
+      }
+    });
+    const activeId = activeApplicationId();
+    const activeUrl = candidatePhotoUrls.get(String(activeId));
+    const headAvatar = document.querySelector('#rxEmployerChatHead .rx-candidate-avatar');
+    if (activeUrl && headAvatar && headAvatar.dataset.photoApplication !== activeId) {
+      const name = document.getElementById('rxEmployerChatName')?.textContent?.trim() || 'Candidate';
+      headAvatar.innerHTML = `<img src="${safe(activeUrl)}" alt="${safe(name)} profile photo">`;
+      headAvatar.dataset.photoApplication = activeId;
+    }
+  }
+
   function render(){
     enhanceMessageCard();
     enhanceCalendarCards();
+    applyCandidatePhotoUrls();
   }
 
   window.__rolexaInterviewLinksRender = render;
@@ -178,10 +221,14 @@
       event.preventDefault();
       saveLink(form).catch(()=>{});
     });
+    document.addEventListener('click',event => {
+      if (isEmployer && event.target.closest?.('[data-employer-thread]')) setTimeout(applyCandidatePhotoUrls,80);
+    });
   }
 
   async function refresh(){
     await loadRows();
+    if (isEmployer) await loadCandidatePhotoUrls();
     render();
   }
 
