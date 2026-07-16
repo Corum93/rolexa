@@ -5,6 +5,22 @@
 
   let clientPromise = null;
 
+  const ROLEXA_MATCH_WEIGHTS = Object.freeze({
+    'Target role': 30,
+    'Required skills': 25,
+    'Location': 15,
+    'Work style': 10,
+    'Salary': 10,
+    'Current level': 10
+  });
+
+  const ROLEXA_MATCH_STATE_MULTIPLIERS = Object.freeze({
+    compatible: 1,
+    'needs-review': 0.5,
+    'not-enough-data': 0.5,
+    'not-compatible': 0
+  });
+
   function safe(value) {
     return String(value ?? '').replace(/[&<>\"]/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[ch]));
   }
@@ -88,6 +104,23 @@
   function roleCompatibility(candidateRole, jobTitle) {
     if (!jobTitle || !candidateRole) return null;
     return overlap(candidateRole, jobTitle) >= 0.34;
+  }
+
+  function matchState(result) {
+    if (result === true || result === 'compatible') return 'compatible';
+    if (result === null || result === undefined || result === 'not-enough-data') return 'not-enough-data';
+    if (result === 'not-compatible') return 'not-compatible';
+    return 'needs-review';
+  }
+
+  function calculateRolexaMatch(results) {
+    const score = results.reduce((total, [label, result]) => {
+      const weight = ROLEXA_MATCH_WEIGHTS[label] || 0;
+      const multiplier = ROLEXA_MATCH_STATE_MULTIPLIERS[matchState(result)] ?? 0;
+      return total + (weight * multiplier);
+    }, 0);
+
+    return Math.round(Math.max(0, Math.min(100, score)));
   }
 
   function addStyles() {
@@ -224,9 +257,7 @@
       ['Salary', salaryCompatibility(profile.minimum_salary, job.salary_range)],
       ['Current level', seniorityCompatibility(profile.current_level, `${job.title || ''} ${job.description || ''}`)]
     ];
-    const known = results.filter(([, result]) => result !== null);
-    const matched = known.filter(([, result]) => result === true).length;
-    const score = known.length ? Math.round((matched / known.length) * 100) : 0;
+    const score = calculateRolexaMatch(results);
     const label = score >= 80 ? 'Strong structured match' : score >= 60 ? 'Good structured match' : score >= 40 ? 'Possible structured match' : 'More review needed';
     return `<section class="rx-role-match" id="rxEmployerRolexaMatch"><div class="rx-role-match-top"><div class="rx-role-match-score"><strong>${score}%</strong><span>Rolexa Match</span></div><div class="rx-role-match-copy"><h3>${safe(label)}</h3><p>Based on this candidate’s profile and the role’s structured information.</p></div></div><div class="rx-role-match-signals">${results.map(([name,result]) => signal(name,result)).join('')}</div><div class="rx-role-match-explanation"><h4>Why this candidate matches</h4><div class="rx-role-match-reasons">${results.map(([name,result]) => explanation(name,result,profile,job)).join('')}</div></div><div class="rx-role-match-note">Structured data only. CV analysis and semantic AI are not included yet.</div></section>`;
   }
