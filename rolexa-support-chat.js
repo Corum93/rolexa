@@ -16,4 +16,5 @@
   load('premium-honesty-section.js?v=1', '__rolexaPremiumHonestySectionRequested');
   load('premium-salary-explorer.js?v=1', '__rolexaPremiumSalaryExplorerRequested');
   load('premium-comparison-section.js?v=2', '__rolexaPremiumComparisonSectionRequestedV2');
+  load('premium-early-access-section.js?v=1', '__rolexaPremiumAccessSectionRequested');
 })();
