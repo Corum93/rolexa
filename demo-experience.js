@@ -38,7 +38,34 @@
     .rx-account-card.candidate .rx-account-button{color:#0a0e1a}
     .rx-account-card.employer .rx-account-button{color:#2946c7}
     .rx-account-button:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(0,0,0,.14)}
-    @media(max-width:760px){#role-demo-explorer{padding:34px 0 22px}.rx-demo-head h2{font-size:29px}.rx-demo-grid,.rx-account-grid{grid-template-columns:1fr}.rx-demo-card{padding:23px;min-height:auto}.rx-demo-action{display:grid}.rx-demo-button,.rx-account-button{width:100%}.rx-demo-note{text-align:left}.rx-account-next{padding:14px 0 38px}.rx-account-card{padding:27px 24px}}
+    @media(max-width:760px){
+      #role-demo-explorer{padding:34px 0 22px}
+      #role-demo-explorer .wrap,.rx-account-next .wrap{padding-left:18px!important;padding-right:18px!important}
+      .rx-demo-head{margin-bottom:22px;text-align:left}
+      .rx-demo-head h2{font-size:29px;line-height:1.15}
+      .rx-demo-head p{font-size:14.5px;line-height:1.55}
+      .rx-demo-grid,.rx-account-grid{grid-template-columns:1fr}
+      .rx-demo-card{padding:23px;min-height:auto;border-radius:21px}
+      .rx-demo-icon{width:48px;height:48px;margin-bottom:16px}
+      .rx-demo-card h3{font-size:22px}
+      .rx-demo-card p{font-size:14px}
+      .rx-demo-points{margin-bottom:20px}
+      .rx-demo-action{display:grid;gap:10px}
+      .rx-demo-button,.rx-account-button{width:100%}
+      .rx-demo-note{text-align:left}
+      .rx-demo-trust{justify-content:flex-start;display:grid;gap:8px;margin-top:18px;padding:0 2px}
+      .rx-account-next{padding:14px 0 38px}
+      .rx-account-card{padding:27px 24px;border-radius:21px}
+      .rx-account-card h3{font-size:23px}
+    }
+    @media(max-width:420px){
+      #role-demo-explorer .wrap,.rx-account-next .wrap{padding-left:14px!important;padding-right:14px!important}
+      .rx-demo-card,.rx-account-card{padding:21px 18px}
+      .rx-demo-head h2{font-size:27px}
+      .rx-demo-card h3{font-size:21px}
+      .rx-account-card h3{font-size:22px}
+      .rx-demo-button,.rx-account-button{font-size:13.5px;padding:12px 14px}
+    }
   `;
   document.head.appendChild(style);
 
