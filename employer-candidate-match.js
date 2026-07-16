@@ -21,6 +21,10 @@
     'not-compatible': 0
   });
 
+  const ROLEXA_MATCH_BLEND = Object.freeze({ structured: 0.5, semantic: 0.5 });
+  const MATCH_LABELS = Object.freeze(Object.keys(ROLEXA_MATCH_WEIGHTS));
+  const CONFIDENCE_LEVELS = new Set(['high', 'medium', 'low']);
+
   function safe(value) {
     return String(value ?? '').replace(/[&<>\"]/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[ch]));
   }
@@ -119,8 +123,119 @@
       const multiplier = ROLEXA_MATCH_STATE_MULTIPLIERS[matchState(result)] ?? 0;
       return total + (weight * multiplier);
     }, 0);
-
     return Math.round(Math.max(0, Math.min(100, score)));
+  }
+
+  function clampScore(value) {
+    const score = Number(value);
+    return Number.isFinite(score) ? Math.round(Math.max(0, Math.min(100, score))) : null;
+  }
+
+  function normaliseSemanticResult(raw) {
+    const score = clampScore(raw?.score);
+    if (score === null) return null;
+    const explanations = {};
+    MATCH_LABELS.forEach(label => {
+      const item = raw?.explanations?.[label];
+      if (!item || typeof item.text !== 'string' || !item.text.trim()) return;
+      explanations[label] = {
+        text: item.text.trim(),
+        confidence: CONFIDENCE_LEVELS.has(String(item.confidence || '').toLowerCase())
+          ? String(item.confidence).toLowerCase()
+          : 'low'
+      };
+    });
+    return {
+      available: true,
+      score,
+      explanations,
+      confidence: CONFIDENCE_LEVELS.has(String(raw?.confidence || '').toLowerCase())
+        ? String(raw.confidence).toLowerCase()
+        : 'low',
+      provider: String(raw?.provider || 'external')
+    };
+  }
+
+  const semanticMatchingService = (() => {
+    let provider = null;
+
+    return Object.freeze({
+      registerProvider(nextProvider) {
+        if (typeof nextProvider === 'function') provider = { analyse: nextProvider };
+        else if (nextProvider && typeof nextProvider.analyse === 'function') provider = nextProvider;
+        else throw new TypeError('Semantic provider must expose an analyse(context) function.');
+      },
+      clearProvider() {
+        provider = null;
+      },
+      isAvailable() {
+        return Boolean(provider);
+      },
+      async analyse(context) {
+        if (!provider) {
+          return {
+            available: false,
+            score: null,
+            explanations: {},
+            confidence: 'low',
+            provider: 'structured-fallback',
+            reason: 'No external semantic AI provider is connected.'
+          };
+        }
+        try {
+          const result = normaliseSemanticResult(await provider.analyse(context));
+          if (!result) throw new Error('Semantic provider returned an invalid result.');
+          return result;
+        } catch (error) {
+          console.warn('Rolexa semantic matching provider failed; using structured fallback.', error);
+          return {
+            available: false,
+            score: null,
+            explanations: {},
+            confidence: 'low',
+            provider: 'structured-fallback',
+            reason: 'Semantic analysis was unavailable.'
+          };
+        }
+      }
+    });
+  })();
+
+  window.RolexaSemanticMatchingService = semanticMatchingService;
+  window.RolexaMatchEngine = Object.freeze({
+    calculateRolexaMatch,
+    blendScores(structuredScore, semanticResult) {
+      if (!semanticResult?.available || semanticResult.score === null) return structuredScore;
+      return clampScore((structuredScore * ROLEXA_MATCH_BLEND.structured) + (semanticResult.score * ROLEXA_MATCH_BLEND.semantic));
+    }
+  });
+
+  function buildSemanticContext(profile, job, application) {
+    return Object.freeze({
+      applicationId: application?.id || null,
+      candidate: {
+        profile,
+        cvText: profile.cv_text || profile.resume_text || profile.cv_content || null,
+        targetRole: profile.target_role || null,
+        currentLevel: profile.current_level || null,
+        skills: profile.skills || null,
+        experience: profile.experience || profile.work_experience || profile.bio || null
+      },
+      job: {
+        raw: job,
+        title: job.title || null,
+        description: job.description || null,
+        requiredSkills: job.required_skills || null,
+        preferredSkills: job.preferred_skills || null,
+        responsibilities: job.responsibilities || null,
+        experience: job.experience || job.experience_required || job.requirements || null
+      },
+      safeguards: {
+        neverInventExperience: true,
+        unsupportedClaimText: 'Limited evidence found',
+        allowedConfidence: ['high', 'medium', 'low']
+      }
+    });
   }
 
   function addStyles() {
@@ -210,9 +325,7 @@
     return `<div class="rx-role-match-signal ${state}" title="${safe(label)} · ${safe(suffix)}"><span class="rx-role-match-dot"></span><span>${safe(label)} · ${safe(suffix)}</span></div>`;
   }
 
-  function explanation(label, result, profile, job) {
-    const state = result === true ? 'good' : result === false ? 'bad' : 'unknown';
-    const icon = result === true ? '✓' : result === false ? '!' : '?';
+  function structuredExplanation(label, result, profile, job) {
     const messages = {
       'Target role': result === true
         ? `The candidate’s target role aligns with “${job.title || 'this role'}”.`
@@ -245,11 +358,20 @@
           ? 'The candidate’s stated seniority differs from the seniority indicated in the role.'
           : 'The role does not contain enough seniority information to assess the candidate’s current level.'
     };
-    return `<div class="rx-role-match-reason ${state}"><span class="rx-role-match-reason-icon">${icon}</span><div><b>${safe(label)}</b><p>${safe(messages[label] || 'This signal requires further review.')}</p></div></div>`;
+    return messages[label] || 'This signal requires further review.';
   }
 
-  function cardHtml(profile, job) {
-    const results = [
+  function explanation(label, result, profile, job, semanticResult) {
+    const state = result === true ? 'good' : result === false ? 'bad' : 'unknown';
+    const icon = result === true ? '✓' : result === false ? '!' : '?';
+    const semantic = semanticResult?.available ? semanticResult.explanations?.[label] : null;
+    const text = semantic?.text || structuredExplanation(label, result, profile, job);
+    const confidence = semantic?.confidence || 'low';
+    return `<div class="rx-role-match-reason ${state}" data-confidence="${safe(confidence)}"><span class="rx-role-match-reason-icon">${icon}</span><div><b>${safe(label)}</b><p>${safe(text)}</p></div></div>`;
+  }
+
+  function buildStructuredResults(profile, job) {
+    return [
       ['Target role', roleCompatibility(profile.target_role, job.title)],
       ['Required skills', skillCompatibility(profile.skills, job.required_skills)],
       ['Location', locationCompatibility(profile.location, job.location, job.work_style)],
@@ -257,9 +379,17 @@
       ['Salary', salaryCompatibility(profile.minimum_salary, job.salary_range)],
       ['Current level', seniorityCompatibility(profile.current_level, `${job.title || ''} ${job.description || ''}`)]
     ];
-    const score = calculateRolexaMatch(results);
+  }
+
+  function cardHtml(profile, job, application, semanticResult) {
+    const results = buildStructuredResults(profile, job);
+    const structuredScore = calculateRolexaMatch(results);
+    const score = window.RolexaMatchEngine.blendScores(structuredScore, semanticResult);
     const label = score >= 80 ? 'Strong structured match' : score >= 60 ? 'Good structured match' : score >= 40 ? 'Possible structured match' : 'More review needed';
-    return `<section class="rx-role-match" id="rxEmployerRolexaMatch"><div class="rx-role-match-top"><div class="rx-role-match-score"><strong>${score}%</strong><span>Rolexa Match</span></div><div class="rx-role-match-copy"><h3>${safe(label)}</h3><p>Based on this candidate’s profile and the role’s structured information.</p></div></div><div class="rx-role-match-signals">${results.map(([name,result]) => signal(name,result)).join('')}</div><div class="rx-role-match-explanation"><h4>Why this candidate matches</h4><div class="rx-role-match-reasons">${results.map(([name,result]) => explanation(name,result,profile,job)).join('')}</div></div><div class="rx-role-match-note">Structured data only. CV analysis and semantic AI are not included yet.</div></section>`;
+    const note = semanticResult?.available
+      ? 'Structured profile and semantic CV evidence are combined in this Rolexa Match.'
+      : 'Structured data only. CV analysis and semantic AI are not included yet.';
+    return `<section class="rx-role-match" id="rxEmployerRolexaMatch" data-structured-score="${structuredScore}" data-semantic-score="${semanticResult?.score ?? ''}" data-semantic-confidence="${safe(semanticResult?.confidence || 'low')}"><div class="rx-role-match-top"><div class="rx-role-match-score"><strong>${score}%</strong><span>Rolexa Match</span></div><div class="rx-role-match-copy"><h3>${safe(label)}</h3><p>Based on this candidate’s profile and the role’s structured information.</p></div></div><div class="rx-role-match-signals">${results.map(([name,result]) => signal(name,result)).join('')}</div><div class="rx-role-match-explanation"><h4>Why this candidate matches</h4><div class="rx-role-match-reasons">${results.map(([name,result]) => explanation(name,result,profile,job,semanticResult)).join('')}</div></div><div class="rx-role-match-note">${safe(note)}</div></section>`;
   }
 
   async function render(applicationId) {
@@ -267,21 +397,25 @@
     if (!body || document.getElementById('rxEmployerRolexaMatch')) return;
     try {
       const client = await getClient();
-      const { data: application, error: appError } = await client.from('candidate_applications').select('user_id,job_id').eq('id', applicationId).maybeSingle();
+      const { data: application, error: appError } = await client.from('candidate_applications').select('*').eq('id', applicationId).maybeSingle();
       if (appError || !application?.user_id || !application?.job_id) return;
 
       const [profileResult, jobResult] = await Promise.all([
-        client.from('candidate_profiles').select('target_role,current_level,location,work_style,minimum_salary,skills').eq('user_id', application.user_id).maybeSingle(),
-        client.from('jobs').select('title,location,work_style,salary_range,required_skills,description').eq('id', application.job_id).maybeSingle()
+        client.from('candidate_profiles').select('*').eq('user_id', application.user_id).maybeSingle(),
+        client.from('jobs').select('*').eq('id', application.job_id).maybeSingle()
       ]);
       if (profileResult.error || jobResult.error || !profileResult.data || !jobResult.data || !document.getElementById('rxProfileModal')) return;
 
+      const semanticResult = await semanticMatchingService.analyse(buildSemanticContext(profileResult.data, jobResult.data, application));
+      if (!document.getElementById('rxProfileModal')) return;
+
       addStyles();
+      const html = cardHtml(profileResult.data, jobResult.data, application, semanticResult);
       const links = body.querySelector('.rx-employer-profile-links');
-      if (links) links.insertAdjacentHTML('afterend', cardHtml(profileResult.data, jobResult.data));
-      else body.insertAdjacentHTML('afterbegin', cardHtml(profileResult.data, jobResult.data));
+      if (links) links.insertAdjacentHTML('afterend', html);
+      else body.insertAdjacentHTML('afterbegin', html);
     } catch (error) {
-      console.warn('Rolexa structured match error', error);
+      console.warn('Rolexa match error', error);
     }
   }
 
