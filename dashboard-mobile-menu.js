@@ -6,6 +6,14 @@
   const isEmployer = /employer-dashboard\.html$/.test(location.pathname);
   if (!isCandidate && !isEmployer) return;
 
+  if (!document.querySelector('link[data-rx-sidebar-premium]')) {
+    const sidebarTheme = document.createElement('link');
+    sidebarTheme.rel = 'stylesheet';
+    sidebarTheme.href = 'dashboard-sidebar-premium.css?v=1';
+    sidebarTheme.dataset.rxSidebarPremium = 'true';
+    document.head.appendChild(sidebarTheme);
+  }
+
   const options = isCandidate
     ? [
         ['Dashboard','overview'],
