@@ -13,6 +13,25 @@
   const safe = value => String(value ?? '').replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]));
   const shortId = value => String(value || 'candidate').slice(0,8);
   const timeText = value => { try { return value ? new Date(value).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : ''; } catch(e){ return ''; } };
+  const initials = value => String(value || 'Candidate').trim().split(/\s+/).filter(Boolean).slice(0,2).map(part => part[0]).join('').toUpperCase() || 'C';
+
+  function candidatePhoto(profile = {}){
+    const value = profile.photo_url || profile.avatar_url || profile.profile_photo_url || profile.image_url || profile.photo || profile.avatar || '';
+    if (!value) return '';
+    try {
+      const url = new URL(String(value), location.href);
+      return ['http:','https:'].includes(url.protocol) ? url.href : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function avatarHtml(label,size='normal'){
+    const photo = candidatePhoto(label.profile);
+    const name = label.name || 'Candidate';
+    const sizeClass = size === 'small' ? ' small' : '';
+    return `<span class="rx-candidate-avatar${sizeClass}">${photo ? `<img src="${safe(photo)}" alt="${safe(name)} profile photo">` : safe(initials(name))}</span>`;
+  }
 
   function loadUnreadBadges(){
     if (document.querySelector('script[src*="message-unread-badges.js"]')) return;
@@ -36,10 +55,11 @@
     style.id = 'rxEmployerMessagingStyles';
     style.textContent = `
       .rx-message-box{display:grid;gap:10px}.rx-message-box textarea{width:100%;min-height:135px;border:1px solid var(--line);border-radius:14px;background:#F5F7FC;padding:13px 14px;font-size:14px;color:#071025;outline:none;resize:vertical}.rx-message-box textarea:focus{background:#fff;border-color:var(--blue)}.rx-message-note{font-size:12.5px;color:#6B7280;line-height:1.45}.rx-message-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-      .rx-employer-inbox{display:grid;grid-template-columns:300px 1fr;min-height:520px;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#fff}.rx-employer-threads{border-right:1px solid var(--line);background:#FBFCFF;overflow:auto}.rx-employer-thread{padding:15px;border-bottom:1px solid var(--line);cursor:pointer}.rx-employer-thread:hover,.rx-employer-thread.active{background:#EEF3FF}.rx-employer-thread b{display:block;font-size:14px;margin-bottom:4px}.rx-employer-thread p{margin:0;color:var(--muted);font-size:12px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-      .rx-employer-chat{display:grid;grid-template-rows:auto 1fr auto;min-width:0}.rx-employer-chat-head{padding:16px 18px;border-bottom:1px solid var(--line)}.rx-employer-chat-head b{display:block;font-size:16px}.rx-employer-chat-head span{display:block;color:var(--muted);font-size:12px;margin-top:3px}.rx-employer-chat-body{padding:18px;overflow:auto;background:#F8FAFF;display:flex;flex-direction:column;gap:10px}.rx-employer-bubble{max-width:76%;padding:11px 13px;border-radius:15px;font-size:13.5px;line-height:1.45;white-space:pre-wrap}.rx-employer-bubble.employer{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:5px}.rx-employer-bubble.candidate{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:5px}.rx-employer-bubble-meta{font-size:10.5px;font-weight:900;opacity:.72;margin-bottom:4px}
+      .rx-employer-inbox{display:grid;grid-template-columns:300px 1fr;min-height:520px;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#fff}.rx-employer-threads{border-right:1px solid var(--line);background:#FBFCFF;overflow:auto}.rx-employer-thread{padding:14px 15px;border-bottom:1px solid var(--line);cursor:pointer;display:grid;grid-template-columns:42px minmax(0,1fr);gap:11px;align-items:center}.rx-employer-thread:hover,.rx-employer-thread.active{background:#EEF3FF}.rx-employer-thread-copy{min-width:0}.rx-employer-thread b{display:block;font-size:14px;margin-bottom:4px}.rx-employer-thread p{margin:0;color:var(--muted);font-size:12px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .rx-candidate-avatar{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#176BFF,#7C9BFF);color:#fff;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;font-size:13px;font-weight:900;flex:0 0 auto;box-shadow:0 6px 16px rgba(23,107,255,.18)}.rx-candidate-avatar.small{width:38px;height:38px;border-radius:12px;font-size:12px}.rx-candidate-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+      .rx-employer-chat{display:grid;grid-template-rows:auto 1fr auto;min-width:0}.rx-employer-chat-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}.rx-employer-chat-head-copy{min-width:0}.rx-employer-chat-head b{display:block;font-size:16px}.rx-employer-chat-head span{display:block;color:var(--muted);font-size:12px;margin-top:3px}.rx-employer-chat-body{padding:18px;overflow:auto;background:#F8FAFF;display:flex;flex-direction:column;gap:10px}.rx-employer-bubble{max-width:76%;padding:11px 13px;border-radius:15px;font-size:13.5px;line-height:1.45;white-space:pre-wrap}.rx-employer-bubble.employer{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:5px}.rx-employer-bubble.candidate{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:5px}.rx-employer-bubble-meta{font-size:10.5px;font-weight:900;opacity:.72;margin-bottom:4px}
       .rx-employer-chat-form{padding:12px;border-top:1px solid var(--line);display:flex;gap:8px;background:#fff}.rx-employer-chat-form input{flex:1;border:1px solid var(--line);border-radius:999px;padding:11px 14px;background:#F5F7FC;color:var(--ink);outline:none}.rx-employer-chat-form input:focus{background:#fff;border-color:var(--blue)}
-      @media(max-width:820px){.rx-employer-inbox{grid-template-columns:1fr}.rx-employer-threads{border-right:0;border-bottom:1px solid var(--line);max-height:180px}.rx-employer-chat{min-height:430px}}
+      @media(max-width:820px){.rx-employer-inbox{grid-template-columns:1fr}.rx-employer-threads{border-right:0;border-bottom:1px solid var(--line);max-height:210px}.rx-employer-chat{min-height:430px}}
     `;
     document.head.appendChild(style);
   }
@@ -83,7 +103,7 @@
     const userIds = [...new Set(apps.map(app => app.user_id).filter(Boolean))];
     let profiles = [];
     if (userIds.length) {
-      const profilesResult = await client.from('candidate_profiles').select('user_id,full_name,email').in('user_id',userIds);
+      const profilesResult = await client.from('candidate_profiles').select('*').in('user_id',userIds);
       if (!profilesResult.error) profiles = profilesResult.data || [];
     }
 
@@ -116,9 +136,9 @@
     const card = page.querySelector('.card');
     if (!card) return false;
     card.innerHTML = `<div class="rx-employer-inbox" id="rxEmployerInbox">
-      <div class="rx-employer-threads" id="rxEmployerThreadList"><div class="rx-employer-thread active"><b>Loading conversations...</b><p>Checking Supabase messages.</p></div></div>
+      <div class="rx-employer-threads" id="rxEmployerThreadList"><div class="rx-employer-thread active"><div class="rx-employer-thread-copy"><b>Loading conversations...</b><p>Checking messages.</p></div></div></div>
       <div class="rx-employer-chat">
-        <div class="rx-employer-chat-head"><b id="rxEmployerChatName">Messages</b><span id="rxEmployerChatSub">Loading inbox...</span></div>
+        <div class="rx-employer-chat-head" id="rxEmployerChatHead"><div class="rx-employer-chat-head-copy"><b id="rxEmployerChatName">Messages</b><span id="rxEmployerChatSub">Loading inbox...</span></div></div>
         <div class="rx-employer-chat-body" id="rxEmployerChatBody"><div class="empty">Loading conversations...</div></div>
         <form class="rx-employer-chat-form" id="rxEmployerChatForm"><input id="rxEmployerChatInput" placeholder="Type a message..."><button class="small-btn primary-mini" id="rxEmployerChatSend" type="submit">Send</button></form>
       </div></div>`;
@@ -132,9 +152,9 @@
 
   function threadLabel(threadKey){
     const row = rowForThread(threadKey);
-    if (!row) return {name:'Candidate conversation',sub:'Application thread'};
+    if (!row) return {name:'Candidate conversation',sub:'Application thread',profile:{}};
     const name = row.profile.full_name || row.profile.email || `Candidate ${shortId(row.app.user_id)}`;
-    return {name,sub:`${row.job.title || 'Application'} · ${row.app.status || 'Application'}`};
+    return {name,sub:`${row.job.title || 'Application'} · ${row.app.status || 'Application'}`,profile:row.profile || {}};
   }
 
   async function loadMessages(){
@@ -151,17 +171,19 @@
     ensureInbox();
     const list = byId('rxEmployerThreadList');
     const body = byId('rxEmployerChatBody');
+    const head = byId('rxEmployerChatHead');
     const name = byId('rxEmployerChatName');
     const sub = byId('rxEmployerChatSub');
     const input = byId('rxEmployerChatInput');
     const send = byId('rxEmployerChatSend');
-    if (!list || !body || !name || !sub) return;
+    if (!list || !body || !name || !sub || !head) return;
 
     const keys = [...new Set(inboxMessages.map(message => message.thread_key).filter(Boolean))];
     if (!keys.length) {
-      list.innerHTML = '<div class="rx-employer-thread active"><b>No conversations yet</b><p>Messages started from an application will appear here.</p></div>';
+      list.innerHTML = '<div class="rx-employer-thread active"><div class="rx-employer-thread-copy"><b>No conversations yet</b><p>Messages started from an application will appear here.</p></div></div>';
       name.textContent = 'Messages';
       sub.textContent = 'No active conversation';
+      head.querySelector('.rx-candidate-avatar')?.remove();
       body.innerHTML = '<div class="empty">No conversations yet. Open an eligible application and select Message to start one.</div>';
       if (input) input.disabled = true;
       if (send) send.disabled = true;
@@ -180,10 +202,12 @@
     list.innerHTML = keys.map(key => {
       const label = threadLabel(key);
       const latest = [...inboxMessages].reverse().find(message => message.thread_key === key);
-      return `<div class="rx-employer-thread ${key===activeThread?'active':''}" data-employer-thread="${safe(key)}"><b>${safe(label.name)}</b><p>${safe(label.sub)}${latest?.body?' · '+safe(latest.body):''}</p></div>`;
+      return `<div class="rx-employer-thread ${key===activeThread?'active':''}" data-employer-thread="${safe(key)}">${avatarHtml(label,'small')}<div class="rx-employer-thread-copy"><b>${safe(label.name)}</b><p>${safe(label.sub)}${latest?.body?' · '+safe(latest.body):''}</p></div></div>`;
     }).join('');
 
     const label = threadLabel(activeThread);
+    head.querySelector('.rx-candidate-avatar')?.remove();
+    head.insertAdjacentHTML('afterbegin',avatarHtml(label));
     name.textContent = label.name;
     sub.textContent = label.sub;
     body.innerHTML = inboxMessages.filter(message => message.thread_key === activeThread).map(message => {
