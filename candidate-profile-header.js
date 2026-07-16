@@ -1,288 +1,133 @@
 (() => {
-  if (window.__rolexaCandidateProfileHeader) return;
-  window.__rolexaCandidateProfileHeader = true;
   if (!/candidate-dashboard\.html$/.test(location.pathname)) return;
 
-  const SUPABASE_URL = 'https://hndzomiigjjyyconeqpc.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_bHyw-HOLRFv_7FDAI1amhQ_MX-Sjocd';
-  const CV_BUCKET = 'candidate-cvs';
-  const PROFILE_KEY = 'rolexa_candidate_profile_v2';
-
-  function esc(value) {
-    return String(value || '').replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]));
+  /* Preserve the existing candidate profile-page enhancement from the last stable build. */
+  if (!document.querySelector('script[data-rx-stable-profile-header]')) {
+    const stable = document.createElement('script');
+    stable.src = 'https://cdn.jsdelivr.net/gh/Corum93/rolexa@48139d443ab83184b7413f38618b300ceac56d62/candidate-profile-header.js';
+    stable.defer = true;
+    stable.dataset.rxStableProfileHeader = 'true';
+    document.head.appendChild(stable);
   }
 
-  function storedProfile() {
-    try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}'); }
-    catch (_) { return {}; }
-  }
+  if (window.__rolexaCandidateOverviewPremium) return;
+  window.__rolexaCandidateOverviewPremium = true;
 
-  function profileData() {
-    const stored = storedProfile();
-    const name = document.getElementById('profileName')?.textContent?.trim() || stored.fullName || 'Candidate';
-    const metaText = document.getElementById('profileMeta')?.textContent?.trim() || '';
-    const role = stored.targetRole || metaText.split(',')[0]?.trim() || 'Professional';
-    const location = stored.location || metaText.split(',')[1]?.trim() || '';
-    const style = stored.workStyle || metaText.split(',')[2]?.trim() || '';
-    const summary = document.getElementById('profileSummary')?.textContent?.trim() || stored.summary || '';
-    return { name, role, location, style, summary };
-  }
-
-  function professionalLinks() {
-    const stored = storedProfile();
-    return [
-      { label:'LinkedIn', url:stored.linkedinUrl || '', icon:'in' },
-      { label:'Portfolio', url:stored.portfolioUrl || '', icon:'◫' },
-      { label:'Website', url:stored.websiteUrl || '', icon:'↗' },
-      { label:'GitHub', url:stored.githubUrl || '', icon:'GH' }
-    ].filter(link => link.url);
-  }
-
-  function safeUrl(value) {
-    const trimmed = String(value || '').trim();
-    if (!trimmed) return '';
-    const normalised = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-    try {
-      const parsed = new URL(normalised);
-      return ['http:','https:'].includes(parsed.protocol) ? parsed.href : '';
-    } catch (_) {
-      return '';
-    }
-  }
-
-  function avatarSource() {
-    const top = document.getElementById('topAvatar');
-    const img = top?.querySelector('img');
-    if (img?.src) return img.src;
-    const background = top ? getComputedStyle(top).backgroundImage : '';
-    const match = background && background.match(/url\(["']?(.*?)["']?\)/);
-    return match ? match[1] : '';
-  }
-
-  function initials(name) {
-    return String(name || 'Candidate').split(/\s+/).filter(Boolean).slice(0,2).map(part => part[0]).join('').toUpperCase();
-  }
-
-  function addStyles() {
-    if (document.getElementById('rxCandidateProfileHeaderStyles')) return;
+  const addStyles = () => {
+    if (document.getElementById('rxCandidateOverviewPremiumStyles')) return;
     const style = document.createElement('style');
-    style.id = 'rxCandidateProfileHeaderStyles';
+    style.id = 'rxCandidateOverviewPremiumStyles';
     style.textContent = `
-      .rx-profile-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#071025 0%,#0A1738 58%,#176BFF 140%);color:#fff;border-radius:24px;padding:28px;display:grid;grid-template-columns:112px minmax(0,1fr) auto;gap:22px;align-items:center;margin-bottom:14px;box-shadow:0 18px 50px rgba(7,16,37,.16)}
-      .rx-profile-hero:after{content:'';position:absolute;width:300px;height:300px;border-radius:50%;right:-120px;top:-170px;background:rgba(255,255,255,.06);pointer-events:none}
-      .rx-profile-photo{position:relative;z-index:1;width:108px;height:108px;border-radius:24px;object-fit:cover;border:4px solid rgba(255,255,255,.9);box-shadow:0 12px 30px rgba(0,0,0,.28);background:#176BFF;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:#fff;overflow:hidden}
-      .rx-profile-photo img{width:100%;height:100%;object-fit:cover;display:block}
-      .rx-profile-copy{position:relative;z-index:1;min-width:0}
-      .rx-profile-kicker{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#AFC4FF;margin-bottom:7px}
-      .rx-profile-name{font-family:'Space Grotesk',Inter,sans-serif;font-size:32px;line-height:1.08;font-weight:800;letter-spacing:-.035em;margin:0}
-      .rx-profile-role{font-size:16px;font-weight:800;color:#fff;margin-top:7px}
-      .rx-profile-location{font-size:13px;color:#C7D3FF;margin-top:6px;display:flex;gap:8px;flex-wrap:wrap}
-      .rx-profile-intro{font-size:13.5px;line-height:1.55;color:#DCE5FF;margin:12px 0 0;max-width:720px}
-      .rx-profile-actions{position:relative;z-index:1;display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
-      .rx-profile-action{border-radius:999px;padding:11px 15px;font-size:13px;font-weight:900;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;white-space:nowrap}
-      .rx-profile-action.primary{background:#fff;color:#071025;border-color:#fff}
-      .rx-profile-action:disabled{opacity:.65;cursor:wait}
-      .rx-profile-links{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid rgba(7,16,37,.1);border-radius:18px;padding:13px 16px;margin-bottom:18px;box-shadow:0 10px 30px rgba(7,16,37,.06)}
-      .rx-profile-links-title{font-family:'Space Grotesk',Inter,sans-serif;font-size:13px;font-weight:800;color:#596279;margin-right:2px}
-      .rx-profile-link{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:#071025;background:#F2F5FC;border:1px solid rgba(23,107,255,.12);border-radius:999px;padding:9px 13px;font-size:12.5px;font-weight:900;transition:transform .16s ease,background .16s ease,border-color .16s ease}
-      .rx-profile-link:hover{transform:translateY(-1px);background:#EAF0FF;border-color:rgba(23,107,255,.3)}
-      .rx-profile-link-icon{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:7px;background:#176BFF;color:#fff;font-size:10px;font-weight:900;line-height:1}
-      #profilePage.rx-profile-enhanced>.page-head{margin-bottom:14px}
-      #profilePage.rx-profile-enhanced>.page-head .head-actions{display:none!important}
-      #profilePage.rx-profile-enhanced .two>article:first-child>h2:first-child,
-      #profilePage.rx-profile-enhanced #profileMeta{display:none}
-      #profilePage.rx-profile-enhanced .two>article:first-child:before{content:'About';display:block;font-family:'Space Grotesk',Inter,sans-serif;font-size:20px;font-weight:800;margin-bottom:10px;color:#071025}
-      .side .nav button[onclick*="editProfile"]{display:none!important}
-      .rx-mobile-menu-link[data-view="editProfile"]{display:none!important}
-      #overviewPage .head-actions .danger{display:none!important}
+      #overviewPage.rx-overview-premium .page-head{margin-bottom:22px;align-items:center}
+      #overviewPage.rx-overview-premium .page-head h1{font-size:38px;letter-spacing:-.045em}
+      #overviewPage.rx-overview-premium .page-head p{font-size:15px;max-width:760px;color:#687187}
+      #overviewPage.rx-overview-premium>.grid{grid-template-columns:1.18fr 1.22fr .98fr;gap:18px}
+      #overviewPage.rx-overview-premium>.grid>.card{border:1px solid rgba(7,16,37,.08);border-radius:24px;box-shadow:0 18px 50px rgba(7,16,37,.065);background:rgba(255,255,255,.97)}
+
+      #overviewPage.rx-overview-premium>.grid>.profile-card{position:relative;overflow:hidden;grid-template-columns:174px minmax(0,1fr);padding:26px;background:linear-gradient(145deg,#fff 0%,#f7f9ff 100%)}
+      #overviewPage.rx-overview-premium>.grid>.profile-card:before{content:'';position:absolute;left:0;right:0;top:0;height:5px;background:linear-gradient(90deg,#176bff,#79a0ff)}
+      #overviewPage.rx-overview-premium>.grid>.profile-card:after{content:'';position:absolute;width:230px;height:230px;border-radius:50%;right:-155px;top:-145px;background:rgba(23,107,255,.055);pointer-events:none}
+      #overviewPage.rx-overview-premium .profile-card .ring{width:150px;height:150px;box-shadow:0 14px 34px rgba(23,107,255,.16)}
+      #overviewPage.rx-overview-premium .profile-card .ring:after{width:110px;height:110px;box-shadow:inset 0 0 0 1px rgba(23,107,255,.06)}
+      #overviewPage.rx-overview-premium .profile-card h2{font-size:21px;margin-bottom:15px}
+      #overviewPage.rx-overview-premium .profile-card h2:before{content:'PROFILE COMPLETENESS';display:block;margin-bottom:7px;color:#176bff;font-family:Inter,sans-serif;font-size:10px;font-weight:900;letter-spacing:.1em}
+      #overviewPage.rx-overview-premium .profile-card li{padding:2px 0;font-size:13.5px}
+      #overviewPage.rx-overview-premium .profile-card .primary{margin-top:18px!important;box-shadow:0 10px 24px rgba(23,107,255,.22)}
+
+      #overviewPage.rx-overview-premium .rx-tracker-card{position:relative;padding:26px}
+      #overviewPage.rx-overview-premium .rx-tracker-card h2{font-size:22px;margin-bottom:7px}
+      #overviewPage.rx-overview-premium .rx-tracker-intro{font-size:12.5px;line-height:1.5;color:#7a8499;margin:0 0 17px}
+      #overviewPage.rx-overview-premium .tracker{position:relative;gap:9px}
+      #overviewPage.rx-overview-premium .tracker:before{content:'';position:absolute;left:24px;top:25px;bottom:25px;width:2px;background:linear-gradient(#176bff,#22a06b,#e58a00,#8b5cf6,#22a06b,#e0533f);opacity:.18}
+      #overviewPage.rx-overview-premium .status-row{position:relative;min-height:69px;padding:12px 15px 12px 57px;border-color:rgba(7,16,37,.075);border-radius:16px;background:#fbfcff;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+      #overviewPage.rx-overview-premium .status-row:hover{transform:translateX(2px);border-color:rgba(23,107,255,.18);box-shadow:0 10px 24px rgba(7,16,37,.055)}
+      #overviewPage.rx-overview-premium .status-row:before{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:flex;width:28px;height:28px;align-items:center;justify-content:center;border-radius:10px;background:#eaf0ff;color:#176bff;font-size:13px;font-weight:900;z-index:1}
+      #overviewPage.rx-overview-premium .status-row:nth-child(1):before{content:'1'}
+      #overviewPage.rx-overview-premium .status-row:nth-child(2):before{content:'2';background:#e5f7ef;color:#16865a}
+      #overviewPage.rx-overview-premium .status-row:nth-child(3):before{content:'3';background:#fff2dc;color:#b96b00}
+      #overviewPage.rx-overview-premium .status-row:nth-child(4):before{content:'4';background:#f0ebff;color:#6846e8}
+      #overviewPage.rx-overview-premium .status-row:nth-child(5):before{content:'5';background:#e5f7ef;color:#16865a}
+      #overviewPage.rx-overview-premium .status-row:nth-child(6):before{content:'×';background:#fce9e6;color:#c74736}
+      #overviewPage.rx-overview-premium .status-row b{font-size:14px}
+      #overviewPage.rx-overview-premium .status-row span{font-size:11.5px}
+      #overviewPage.rx-overview-premium .status-row .count{font-size:22px;color:#071025}
+
+      #overviewPage.rx-overview-premium .rx-quality-card{position:relative;overflow:hidden;padding:26px;background:linear-gradient(155deg,#071025 0%,#0b1c45 70%,#176bff 150%);color:#fff;border-color:rgba(255,255,255,.08)}
+      #overviewPage.rx-overview-premium .rx-quality-card:after{content:'';position:absolute;width:260px;height:260px;border-radius:50%;right:-145px;bottom:-165px;background:rgba(255,255,255,.055);pointer-events:none}
+      #overviewPage.rx-overview-premium .rx-quality-card h2{font-size:22px;color:#fff;margin-bottom:6px}
+      #overviewPage.rx-overview-premium .rx-quality-label{font-size:12px;line-height:1.45;color:#b9c8eb;margin-bottom:18px}
+      #overviewPage.rx-overview-premium .rx-quality-card .progress-line{height:9px;background:rgba(255,255,255,.13);margin:10px 0 17px}
+      #overviewPage.rx-overview-premium .rx-quality-card .progress-line span{background:linear-gradient(90deg,#4c85ff,#8fb0ff);box-shadow:0 0 18px rgba(76,133,255,.45)}
+      #overviewPage.rx-overview-premium .rx-quality-card .salary-big{font-size:48px;color:#fff;line-height:1}
+      #overviewPage.rx-overview-premium .rx-quality-card #strengthText{color:#c9d5f3;margin-top:8px}
+      #overviewPage.rx-overview-premium .rx-quality-card .clean-list{position:relative;margin-top:20px!important;gap:10px}
+      #overviewPage.rx-overview-premium .rx-quality-card .clean-list li{padding:12px 13px;border:1px solid rgba(255,255,255,.1);border-radius:13px;background:rgba(255,255,255,.065);color:#e8eeff}
+      #overviewPage.rx-overview-premium .rx-quality-card .save{color:#8fb0ff}
+      #overviewPage.rx-overview-premium .rx-quality-note{position:relative;margin-top:18px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);font-size:11.5px;line-height:1.5;color:#9fb0d7}
+
+      @media(max-width:1180px){
+        #overviewPage.rx-overview-premium>.grid{grid-template-columns:1fr 1fr}
+        #overviewPage.rx-overview-premium .rx-quality-card{grid-column:1/-1}
+      }
       @media(max-width:760px){
-        .rx-profile-hero{grid-template-columns:82px minmax(0,1fr);padding:20px 18px;gap:15px;border-radius:20px}
-        .rx-profile-photo{width:80px;height:80px;border-radius:20px;border-width:3px;font-size:23px}
-        .rx-profile-name{font-size:25px}
-        .rx-profile-role{font-size:14px}
-        .rx-profile-intro{grid-column:1/-1;margin-top:0}
-        .rx-profile-actions{grid-column:1/-1;justify-content:flex-start}
-        .rx-profile-action{flex:1;text-align:center;min-width:130px}
-        .rx-profile-links{display:grid;grid-template-columns:1fr;padding:14px;gap:10px;border-radius:16px}
-        .rx-profile-links-title{width:auto;margin:0 0 2px;font-size:14px}
-        .rx-profile-link{width:100%;min-width:0;justify-content:flex-start;padding:12px 14px;border-radius:14px;font-size:13px}
-        .rx-profile-link-icon{width:24px;height:24px;border-radius:8px}
+        #overviewPage.rx-overview-premium .page-head{margin-bottom:17px}
+        #overviewPage.rx-overview-premium .page-head h1{font-size:30px}
+        #overviewPage.rx-overview-premium>.grid{grid-template-columns:1fr;gap:14px}
+        #overviewPage.rx-overview-premium .rx-quality-card{grid-column:auto}
+        #overviewPage.rx-overview-premium>.grid>.profile-card{grid-template-columns:1fr;padding:21px 18px}
+        #overviewPage.rx-overview-premium .profile-card .ring{width:138px;height:138px;margin:2px auto 6px}
+        #overviewPage.rx-overview-premium .profile-card .ring:after{width:101px;height:101px}
+        #overviewPage.rx-overview-premium .rx-tracker-card,#overviewPage.rx-overview-premium .rx-quality-card{padding:21px 18px}
+        #overviewPage.rx-overview-premium .status-row{min-height:66px;padding-left:55px}
+        #overviewPage.rx-overview-premium .status-row:hover{transform:none}
+        #overviewPage.rx-overview-premium .rx-quality-card .salary-big{font-size:43px}
       }
       @media(max-width:420px){
-        .rx-profile-hero{grid-template-columns:68px minmax(0,1fr);padding:18px 15px}
-        .rx-profile-photo{width:66px;height:66px;border-radius:17px}
-        .rx-profile-name{font-size:22px}
-        .rx-profile-kicker{font-size:10px}
-        .rx-profile-links{padding:12px}
-        .rx-profile-link{padding:11px 12px}
+        #overviewPage.rx-overview-premium .page-head h1{font-size:27px}
+        #overviewPage.rx-overview-premium>.grid>.card{border-radius:20px}
+        #overviewPage.rx-overview-premium>.grid>.profile-card,#overviewPage.rx-overview-premium .rx-tracker-card,#overviewPage.rx-overview-premium .rx-quality-card{padding:19px 15px}
       }
     `;
     document.head.appendChild(style);
-  }
+  };
 
-  function removeDuplicateEditLinks() {
-    document.querySelectorAll('.side .nav button').forEach(button => {
-      if (/edit profile/i.test(button.textContent || '')) button.remove();
-    });
-    document.querySelectorAll('.rx-mobile-menu-link[data-view="editProfile"]').forEach(button => button.remove());
-  }
+  const enhance = () => {
+    const page = document.getElementById('overviewPage');
+    if (!page) return false;
+    page.classList.add('rx-overview-premium');
 
-  function fillEditorFallback() {
-    const p = storedProfile();
-    const textFields = ['fullName','email','location','targetRole','level','workStyle','salary','skills','summary'];
-    textFields.forEach(id => {
-      const input = document.getElementById(id);
-      if (input) input.value = p[id] || '';
-    });
-    const hasCv = document.getElementById('hasCv');
-    const openToWork = document.getElementById('openToWork');
-    const relocate = document.getElementById('relocate');
-    if (hasCv) hasCv.checked = !!p.hasCv;
-    if (openToWork) openToWork.checked = !!p.openToWork;
-    if (relocate) relocate.checked = !!p.relocate;
-    const setup = document.getElementById('setupView');
-    const app = document.getElementById('appView');
-    if (setup) setup.style.display = 'block';
-    if (app) app.style.display = 'none';
-    window.scrollTo({top:0,behavior:'smooth'});
-  }
+    const directCards = [...page.querySelectorAll(':scope > .grid > .card')];
+    const trackerCard = directCards.find(card => /Application tracker/i.test(card.querySelector('h2')?.textContent || ''));
+    const qualityCard = directCards.find(card => /Profile strength|Profile quality/i.test(card.querySelector('h2')?.textContent || ''));
 
-  function openEditor() {
-    if (typeof window.editProfile === 'function') {
-      window.editProfile();
-      return;
-    }
-    fillEditorFallback();
-  }
-
-  function loadSupabase() {
-    return new Promise((resolve, reject) => {
-      if (window.supabase?.createClient) return resolve(window.supabase);
-      const existing = document.querySelector('script[data-rx-cv-supabase]');
-      if (existing) {
-        existing.addEventListener('load', () => resolve(window.supabase), { once:true });
-        existing.addEventListener('error', () => reject(new Error('Supabase could not load')), { once:true });
-        return;
+    if (trackerCard) {
+      trackerCard.classList.add('rx-tracker-card');
+      const heading = trackerCard.querySelector('h2');
+      if (heading && !trackerCard.querySelector('.rx-tracker-intro')) {
+        heading.insertAdjacentHTML('afterend','<p class="rx-tracker-intro">Your application journey, from first submission through to a successful hire.</p>');
       }
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-      script.dataset.rxCvSupabase = 'true';
-      script.onload = () => resolve(window.supabase);
-      script.onerror = () => reject(new Error('Supabase could not load'));
-      document.head.appendChild(script);
-    });
-  }
+    }
 
-  async function openCv(button) {
-    const originalText = button.textContent;
-    button.disabled = true;
-    button.textContent = 'Opening CV…';
-    const popup = window.open('', '_blank');
-    try {
-      const lib = await loadSupabase();
-      const client = lib.createClient(SUPABASE_URL, SUPABASE_KEY);
-      const { data: sessionData } = await client.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) throw new Error('Please sign in again to view your CV.');
-
-      let path = storedProfile().cvFilePath || '';
-      if (!path) {
-        const { data, error } = await client.from('candidate_profiles').select('cv_file_path').eq('user_id', user.id).maybeSingle();
-        if (error) throw error;
-        path = data?.cv_file_path || '';
+    if (qualityCard) {
+      qualityCard.classList.add('rx-quality-card');
+      const heading = qualityCard.querySelector('h2');
+      if (heading) heading.textContent = 'Profile quality';
+      if (heading && !qualityCard.querySelector('.rx-quality-label')) {
+        heading.insertAdjacentHTML('afterend','<p class="rx-quality-label">How competitive and informative your completed profile is.</p>');
       }
-      if (!path) throw new Error('No CV has been uploaded yet. Use Edit profile to upload one.');
-
-      const { data: signed, error: signedError } = await client.storage.from(CV_BUCKET).createSignedUrl(path, 300);
-      if (signedError) throw signedError;
-      if (!signed?.signedUrl) throw new Error('The CV link could not be created.');
-
-      if (popup) popup.location.href = signed.signedUrl;
-      else window.open(signed.signedUrl, '_blank', 'noopener,noreferrer');
-    } catch (error) {
-      if (popup) popup.close();
-      alert(error?.message || 'Your CV could not be opened. Please try again.');
-    } finally {
-      button.disabled = false;
-      button.textContent = originalText;
+      if (!qualityCard.querySelector('.rx-quality-note')) {
+        qualityCard.insertAdjacentHTML('beforeend','<p class="rx-quality-note"><b>Completion</b> means every key section is filled in. <b>Quality</b> reflects how strong and detailed that information is.</p>');
+      }
     }
+    return true;
+  };
+
+  addStyles();
+  if (!enhance()) {
+    const observer = new MutationObserver(() => {
+      if (enhance()) observer.disconnect();
+    });
+    observer.observe(document.documentElement,{childList:true,subtree:true});
+    setTimeout(() => observer.disconnect(),10000);
   }
-
-  function loadProfessionalLinksEditor() {
-    if (document.querySelector('script[data-rx-professional-links-editor]')) return;
-    const script = document.createElement('script');
-    script.src = 'candidate-professional-links-editor.js?v=1';
-    script.defer = true;
-    script.dataset.rxProfessionalLinksEditor = 'true';
-    document.head.appendChild(script);
-  }
-
-  function renderLinks(hero) {
-    let container = document.getElementById('rxCandidateProfessionalLinks');
-    const links = professionalLinks().map(link => ({ ...link, url:safeUrl(link.url) })).filter(link => link.url);
-
-    if (!links.length) {
-      container?.remove();
-      return;
-    }
-
-    if (!container) {
-      container = document.createElement('section');
-      container.id = 'rxCandidateProfessionalLinks';
-      container.className = 'rx-profile-links';
-      hero.insertAdjacentElement('afterend', container);
-    }
-
-    container.innerHTML = `
-      <span class="rx-profile-links-title">Professional links</span>
-      ${links.map(link => `<a class="rx-profile-link" href="${esc(link.url)}" target="_blank" rel="noopener noreferrer"><span class="rx-profile-link-icon">${esc(link.icon)}</span><span>${esc(link.label)}</span></a>`).join('')}
-    `;
-  }
-
-  function render() {
-    const page = document.getElementById('profilePage');
-    if (!page) return;
-    addStyles();
-    removeDuplicateEditLinks();
-    const data = profileData();
-    const src = avatarSource();
-    let hero = document.getElementById('rxCandidateProfileHero');
-    if (!hero) {
-      hero = document.createElement('section');
-      hero.id = 'rxCandidateProfileHero';
-      hero.className = 'rx-profile-hero';
-      const head = page.querySelector('.page-head');
-      head?.insertAdjacentElement('afterend', hero);
-    }
-    const locationBits = [data.location, data.style].filter(Boolean);
-    hero.innerHTML = `
-      <div class="rx-profile-photo">${src ? `<img src="${esc(src)}" alt="${esc(data.name)} profile photo">` : esc(initials(data.name))}</div>
-      <div class="rx-profile-copy">
-        <div class="rx-profile-kicker">Candidate profile</div>
-        <h2 class="rx-profile-name">${esc(data.name)}</h2>
-        <div class="rx-profile-role">${esc(data.role)}</div>
-        ${locationBits.length ? `<div class="rx-profile-location">${locationBits.map(item => `<span>${esc(item)}</span>`).join('<span>•</span>')}</div>` : ''}
-        ${data.summary ? `<p class="rx-profile-intro">${esc(data.summary)}</p>` : ''}
-      </div>
-      <div class="rx-profile-actions">
-        <button type="button" class="rx-profile-action primary" id="rxProfileEdit">Edit profile</button>
-        <button type="button" class="rx-profile-action" id="rxProfileCv">View my CV</button>
-      </div>`;
-    page.classList.add('rx-profile-enhanced');
-    hero.querySelector('#rxProfileEdit')?.addEventListener('click', openEditor);
-    const cvButton = hero.querySelector('#rxProfileCv');
-    cvButton?.addEventListener('click', () => openCv(cvButton));
-    renderLinks(hero);
-  }
-
-  function scheduleRender() { setTimeout(render, 80); }
-  document.addEventListener('click', event => {
-    const target = event.target.closest?.('[data-view="profile"],.rx-mobile-menu-link[data-view="profile"]');
-    if (target) scheduleRender();
-  });
-  window.addEventListener('rolexa:candidate-profile-updated', scheduleRender);
-  window.addEventListener('rolexa:candidate-links-updated', scheduleRender);
-  loadProfessionalLinksEditor();
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleRender);
-  else scheduleRender();
 })();
