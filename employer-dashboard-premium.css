@@ -156,7 +156,7 @@
 
 .rx-suggestion-list li {
   position: relative;
-  padding: 14px 15px 14px 50px !important;
+  padding: 14px 16px 14px 64px !important;
   border: 0 !important;
   border-radius: 14px !important;
   background: #ffffff !important;
@@ -171,16 +171,21 @@
   left: 15px;
   top: 50%;
   display: flex !important;
-  width: 24px;
-  height: 24px;
+  box-sizing: border-box !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 30px !important;
+  margin: 0 !important;
+  padding: 0 !important;
   align-items: center;
   justify-content: center;
   transform: translateY(-50%);
-  border-radius: 8px !important;
+  border-radius: 9px !important;
   background: #176bff !important;
   color: #ffffff !important;
   font-size: 11px !important;
   font-weight: 900;
+  line-height: 1 !important;
 }
 
 .rx-suggestion-list li:nth-child(2)::before { content: "2" !important; }
@@ -290,6 +295,10 @@
 
   .rx-health-list {
     grid-template-columns: 1fr !important;
+  }
+
+  .rx-suggestion-list li {
+    padding-left: 60px !important;
   }
 
   #overviewJobs .rx-job-card,
