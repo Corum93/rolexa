@@ -6,6 +6,24 @@
   const isEmployer = /employer-dashboard\.html$/.test(location.pathname);
   if (!isCandidate && !isEmployer) return;
 
+  function clearLegacyApplicationDemo(){
+    if (!isEmployer) return;
+    ['matchesList','overviewMatches'].forEach(id => {
+      const target = document.getElementById(id);
+      if (!target) return;
+      const text = target.textContent || '';
+      if (/James Walker|Maya Patel|Daniel Kim|Demo match|Smart match/i.test(text)) {
+        target.innerHTML = '<div class="empty">Loading applications…</div>';
+      }
+    });
+  }
+
+  clearLegacyApplicationDemo();
+  document.addEventListener('DOMContentLoaded',clearLegacyApplicationDemo,{once:true});
+  document.addEventListener('click',event => {
+    if (isEmployer && event.target.closest?.('[data-view="matches"]')) clearLegacyApplicationDemo();
+  },true);
+
   if (!document.querySelector('link[data-rx-sidebar-premium]')) {
     const sidebarTheme = document.createElement('link');
     sidebarTheme.rel = 'stylesheet';
