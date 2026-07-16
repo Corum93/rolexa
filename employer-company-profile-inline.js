@@ -79,4 +79,12 @@
     });
     closeMobileMenu();
   }, true);
+
+  if (!document.querySelector('script[data-rx-product-feedback]')) {
+    const feedbackScript = document.createElement('script');
+    feedbackScript.src = 'product-feedback.js?v=1';
+    feedbackScript.defer = true;
+    feedbackScript.dataset.rxProductFeedback = 'true';
+    document.body.appendChild(feedbackScript);
+  }
 })();
