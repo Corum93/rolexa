@@ -10,7 +10,7 @@
   };
 
   load('https://cdn.jsdelivr.net/gh/Corum93/rolexa@0a18c2700ff73aa46920c8906d347e66b7ac04e6/rolexa-support-chat.js', '__rolexaStableSupportRequested');
-  load('demo-experience.js?v=1', '__rolexaDemoExperienceRequested');
+  load('demo-experience.js?v=2', '__rolexaDemoExperienceRequestedV2');
   load('homepage-improvements-premium.js?v=1', '__rolexaHomepageImprovementsPremiumRequested');
   load('premium-homepage-hero.js?v=1', '__rolexaPremiumHomepageHeroRequested');
   load('premium-honesty-section.js?v=1', '__rolexaPremiumHonestySectionRequested');
