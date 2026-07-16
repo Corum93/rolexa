@@ -1,6 +1,12 @@
 /* Rolexa employer dashboard premium presentation layer.
    CSS only: no authentication, data, navigation or Supabase logic is changed. */
 
+/* Legacy sample candidates are still rendered by employer-job-sync.js.
+   Real applications use .rx-app-card, so hide only the obsolete demo component. */
+.rx-candidate-card {
+  display: none !important;
+}
+
 #overviewPage .page-head {
   margin-bottom: 22px;
 }
