@@ -5,11 +5,11 @@
 
   const style = document.createElement('style');
   style.textContent = `
-    #role-demo-explorer{padding:54px 0 28px;background:#f5f7fc}
-    .rx-demo-head{text-align:center;max-width:720px;margin:0 auto 28px}
-    .rx-demo-eyebrow{display:inline-flex;background:#e9edff;color:#2946c7;border-radius:999px;padding:6px 11px;font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px}
+    #role-demo-explorer{padding:28px 0 24px;background:#f5f7fc}
+    .rx-demo-head{text-align:center;max-width:720px;margin:0 auto 20px}
+    .rx-demo-eyebrow{display:inline-flex;background:#e9edff;color:#2946c7;border-radius:999px;padding:6px 11px;font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px}
     .rx-demo-head h2{font-family:'Space Grotesk',sans-serif;font-size:34px;margin:0;color:#0a0e1a}
-    .rx-demo-head p{font-size:15px;line-height:1.6;color:#5a5f73;margin:10px auto 0}
+    .rx-demo-head p{font-size:15px;line-height:1.55;color:#5a5f73;margin:8px auto 0}
     .rx-demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
     .rx-demo-card{position:relative;overflow:hidden;background:#fff;border:1px solid rgba(10,14,26,.09);border-radius:24px;padding:28px;box-shadow:0 18px 48px rgba(10,14,26,.06);display:flex;flex-direction:column;min-height:340px}
     .rx-demo-card:before{content:'';position:absolute;left:0;right:0;top:0;height:4px;background:#4c74ff}
@@ -25,8 +25,8 @@
     .rx-demo-button{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:#0a0e1a;color:#fff;padding:12px 18px;font-size:14px;font-weight:800;text-decoration:none}
     .rx-demo-button:hover{background:#4c74ff}
     .rx-demo-note{font-size:11.5px;color:#8892b0;line-height:1.4;text-align:right}
-    .rx-demo-trust{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;margin-top:22px;color:#5a5f73;font-size:12.5px;font-weight:700}
-    .rx-account-next{padding:22px 0 58px;background:#f5f7fc}
+    .rx-demo-trust{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;margin-top:18px;color:#5a5f73;font-size:12.5px;font-weight:700}
+    .rx-account-next{padding:18px 0 50px;background:#f5f7fc}
     .rx-account-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
     .rx-account-card{position:relative;overflow:hidden;border-radius:24px;padding:34px;color:#fff;box-shadow:0 20px 48px rgba(10,14,26,.13)}
     .rx-account-card.candidate{background:linear-gradient(145deg,#0a0e1a,#1a275c)}
@@ -39,11 +39,11 @@
     .rx-account-card.employer .rx-account-button{color:#2946c7}
     .rx-account-button:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(0,0,0,.14)}
     @media(max-width:760px){
-      #role-demo-explorer{padding:34px 0 22px}
+      #role-demo-explorer{padding:22px 0 18px}
       #role-demo-explorer .wrap,.rx-account-next .wrap{padding-left:18px!important;padding-right:18px!important}
-      .rx-demo-head{margin-bottom:22px;text-align:left}
+      .rx-demo-head{margin-bottom:17px;text-align:left}
       .rx-demo-head h2{font-size:29px;line-height:1.15}
-      .rx-demo-head p{font-size:14.5px;line-height:1.55}
+      .rx-demo-head p{font-size:14.5px;line-height:1.5;margin-top:7px}
       .rx-demo-grid,.rx-account-grid{grid-template-columns:1fr}
       .rx-demo-card{padding:23px;min-height:auto;border-radius:21px}
       .rx-demo-icon{width:48px;height:48px;margin-bottom:16px}
@@ -53,13 +53,14 @@
       .rx-demo-action{display:grid;gap:10px}
       .rx-demo-button,.rx-account-button{width:100%}
       .rx-demo-note{text-align:left}
-      .rx-demo-trust{justify-content:flex-start;display:grid;gap:8px;margin-top:18px;padding:0 2px}
-      .rx-account-next{padding:14px 0 38px}
+      .rx-demo-trust{justify-content:flex-start;display:grid;gap:8px;margin-top:15px;padding:0 2px}
+      .rx-account-next{padding:12px 0 34px}
       .rx-account-card{padding:27px 24px;border-radius:21px}
       .rx-account-card h3{font-size:23px}
     }
     @media(max-width:420px){
       #role-demo-explorer .wrap,.rx-account-next .wrap{padding-left:14px!important;padding-right:14px!important}
+      #role-demo-explorer{padding-top:18px}
       .rx-demo-card,.rx-account-card{padding:21px 18px}
       .rx-demo-head h2{font-size:27px}
       .rx-demo-card h3{font-size:21px}
