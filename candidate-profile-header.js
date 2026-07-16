@@ -52,18 +52,20 @@
       #overviewPage.rx-overview-premium .status-row span{font-size:11.5px}
       #overviewPage.rx-overview-premium .status-row .count{font-size:22px;color:#071025}
 
-      #overviewPage.rx-overview-premium .rx-quality-card{position:relative;overflow:hidden;padding:26px;background:linear-gradient(155deg,#071025 0%,#0b1c45 70%,#176bff 150%);color:#fff;border-color:rgba(255,255,255,.08)}
-      #overviewPage.rx-overview-premium .rx-quality-card:after{content:'';position:absolute;width:260px;height:260px;border-radius:50%;right:-145px;bottom:-165px;background:rgba(255,255,255,.055);pointer-events:none}
-      #overviewPage.rx-overview-premium .rx-quality-card h2{font-size:22px;color:#fff;margin-bottom:6px}
-      #overviewPage.rx-overview-premium .rx-quality-label{font-size:12px;line-height:1.45;color:#b9c8eb;margin-bottom:18px}
-      #overviewPage.rx-overview-premium .rx-quality-card .progress-line{height:9px;background:rgba(255,255,255,.13);margin:10px 0 17px}
-      #overviewPage.rx-overview-premium .rx-quality-card .progress-line span{background:linear-gradient(90deg,#4c85ff,#8fb0ff);box-shadow:0 0 18px rgba(76,133,255,.45)}
-      #overviewPage.rx-overview-premium .rx-quality-card .salary-big{font-size:48px;color:#fff;line-height:1}
-      #overviewPage.rx-overview-premium .rx-quality-card #strengthText{color:#c9d5f3;margin-top:8px}
-      #overviewPage.rx-overview-premium .rx-quality-card .clean-list{position:relative;margin-top:20px!important;gap:10px}
-      #overviewPage.rx-overview-premium .rx-quality-card .clean-list li{padding:12px 13px;border:1px solid rgba(255,255,255,.1);border-radius:13px;background:rgba(255,255,255,.065);color:#e8eeff}
-      #overviewPage.rx-overview-premium .rx-quality-card .save{color:#8fb0ff}
-      #overviewPage.rx-overview-premium .rx-quality-note{position:relative;margin-top:18px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);font-size:11.5px;line-height:1.5;color:#9fb0d7}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card{position:relative;overflow:hidden;padding:26px;background:linear-gradient(155deg,#071025 0%,#0b1c45 70%,#176bff 150%)!important;color:#fff!important;border-color:rgba(255,255,255,.08)!important;box-shadow:0 22px 55px rgba(7,16,37,.18)}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card:after{content:'';position:absolute;width:260px;height:260px;border-radius:50%;right:-145px;bottom:-165px;background:rgba(255,255,255,.055);pointer-events:none}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card h2{font-size:22px;color:#fff!important;margin-bottom:6px}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card .rx-quality-label{font-size:12px;line-height:1.45;color:#b9c8eb!important;margin-bottom:18px}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card .progress-line{height:9px;background:rgba(255,255,255,.13)!important;margin:10px 0 17px}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card .progress-line span{background:linear-gradient(90deg,#4c85ff,#8fb0ff)!important;box-shadow:0 0 18px rgba(76,133,255,.45)}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card .salary-big{font-size:48px;color:#fff!important;line-height:1}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card #strengthText{color:#c9d5f3!important;margin-top:8px}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card .clean-list{position:relative;margin-top:20px!important;gap:10px}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card .clean-list li{padding:12px 13px;border:1px solid rgba(255,255,255,.1);border-radius:13px;background:rgba(255,255,255,.065);color:#e8eeff!important}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card .clean-list li span{color:#e8eeff!important}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card .save{color:#8fb0ff!important}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card .rx-quality-note{position:relative;margin-top:18px;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);font-size:11.5px;line-height:1.5;color:#9fb0d7!important}
+      #overviewPage.rx-overview-premium>.grid>.card.rx-quality-card .rx-quality-note b{color:#dbe5ff}
 
       @media(max-width:1180px){
         #overviewPage.rx-overview-premium>.grid{grid-template-columns:1fr 1fr}
