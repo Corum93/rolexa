@@ -1,6 +1,6 @@
 (() => {
-  if (window.__rolexaPremiumHonestySection) return;
-  window.__rolexaPremiumHonestySection = true;
+  if (window.__rolexaPremiumHonestySectionV2) return;
+  window.__rolexaPremiumHonestySectionV2 = true;
   if (!/\/(index\.html)?$/.test(location.pathname)) return;
 
   const findSection = () => {
@@ -20,7 +20,7 @@
       /Built for a job market that needs more honesty/i.test(el.textContent || '')
     );
     const intro = heading?.nextElementSibling;
-    const cards = [...section.querySelectorAll('article, .card')].filter(card =>
+    const cards = [...section.querySelectorAll('.mission-card, article, .card')].filter(card =>
       /STATUS CLARITY|PAY TRANSPARENCY|DIRECT CONTACT|WHOLE CAREER/i.test(card.textContent || '')
     );
 
@@ -51,11 +51,12 @@
   };
 
   const style = document.createElement('style');
-  style.id = 'rxPremiumHonestyStyles';
+  style.id = 'rxPremiumHonestyStylesV2';
   style.textContent = `
-    .rx-honesty-premium{padding-top:58px!important;padding-bottom:54px!important;background:linear-gradient(180deg,#f7f9fe 0%,#f2f5fc 100%)!important}
+    .rx-honesty-premium{padding-top:50px!important;padding-bottom:20px!important;background:linear-gradient(180deg,#f7f9fe 0%,#f2f5fc 100%)!important}
     .rx-honesty-premium .rx-honesty-title{font-family:'Space Grotesk',Inter,sans-serif!important;font-size:42px!important;line-height:1.08!important;letter-spacing:-.035em!important;margin-bottom:12px!important;color:#071025!important}
-    .rx-honesty-premium .rx-honesty-intro{max-width:760px!important;font-size:17px!important;line-height:1.65!important;color:#626b80!important;margin-bottom:34px!important}
+    .rx-honesty-premium .rx-honesty-intro{max-width:760px!important;font-size:17px!important;line-height:1.65!important;color:#626b80!important;margin-bottom:30px!important}
+    .rx-honesty-premium .mission-grid{gap:18px!important}
     .rx-honesty-premium .rx-honesty-card{position:relative!important;overflow:hidden!important;border:1px solid rgba(7,16,37,.08)!important;border-radius:24px!important;padding:26px 25px 28px!important;background:#fff!important;box-shadow:0 18px 50px rgba(7,16,37,.07)!important;transition:transform .18s ease,box-shadow .18s ease!important;min-height:290px!important}
     .rx-honesty-premium .rx-honesty-card:before{content:'';position:absolute;inset:0 0 auto;height:4px;background:#176bff}
     .rx-honesty-premium .rx-honesty-green:before{background:#22a06b}
@@ -74,31 +75,22 @@
     .rx-honesty-premium .rx-honesty-orange .rx-honesty-kicker{color:#b66b00!important}
     .rx-honesty-premium .rx-honesty-card h3,.rx-honesty-premium .rx-honesty-card h2{font-family:'Space Grotesk',Inter,sans-serif!important;font-size:22px!important;line-height:1.18!important;letter-spacing:-.025em!important;color:#071025!important;margin-bottom:13px!important}
     .rx-honesty-premium .rx-honesty-card p{font-size:14.5px!important;line-height:1.65!important;color:#626b80!important}
-    @media(max-width:1100px){
-      .rx-honesty-premium .wrap>div:last-child{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-    }
+    @media(max-width:1100px){.rx-honesty-premium .mission-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
     @media(max-width:760px){
-      .rx-honesty-premium{padding-top:40px!important;padding-bottom:40px!important}
+      .rx-honesty-premium{padding-top:36px!important;padding-bottom:14px!important}
       .rx-honesty-premium .wrap{padding-left:18px!important;padding-right:18px!important}
       .rx-honesty-premium .rx-honesty-title{font-size:31px!important}
-      .rx-honesty-premium .rx-honesty-intro{font-size:15px!important;margin-bottom:24px!important}
-      .rx-honesty-premium .wrap>div:last-child{grid-template-columns:1fr!important;gap:15px!important}
+      .rx-honesty-premium .rx-honesty-intro{font-size:15px!important;margin-bottom:22px!important}
+      .rx-honesty-premium .mission-grid{grid-template-columns:1fr!important;gap:15px!important}
       .rx-honesty-premium .rx-honesty-card{min-height:auto!important;padding:22px 20px 24px!important;border-radius:20px!important}
-      .rx-honesty-card-top{margin-bottom:17px}
-      .rx-honesty-icon{width:42px;height:42px;border-radius:13px}
+      .rx-honesty-card-top{margin-bottom:17px}.rx-honesty-icon{width:42px;height:42px;border-radius:13px}
     }
-    @media(max-width:420px){
-      .rx-honesty-premium .wrap{padding-left:14px!important;padding-right:14px!important}
-      .rx-honesty-premium .rx-honesty-title{font-size:28px!important}
-      .rx-honesty-premium .rx-honesty-card{padding:20px 18px 22px!important}
-    }
+    @media(max-width:420px){.rx-honesty-premium .wrap{padding-left:14px!important;padding-right:14px!important}.rx-honesty-premium .rx-honesty-title{font-size:28px!important}.rx-honesty-premium .rx-honesty-card{padding:20px 18px 22px!important}}
   `;
   document.head.appendChild(style);
 
   if (!enhance()) {
-    const observer = new MutationObserver(() => {
-      if (enhance()) observer.disconnect();
-    });
+    const observer = new MutationObserver(() => { if (enhance()) observer.disconnect(); });
     observer.observe(document.documentElement,{childList:true,subtree:true});
     setTimeout(() => observer.disconnect(),10000);
   }
