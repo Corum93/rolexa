@@ -7,6 +7,7 @@
   let appMap = new Map();
   let inboxMessages = [];
   let activeThread = '';
+  const candidatePhotoCache = new Map();
 
   const MESSAGE_ENABLED_STATUSES = new Set(['Shortlisted','Interview','Offer','Hired']);
   const byId = id => document.getElementById(id);
@@ -16,7 +17,7 @@
   const initials = value => String(value || 'Candidate').trim().split(/\s+/).filter(Boolean).slice(0,2).map(part => part[0]).join('').toUpperCase() || 'C';
 
   function candidatePhoto(profile = {}){
-    const value = profile.photo_url || profile.avatar_url || profile.profile_photo_url || profile.image_url || profile.photo || profile.avatar || '';
+    const value = profile._signed_photo_url || profile.photo_url || profile.avatar_url || profile.profile_photo_url || profile.image_url || profile.photo || profile.avatar || '';
     if (!value) return '';
     try {
       const url = new URL(String(value), location.href);
@@ -24,6 +25,17 @@
     } catch (_) {
       return '';
     }
+  }
+
+  async function resolveCandidatePhoto(profile = {}){
+    const path = String(profile.photo_file_path || '').trim();
+    if (!path || !client) return '';
+    const cached = candidatePhotoCache.get(path);
+    if (cached && cached.expiresAt > Date.now() + 60000) return cached.url;
+    const { data, error } = await client.storage.from('candidate-photos').createSignedUrl(path, 600);
+    if (error || !data?.signedUrl) return '';
+    candidatePhotoCache.set(path,{url:data.signedUrl,expiresAt:Date.now() + 9 * 60 * 1000});
+    return data.signedUrl;
   }
 
   function avatarHtml(label,size='normal'){
@@ -106,6 +118,10 @@
       const profilesResult = await client.from('candidate_profiles').select('*').in('user_id',userIds);
       if (!profilesResult.error) profiles = profilesResult.data || [];
     }
+
+    await Promise.all(profiles.map(async profile => {
+      profile._signed_photo_url = await resolveCandidatePhoto(profile);
+    }));
 
     const jobMap = new Map(jobs.map(job => [job.id,job]));
     const profileMap = new Map(profiles.map(profile => [profile.user_id,profile]));
