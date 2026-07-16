@@ -10,11 +10,7 @@
   }
 
   function normalise(value) {
-    return String(value || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9£+]+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+    return String(value || '').toLowerCase().replace(/[^a-z0-9£+]+/g, ' ').replace(/\s+/g, ' ').trim();
   }
 
   function words(value) {
@@ -31,10 +27,7 @@
   }
 
   function skillList(value) {
-    return String(value || '')
-      .split(/[,;\n]+/)
-      .map(item => normalise(item))
-      .filter(Boolean);
+    return String(value || '').split(/[,;\n]+/).map(item => normalise(item)).filter(Boolean);
   }
 
   function skillCompatibility(candidateSkills, requiredSkills) {
@@ -116,6 +109,16 @@
       .rx-role-match-signal.good .rx-role-match-dot{background:#22A06B}
       .rx-role-match-signal.bad .rx-role-match-dot{background:#E0533F}
       .rx-role-match-signal.unknown .rx-role-match-dot{background:#AAB2C3}
+      .rx-role-match-explanation{margin-top:14px;padding-top:14px;border-top:1px solid rgba(23,107,255,.14)}
+      .rx-role-match-explanation h4{font-family:'Space Grotesk',Inter,sans-serif;font-size:14px;color:#071025;margin:0 0 9px}
+      .rx-role-match-reasons{display:grid;gap:7px}
+      .rx-role-match-reason{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;align-items:start;background:rgba(255,255,255,.72);border:1px solid rgba(7,16,37,.07);border-radius:11px;padding:9px 10px}
+      .rx-role-match-reason-icon{width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900}
+      .rx-role-match-reason.good .rx-role-match-reason-icon{background:#E1F6EB;color:#16845A}
+      .rx-role-match-reason.bad .rx-role-match-reason-icon{background:#FFF0ED;color:#C74735}
+      .rx-role-match-reason.unknown .rx-role-match-reason-icon{background:#EEF1F6;color:#687386}
+      .rx-role-match-reason b{display:block;color:#071025;font-size:11.5px;margin-bottom:2px}
+      .rx-role-match-reason p{color:#596279;font-size:11.5px;line-height:1.4;margin:0}
       .rx-role-match-note{font-size:10.5px;color:#6B7280;margin-top:10px;line-height:1.4}
       @media(max-width:760px){
         .rx-role-match{padding:13px}
@@ -126,6 +129,7 @@
         .rx-role-match-copy>p{font-size:11.5px}
         .rx-role-match-signals{grid-template-columns:1fr 1fr}
         .rx-role-match-signal{font-size:10.8px;padding:8px 9px}
+        .rx-role-match-reason{padding:9px}
       }
       @media(max-width:430px){
         .rx-role-match-signals{grid-template-columns:1fr}
@@ -173,6 +177,44 @@
     return `<div class="rx-role-match-signal ${state}" title="${safe(label)} · ${safe(suffix)}"><span class="rx-role-match-dot"></span><span>${safe(label)} · ${safe(suffix)}</span></div>`;
   }
 
+  function explanation(label, result, profile, job) {
+    const state = result === true ? 'good' : result === false ? 'bad' : 'unknown';
+    const icon = result === true ? '✓' : result === false ? '!' : '?';
+    const messages = {
+      'Target role': result === true
+        ? `The candidate’s target role aligns with “${job.title || 'this role'}”.`
+        : result === false
+          ? `The candidate’s stated target role differs from “${job.title || 'this role'}” and should be reviewed manually.`
+          : 'The candidate or job title does not contain enough information to assess role alignment.',
+      'Required skills': result === true
+        ? 'At least one of the candidate’s listed skills overlaps with the role’s required skills.'
+        : result === false
+          ? 'No clear overlap was found between the candidate’s listed skills and the role’s required skills.'
+          : 'The role does not have enough structured required-skill information for a reliable comparison.',
+      'Location': result === true
+        ? 'The candidate’s location is compatible with the role location or its remote/flexible arrangement.'
+        : result === false
+          ? 'The candidate location and role location may not be compatible and should be checked.'
+          : 'Location compatibility cannot be assessed because location information is incomplete.',
+      'Work style': result === true
+        ? 'The candidate’s preferred work style matches the arrangement offered by the role.'
+        : result === false
+          ? 'The candidate’s preferred work style differs from the role’s stated arrangement.'
+          : 'Work-style information is incomplete, so compatibility cannot be assessed.',
+      'Salary': result === true
+        ? 'The advertised salary range can meet the candidate’s stated minimum expectation.'
+        : result === false
+          ? 'The advertised salary maximum appears below the candidate’s stated minimum expectation.'
+          : 'The candidate minimum or job salary range is missing or cannot be interpreted reliably.',
+      'Current level': result === true
+        ? 'The candidate’s stated seniority matches the seniority indicated in the role.'
+        : result === false
+          ? 'The candidate’s stated seniority differs from the seniority indicated in the role.'
+          : 'The role does not contain enough seniority information to assess the candidate’s current level.'
+    };
+    return `<div class="rx-role-match-reason ${state}"><span class="rx-role-match-reason-icon">${icon}</span><div><b>${safe(label)}</b><p>${safe(messages[label] || 'This signal requires further review.')}</p></div></div>`;
+  }
+
   function cardHtml(profile, job) {
     const results = [
       ['Target role', roleCompatibility(profile.target_role, job.title)],
@@ -186,7 +228,7 @@
     const matched = known.filter(([, result]) => result === true).length;
     const score = known.length ? Math.round((matched / known.length) * 100) : 0;
     const label = score >= 80 ? 'Strong structured match' : score >= 60 ? 'Good structured match' : score >= 40 ? 'Possible structured match' : 'More review needed';
-    return `<section class="rx-role-match" id="rxEmployerRolexaMatch"><div class="rx-role-match-top"><div class="rx-role-match-score"><strong>${score}%</strong><span>Rolexa Match</span></div><div class="rx-role-match-copy"><h3>${safe(label)}</h3><p>Based on this candidate’s profile and the role’s structured information.</p></div></div><div class="rx-role-match-signals">${results.map(([name,result]) => signal(name,result)).join('')}</div><div class="rx-role-match-note">Structured data only. CV analysis and semantic AI are not included yet.</div></section>`;
+    return `<section class="rx-role-match" id="rxEmployerRolexaMatch"><div class="rx-role-match-top"><div class="rx-role-match-score"><strong>${score}%</strong><span>Rolexa Match</span></div><div class="rx-role-match-copy"><h3>${safe(label)}</h3><p>Based on this candidate’s profile and the role’s structured information.</p></div></div><div class="rx-role-match-signals">${results.map(([name,result]) => signal(name,result)).join('')}</div><div class="rx-role-match-explanation"><h4>Why this candidate matches</h4><div class="rx-role-match-reasons">${results.map(([name,result]) => explanation(name,result,profile,job)).join('')}</div></div><div class="rx-role-match-note">Structured data only. CV analysis and semantic AI are not included yet.</div></section>`;
   }
 
   async function render(applicationId) {
@@ -194,11 +236,7 @@
     if (!body || document.getElementById('rxEmployerRolexaMatch')) return;
     try {
       const client = await getClient();
-      const { data: application, error: appError } = await client
-        .from('candidate_applications')
-        .select('user_id,job_id')
-        .eq('id', applicationId)
-        .maybeSingle();
+      const { data: application, error: appError } = await client.from('candidate_applications').select('user_id,job_id').eq('id', applicationId).maybeSingle();
       if (appError || !application?.user_id || !application?.job_id) return;
 
       const [profileResult, jobResult] = await Promise.all([
