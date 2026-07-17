@@ -41,23 +41,19 @@
       body:has(#messagesPage.active) .rx-feedback-trigger span{width:25px!important;height:25px!important;margin:0!important;font-size:14px!important}
       body:has(#messagesPage.active) .rx-chat-launcher .rx-chat-dot{width:10px!important;height:10px!important;margin:0!important}
     }
-    #messagesPage .rx-stable-company-logo{width:45px;height:45px;border-radius:12px;object-fit:cover;display:block;grid-column:1;grid-row:1 / span 2;align-self:center;background:#071025}
-    #messagesPage .threads .thread.rx-stable-branding{display:grid!important;grid-template-columns:45px minmax(0,1fr)!important;column-gap:12px!important;row-gap:3px!important;align-items:center!important}
+    #messagesPage .rx-stable-company-logo{width:45px;height:45px;border-radius:12px;object-fit:cover;display:block;grid-column:2;grid-row:1 / span 2;align-self:center;justify-self:end;background:#071025}
+    #messagesPage .threads .thread.rx-stable-branding{display:grid!important;grid-template-columns:minmax(0,1fr) 45px!important;column-gap:12px!important;row-gap:3px!important;align-items:center!important}
     #messagesPage .threads .thread.rx-stable-branding>b,
     #messagesPage .threads .thread.rx-stable-branding>strong,
-    #messagesPage .threads .thread.rx-stable-branding>.item-title{grid-column:2;grid-row:1;min-width:0;margin:0!important}
+    #messagesPage .threads .thread.rx-stable-branding>.item-title{grid-column:1;grid-row:1;min-width:0;margin:0!important}
     #messagesPage .threads .thread.rx-stable-branding>p,
-    #messagesPage .threads .thread.rx-stable-branding>.item-sub{grid-column:2;grid-row:2;min-width:0;margin:0!important}
+    #messagesPage .threads .thread.rx-stable-branding>.item-sub{grid-column:1;grid-row:2;min-width:0;margin:0!important}
   `;
   document.head.appendChild(style);
 
-  /* The candidate inbox is refreshed by more than one data source. The stable company
-     profile state can briefly be replaced by a job-title fallback. Capture branding by
-     conversation position, then restore both name and image after every list refresh. */
   if (isCandidate) {
     const brandingByPosition = new Map();
     let applying = false;
-    let queued = false;
 
     const validImageSource = image => {
       const source = image?.currentSrc || image?.src || '';
@@ -66,59 +62,79 @@
 
     const titleNode = thread => thread.querySelector(':scope > b,:scope > strong,:scope > .item-title') || thread.querySelector('b,strong,.item-title');
 
+    const companyNameFromMessages = () => {
+      const candidates = [...document.querySelectorAll('#messagesPage .bubble.them')]
+        .map(node => (node.textContent || '').trim().match(/^([^·\n]+?)\s*·/)?.[1]?.trim())
+        .filter(Boolean);
+      return candidates.find(name => !/^test$/i.test(name)) || '';
+    };
+
     const captureAndRestore = root => {
       if (applying) return;
       applying = true;
       try {
+        const messageCompany = companyNameFromMessages();
         [...root.querySelectorAll('.thread')].forEach((thread,index) => {
           const title = titleNode(thread);
-          const image = thread.querySelector('img:not(.rx-stable-company-logo),.rx-stable-company-logo');
-          const source = validImageSource(image);
+          const images = [...thread.querySelectorAll('img')];
+          const source = images.map(validImageSource).find(Boolean) || brandingByPosition.get(index)?.src || '';
           const visibleName = title?.textContent?.trim() || '';
+          const authoritativeName = messageCompany || (!/^test$/i.test(visibleName) ? visibleName : '') || brandingByPosition.get(index)?.name || '';
 
-          /* A real company image is the authoritative branding signal. */
-          if (source && visibleName && !/^test$/i.test(visibleName)) {
-            brandingByPosition.set(index,{src:source,name:visibleName});
+          if (source || authoritativeName) {
+            const previous = brandingByPosition.get(index) || {};
+            brandingByPosition.set(index,{src:source || previous.src || '',name:authoritativeName || previous.name || ''});
           }
 
           const branding = brandingByPosition.get(index);
-          if (!branding) return;
+          if (!branding?.name) return;
 
           thread.classList.add('rx-stable-branding');
           if (title && title.textContent.trim() !== branding.name) title.textContent = branding.name;
 
           let stable = thread.querySelector('.rx-stable-company-logo');
-          if (!stable) {
+          if (!stable && branding.src) {
             stable = document.createElement('img');
             stable.className = 'rx-stable-company-logo';
-            stable.alt = `${branding.name} logo`;
-            const directVisual = [...thread.children].find(child => child.matches?.('img,.logo') || child.classList?.contains('rx-stable-company-logo'));
-            if (directVisual) directVisual.replaceWith(stable);
-            else thread.prepend(stable);
+            thread.appendChild(stable);
           }
-          if (stable.src !== branding.src) stable.src = branding.src;
-          stable.alt = `${branding.name} logo`;
+
+          /* Keep exactly one logo, on the right. */
+          [...thread.querySelectorAll('img,.logo')].forEach(visual => {
+            if (visual !== stable) visual.remove();
+          });
+
+          if (stable && branding.src) {
+            if (stable.src !== branding.src) stable.src = branding.src;
+            stable.alt = `${branding.name} logo`;
+          }
         });
       } finally {
         applying = false;
       }
     };
 
-    const schedule = root => {
-      if (queued) return;
-      queued = true;
-      requestAnimationFrame(() => {
-        queued = false;
-        captureAndRestore(root);
-      });
-    };
-
     const attach = () => {
       const root = document.getElementById('threadList') || document.querySelector('#messagesPage .threads');
-      if (!root || root.dataset.rxBrandStabilizer === 'true') return false;
-      root.dataset.rxBrandStabilizer = 'true';
+      if (!root) return false;
+
       captureAndRestore(root);
-      new MutationObserver(() => schedule(root)).observe(root,{childList:true,subtree:true,characterData:true});
+
+      if (root.dataset.rxBrandStabilizer !== 'true') {
+        root.dataset.rxBrandStabilizer = 'true';
+        new MutationObserver(() => captureAndRestore(root)).observe(root,{childList:true,subtree:true,characterData:true});
+      }
+
+      if (typeof window.renderMessages === 'function' && !window.renderMessages.__rxBrandWrapped) {
+        const originalRenderMessages = window.renderMessages;
+        const wrappedRenderMessages = function(...args){
+          const result = originalRenderMessages.apply(this,args);
+          captureAndRestore(root);
+          return result;
+        };
+        wrappedRenderMessages.__rxBrandWrapped = true;
+        window.renderMessages = wrappedRenderMessages;
+      }
       return true;
     };
 
