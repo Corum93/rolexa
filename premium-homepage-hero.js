@@ -3,6 +3,14 @@
   if (window.__rolexaPremiumHomepageHero) return;
   window.__rolexaPremiumHomepageHero = true;
 
+  if (!document.querySelector('link[data-rx-mobile-premium-sync]')) {
+    const mobileSync = document.createElement('link');
+    mobileSync.rel = 'stylesheet';
+    mobileSync.href = 'mobile-premium-sync.css?v=1';
+    mobileSync.dataset.rxMobilePremiumSync = 'true';
+    document.head.appendChild(mobileSync);
+  }
+
   const hero = document.querySelector('.hero');
   const wrap = hero?.querySelector('.wrap');
   if (!hero || !wrap) return;
