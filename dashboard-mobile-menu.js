@@ -1,6 +1,6 @@
 (() => {
-  if (window.__rolexaDashboardSharedLoaderV5) return;
-  window.__rolexaDashboardSharedLoaderV5 = true;
+  if (window.__rolexaDashboardSharedLoaderV6) return;
+  window.__rolexaDashboardSharedLoaderV6 = true;
 
   const isDashboard = /(?:candidate|employer)-dashboard\.html$/.test(location.pathname);
   if (!isDashboard) return;
@@ -22,6 +22,6 @@
   load(
     'https://cdn.jsdelivr.net/gh/Corum93/rolexa@459aa200372f11b2503cd0175b1f0392c6012757/dashboard-mobile-menu.js',
     '__rolexaStableDashboardMenuRequested',
-    () => load('dashboard-messages-layout.js?v=1','__rolexaMessagesLayoutRequested')
+    () => load('dashboard-messages-layout.js?v=2','__rolexaMessagesLayoutRequestedV2')
   );
 })();
