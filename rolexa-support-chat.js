@@ -22,4 +22,5 @@
   load('premium-comparison-section.js?v=2', '__rolexaPremiumComparisonSectionRequestedV2');
   load('premium-early-access-section.js?v=1', '__rolexaPremiumAccessSectionRequested');
   load('product-feedback.js?v=1', '__rolexaProductFeedbackRequested');
+  load('support-feedback-integration.js?v=1', '__rolexaSupportFeedbackIntegrationRequested');
 })();
