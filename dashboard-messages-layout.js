@@ -1,6 +1,6 @@
 (() => {
-  if (window.__rolexaDashboardMessagesLayoutV3) return;
-  window.__rolexaDashboardMessagesLayoutV3 = true;
+  if (window.__rolexaDashboardMessagesLayoutV4) return;
+  window.__rolexaDashboardMessagesLayoutV4 = true;
 
   const isCandidate = /candidate-dashboard\.html$/.test(location.pathname);
   const isEmployer = /employer-dashboard\.html$/.test(location.pathname);
@@ -9,13 +9,21 @@
   if (!document.querySelector('link[data-rx-mobile-premium-sync]')) {
     const mobileSync = document.createElement('link');
     mobileSync.rel = 'stylesheet';
-    mobileSync.href = 'mobile-premium-sync.css?v=1';
+    mobileSync.href = 'mobile-premium-sync.css?v=2';
     mobileSync.dataset.rxMobilePremiumSync = 'true';
     document.head.appendChild(mobileSync);
   }
 
+  if (!window.__rolexaSupportLoaded && !document.querySelector('script[data-rx-dashboard-support]')) {
+    const support = document.createElement('script');
+    support.src = 'rolexa-support-chat.js?v=45';
+    support.defer = true;
+    support.dataset.rxDashboardSupport = 'true';
+    document.body.appendChild(support);
+  }
+
   const style = document.createElement('style');
-  style.id = 'rxDashboardMessagesLayoutStylesV3';
+  style.id = 'rxDashboardMessagesLayoutStylesV4';
   style.textContent = `
     @media (min-width:1101px){
       #messagesPage.active .thread-wrap{height:calc(100vh - 190px);min-height:520px;max-height:760px;overflow:hidden;align-items:stretch}
@@ -42,11 +50,9 @@
     @media (max-width:760px){
       #messagesPage.active .chat,#messagesPage.active .rx-employer-chat{min-height:460px}
       #messagesPage.active .chat-body,#messagesPage.active .rx-employer-chat-body{max-height:52vh}
-      body:has(#messagesPage.active) .rx-feedback-trigger,body:has(#messagesPage.active) .rx-chat-launcher{width:46px!important;height:46px!important;min-width:46px!important;max-width:46px!important;padding:0!important;border-radius:50%!important;overflow:hidden!important;font-size:0!important;justify-content:center!important}
-      body:has(#messagesPage.active) .rx-feedback-trigger{top:82px!important}
-      body:has(#messagesPage.active) .rx-chat-launcher{top:136px!important}
-      body:has(#messagesPage.active) .rx-feedback-trigger span{width:25px!important;height:25px!important;margin:0!important;font-size:14px!important}
-      body:has(#messagesPage.active) .rx-chat-launcher .rx-chat-dot{width:10px!important;height:10px!important;margin:0!important}
+      body:has(#messagesPage.active) .rx-feedback-trigger{display:none!important}
+      body:has(#messagesPage.active) .rx-chat-launcher{display:inline-flex!important;visibility:visible!important;opacity:1!important;width:auto!important;height:48px!important;min-width:124px!important;max-width:none!important;padding:0 15px!important;border-radius:999px!important;overflow:visible!important;font-size:13px!important;justify-content:center!important;gap:9px!important;right:14px!important;top:132px!important;bottom:auto!important}
+      body:has(#messagesPage.active) .rx-chat-launcher .rx-chat-dot{width:10px!important;height:10px!important;flex:0 0 10px!important;margin:0!important}
     }
 
     /* Candidate thread rows may contain only the source avatar and text block. */
