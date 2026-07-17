@@ -1,13 +1,13 @@
 (() => {
-  if (window.__rolexaDashboardMessagesLayoutV2) return;
-  window.__rolexaDashboardMessagesLayoutV2 = true;
+  if (window.__rolexaDashboardMessagesLayoutV3) return;
+  window.__rolexaDashboardMessagesLayoutV3 = true;
 
   const isCandidate = /candidate-dashboard\.html$/.test(location.pathname);
   const isEmployer = /employer-dashboard\.html$/.test(location.pathname);
   if (!isCandidate && !isEmployer) return;
 
   const style = document.createElement('style');
-  style.id = 'rxDashboardMessagesLayoutStylesV2';
+  style.id = 'rxDashboardMessagesLayoutStylesV3';
   style.textContent = `
     @media (min-width:1101px){
       #messagesPage.active .thread-wrap{height:calc(100vh - 190px);min-height:520px;max-height:760px;overflow:hidden;align-items:stretch}
@@ -40,6 +40,32 @@
       body:has(#messagesPage.active) .rx-feedback-trigger span{width:25px!important;height:25px!important;margin:0!important;font-size:14px!important}
       body:has(#messagesPage.active) .rx-chat-launcher .rx-chat-dot{width:10px!important;height:10px!important;margin:0!important}
     }
+
+    /* Candidate thread rows may contain only the source avatar and text block. */
+    #messagesPage .rx-candidate-company-thread{
+      display:grid!important;
+      grid-template-columns:48px minmax(0,1fr)!important;
+      gap:12px!important;
+      align-items:center!important;
+    }
+    #messagesPage .rx-candidate-company-thread>.rx-candidate-company-avatar{
+      grid-column:1!important;
+      display:flex!important;
+      width:48px!important;
+      height:48px!important;
+      margin:0!important;
+    }
+    #messagesPage .rx-candidate-company-thread>.rx-candidate-company-copy{
+      grid-column:2!important;
+      min-width:0!important;
+    }
+    #messagesPage .rx-candidate-company-thread>:not(.rx-candidate-company-avatar):not(.rx-candidate-company-copy){display:none!important}
+    #messagesPage .rx-candidate-company-copy img,
+    #messagesPage .rx-candidate-company-copy .logo,
+    #messagesPage .rx-candidate-company-copy .avatar,
+    #messagesPage .rx-candidate-company-copy .rx-candidate-company-avatar,
+    #messagesPage .rx-candidate-company-copy [class*="company-logo"],
+    #messagesPage .rx-candidate-company-copy [class*="stable-company"]{display:none!important}
   `;
   document.head.appendChild(style);
 })();
