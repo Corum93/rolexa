@@ -6,10 +6,12 @@
   const KEY = 'sb_publishable_bHyw-HOLRFv_7FDAI1amhQ_MX-Sjocd';
   let client, user, activeThread = '';
   let messages = [], applications = [], jobs = [], interviewSlots = [];
+  let employerProfiles = new Map();
 
   const $ = id => document.getElementById(id);
   const safe = value => String(value ?? '').replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
   const time = value => value ? new Date(value).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+  const initials = value => String(value || 'Company').trim().split(/\s+/).filter(Boolean).slice(0,2).map(part => part[0]).join('').toUpperCase() || 'C';
 
   function loadUnreadBadges(){
     if (document.querySelector('script[src*="message-unread-badges.js"]')) return;
@@ -26,6 +28,12 @@
     style.textContent = `
       .rx-interview-card{align-self:flex-start;width:min(520px,92%);background:#fff;border:1px solid rgba(23,107,255,.18);border-radius:18px;padding:16px;box-shadow:0 10px 28px rgba(7,16,37,.06)}
       .rx-interview-card-head{display:flex;gap:11px;align-items:flex-start;margin-bottom:12px}.rx-interview-icon{width:38px;height:38px;border-radius:11px;background:#EEF3FF;color:#176BFF;display:flex;align-items:center;justify-content:center;font-size:19px;flex:0 0 auto}.rx-interview-card h3{font-size:16px;margin:0;color:#071025}.rx-interview-card p{font-size:12.5px;color:#6B7280;line-height:1.45;margin:4px 0 0}.rx-interview-options{display:grid;gap:8px;margin-top:13px}.rx-interview-option{border:1px solid rgba(23,107,255,.18);background:#F7F9FF;color:#101F4A;border-radius:12px;padding:11px 12px;font-weight:800;font-size:13px}.rx-interview-option span{display:block;color:#6B7280;font-size:11.5px;font-weight:600;margin-top:3px}.rx-interview-note{font-size:11.5px;color:#6B7280;margin-top:11px;line-height:1.45}
+      #messagesPage .rx-candidate-company-thread{display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;align-items:center}
+      #messagesPage .rx-candidate-company-avatar{width:48px;height:48px;border-radius:13px;background:#071025;color:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:13px;font-weight:900;box-shadow:0 7px 18px rgba(7,16,37,.13)}
+      #messagesPage .rx-candidate-company-avatar img{width:100%;height:100%;display:block;object-fit:contain;background:#071025}
+      #messagesPage .rx-candidate-company-copy{min-width:0}
+      #messagesPage .rx-candidate-company-copy b{display:block;margin:0 0 4px;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      #messagesPage .rx-candidate-company-copy p{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     `;
     document.head.appendChild(style);
   }
@@ -72,15 +80,32 @@
     </div>`;
   }
 
+  function applicationAndJob(threadKey){
+    if (!threadKey.startsWith('application:')) return {app:null,job:null,profile:null};
+    const id = threadKey.split(':')[1];
+    const app = applications.find(a => String(a.id) === String(id));
+    const job = app && jobs.find(j => String(j.id) === String(app.job_id));
+    const profile = job?.employer_user_id ? employerProfiles.get(String(job.employer_user_id)) || null : null;
+    return {app,job,profile};
+  }
+
   function label(threadKey){
-    if (threadKey === 'support') return {name:'Rolexa Support',sub:'Candidate support'};
-    if (threadKey.startsWith('application:')) {
-      const id = threadKey.split(':')[1];
-      const app = applications.find(a => String(a.id) === String(id));
-      const job = app && jobs.find(j => j.id === app.job_id);
-      return {name: job?.company || 'Employer', sub: job ? `${job.title} · ${app.status}` : 'Application conversation'};
+    if (threadKey === 'support') return {name:'Rolexa Support',sub:'Candidate support',logo:'',initials:'RS'};
+    const {app,job,profile} = applicationAndJob(threadKey);
+    if (app && job) {
+      const name = profile?.company_name || job.company || 'Employer';
+      return {
+        name,
+        sub:`${job.title || 'Application'} · ${app.status || 'Application'}`,
+        logo:profile?.logo_url || '',
+        initials:initials(name)
+      };
     }
-    return {name:'Message thread',sub:'Conversation'};
+    return {name:'Employer',sub:'Application conversation',logo:'',initials:'E'};
+  }
+
+  function companyAvatar(info){
+    return `<span class="rx-candidate-company-avatar">${info.logo ? `<img src="${safe(info.logo)}" alt="${safe(info.name)} logo">` : safe(info.initials)}</span>`;
   }
 
   function threadMessages(threadKey){
@@ -127,12 +152,21 @@
     const [m,a,j] = await Promise.all([
       client.from('candidate_messages').select('*').eq('user_id',user.id).order('created_at',{ascending:true}),
       client.from('candidate_applications').select('id,job_id,status').eq('user_id',user.id),
-      client.from('jobs').select('id,title,company')
+      client.from('jobs').select('id,title,company,employer_user_id')
     ]);
     if (m.error) throw m.error;
     messages = m.data || [];
     applications = a.data || [];
-    jobs = j.data || [];
+    jobs = j.error ? [] : (j.data || []);
+
+    employerProfiles = new Map();
+    const employerIds = [...new Set(jobs.map(job => job.employer_user_id).filter(Boolean).map(String))];
+    if (employerIds.length) {
+      const profilesResult = await client.from('employer_profiles').select('user_id,company_name,logo_url').in('user_id',employerIds);
+      if (!profilesResult.error) {
+        employerProfiles = new Map((profilesResult.data || []).map(profile => [String(profile.user_id),profile]));
+      }
+    }
 
     const slotsResult = await client.from('interview_slots')
       .select('id,application_id,starts_at,ends_at,meeting_type,status')
@@ -175,14 +209,15 @@
       const hasInvite = interviewCard(key) !== '';
       const waiting = !candidateCanReply(key);
       const preview = latest ? safe(latest.body) : (hasInvite ? 'Interview invitation received' : 'Conversation');
-      return `<div class="thread ${key===activeThread?'active':''}" data-candidate-thread="${safe(key)}"><b>${safe(info.name)}</b><p>${safe(info.sub)} · ${preview}${waiting?' · Waiting for employer':''}</p></div>`;
+      return `<div class="thread rx-candidate-company-thread ${key===activeThread?'active':''}" data-candidate-thread="${safe(key)}">${companyAvatar(info)}<div class="rx-candidate-company-copy"><b>${safe(info.name)}</b><p>${safe(info.sub)} · ${preview}${waiting?' · Waiting for employer':''}</p></div></div>`;
     }).join('');
     const info = label(activeThread);
     $('chatName').textContent = info.name;
     $('chatSub').textContent = canReply ? `${info.sub} · You can reply now` : `${info.sub} · Waiting for employer reply`;
     const messageHtml = threadMessages(activeThread).map(m => {
       const mine = m.sender === 'candidate';
-      return `<div class="bubble ${mine?'me':'them'}"><div style="font-size:11px;font-weight:900;opacity:.72;margin-bottom:4px">${safe(m.sender_name || (mine?'You':'Employer'))} · ${safe(time(m.created_at))}</div>${safe(m.body)}</div>`;
+      const employerName = info.name || 'Employer';
+      return `<div class="bubble ${mine?'me':'them'}"><div style="font-size:11px;font-weight:900;opacity:.72;margin-bottom:4px">${safe(mine ? (m.sender_name || 'You') : employerName)} · ${safe(time(m.created_at))}</div>${safe(m.body)}</div>`;
     }).join('');
     $('chatBody').innerHTML = `${messageHtml}${interviewCard(activeThread)}`;
     $('chatBody').scrollTop = $('chatBody').scrollHeight;
