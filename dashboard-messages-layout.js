@@ -41,48 +41,84 @@
       body:has(#messagesPage.active) .rx-feedback-trigger span{width:25px!important;height:25px!important;margin:0!important;font-size:14px!important}
       body:has(#messagesPage.active) .rx-chat-launcher .rx-chat-dot{width:10px!important;height:10px!important;margin:0!important}
     }
-    #messagesPage .rx-stable-company-logo{width:45px;height:45px;border-radius:12px;object-fit:cover;display:block;flex:0 0 auto;background:#071025}
+    #messagesPage .rx-stable-company-logo{width:45px;height:45px;border-radius:12px;object-fit:cover;display:block;grid-column:1;grid-row:1 / span 2;align-self:center;background:#071025}
+    #messagesPage .threads .thread.rx-stable-branding{display:grid!important;grid-template-columns:45px minmax(0,1fr)!important;column-gap:12px!important;row-gap:3px!important;align-items:center!important}
+    #messagesPage .threads .thread.rx-stable-branding>b,
+    #messagesPage .threads .thread.rx-stable-branding>strong,
+    #messagesPage .threads .thread.rx-stable-branding>.item-title{grid-column:2;grid-row:1;min-width:0;margin:0!important}
+    #messagesPage .threads .thread.rx-stable-branding>p,
+    #messagesPage .threads .thread.rx-stable-branding>.item-sub{grid-column:2;grid-row:2;min-width:0;margin:0!important}
   `;
   document.head.appendChild(style);
 
-  /* Candidate inboxes may be re-rendered by live profile/message refreshes. Cache the
-     resolved company image and restore it immediately into each new thread node. */
+  /* The candidate inbox is refreshed by more than one data source. The stable company
+     profile state can briefly be replaced by a job-title fallback. Capture branding by
+     conversation position, then restore both name and image after every list refresh. */
   if (isCandidate) {
-    const logoCache = new Map();
+    const brandingByPosition = new Map();
+    let applying = false;
+    let queued = false;
 
-    const threadKey = thread => {
-      const title = thread.querySelector('b,.item-title,strong')?.textContent?.trim();
-      return title || thread.textContent.trim().slice(0,80);
+    const validImageSource = image => {
+      const source = image?.currentSrc || image?.src || '';
+      return source && !source.startsWith('data:') ? source : '';
     };
 
-    const stabilizeLogos = root => {
-      root.querySelectorAll('.thread').forEach(thread => {
-        const key = threadKey(thread);
-        const image = thread.querySelector('img');
-        const validSrc = image?.currentSrc || image?.src || '';
-        if (validSrc && !validSrc.startsWith('data:')) logoCache.set(key,validSrc);
-        const cached = logoCache.get(key);
-        if (!cached) return;
+    const titleNode = thread => thread.querySelector(':scope > b,:scope > strong,:scope > .item-title') || thread.querySelector('b,strong,.item-title');
 
-        let stable = thread.querySelector('.rx-stable-company-logo');
-        if (!stable) {
-          stable = document.createElement('img');
-          stable.className = 'rx-stable-company-logo';
-          stable.alt = `${key} logo`;
-          const first = thread.firstElementChild;
-          if (first && (first.matches('img,.logo') || first.querySelector?.('img'))) first.replaceWith(stable);
-          else thread.prepend(stable);
-        }
-        if (stable.src !== cached) stable.src = cached;
+    const captureAndRestore = root => {
+      if (applying) return;
+      applying = true;
+      try {
+        [...root.querySelectorAll('.thread')].forEach((thread,index) => {
+          const title = titleNode(thread);
+          const image = thread.querySelector('img:not(.rx-stable-company-logo),.rx-stable-company-logo');
+          const source = validImageSource(image);
+          const visibleName = title?.textContent?.trim() || '';
+
+          /* A real company image is the authoritative branding signal. */
+          if (source && visibleName && !/^test$/i.test(visibleName)) {
+            brandingByPosition.set(index,{src:source,name:visibleName});
+          }
+
+          const branding = brandingByPosition.get(index);
+          if (!branding) return;
+
+          thread.classList.add('rx-stable-branding');
+          if (title && title.textContent.trim() !== branding.name) title.textContent = branding.name;
+
+          let stable = thread.querySelector('.rx-stable-company-logo');
+          if (!stable) {
+            stable = document.createElement('img');
+            stable.className = 'rx-stable-company-logo';
+            stable.alt = `${branding.name} logo`;
+            const directVisual = [...thread.children].find(child => child.matches?.('img,.logo') || child.classList?.contains('rx-stable-company-logo'));
+            if (directVisual) directVisual.replaceWith(stable);
+            else thread.prepend(stable);
+          }
+          if (stable.src !== branding.src) stable.src = branding.src;
+          stable.alt = `${branding.name} logo`;
+        });
+      } finally {
+        applying = false;
+      }
+    };
+
+    const schedule = root => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        captureAndRestore(root);
       });
     };
 
     const attach = () => {
       const root = document.getElementById('threadList') || document.querySelector('#messagesPage .threads');
-      if (!root || root.dataset.rxLogoStabilizer === 'true') return false;
-      root.dataset.rxLogoStabilizer = 'true';
-      stabilizeLogos(root);
-      new MutationObserver(() => stabilizeLogos(root)).observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
+      if (!root || root.dataset.rxBrandStabilizer === 'true') return false;
+      root.dataset.rxBrandStabilizer = 'true';
+      captureAndRestore(root);
+      new MutationObserver(() => schedule(root)).observe(root,{childList:true,subtree:true,characterData:true});
       return true;
     };
 
