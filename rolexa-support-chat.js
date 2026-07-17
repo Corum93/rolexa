@@ -9,6 +9,10 @@
     document.body.appendChild(script);
   };
 
+  if (/candidate-dashboard\.html$/.test(location.pathname)) {
+    load('candidate-messaging-inbox.js?v=2', '__rolexaCandidateInboxRequested');
+  }
+
   load('https://cdn.jsdelivr.net/gh/Corum93/rolexa@0a18c2700ff73aa46920c8906d347e66b7ac04e6/rolexa-support-chat.js', '__rolexaStableSupportRequested');
   load('demo-experience.js?v=2', '__rolexaDemoExperienceRequestedV2');
   load('homepage-improvements-premium.js?v=2', '__rolexaHomepageImprovementsPremiumRequestedV2');
