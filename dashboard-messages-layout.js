@@ -6,6 +6,14 @@
   const isEmployer = /employer-dashboard\.html$/.test(location.pathname);
   if (!isCandidate && !isEmployer) return;
 
+  if (!document.querySelector('link[data-rx-mobile-premium-sync]')) {
+    const mobileSync = document.createElement('link');
+    mobileSync.rel = 'stylesheet';
+    mobileSync.href = 'mobile-premium-sync.css?v=1';
+    mobileSync.dataset.rxMobilePremiumSync = 'true';
+    document.head.appendChild(mobileSync);
+  }
+
   const style = document.createElement('style');
   style.id = 'rxDashboardMessagesLayoutStylesV3';
   style.textContent = `
