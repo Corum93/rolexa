@@ -352,7 +352,20 @@
         analyticsLoaded = false;
         await loadAnalytics(true);
       }));
-      client.auth.onAuthStateChange(() => setTimeout(routeSession, 0));
+      client.auth.onAuthStateChange((event, session) => {
+        // Supabase commonly refreshes the access token when a background tab
+        // becomes active again. That is not a logout and must not replace the
+        // visible admin workspace with the login/loading gates.
+        if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') return;
+        const appIsVisible = !byId('adminApp')?.classList.contains('hidden');
+        if (event === 'SIGNED_IN' && session?.user && appIsVisible) return;
+        if (event === 'SIGNED_OUT') {
+          metricsLoaded = false; analyticsLoaded = false; usersLoaded = false;
+          hide('loadingGate'); hide('deniedGate'); hide('adminApp'); show('loginGate');
+          return;
+        }
+        setTimeout(routeSession, 0);
+      });
       await routeSession();
     } catch (error) {
       console.error('Internal admin startup error', error);
