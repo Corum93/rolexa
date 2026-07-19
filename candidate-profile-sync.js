@@ -247,7 +247,6 @@
       window.dispatchEvent(new CustomEvent('rolexa:candidate-profile-updated', { detail: localProfile }));
       if (typeof window.showApp === 'function') window.showApp();
       else if (typeof window.renderAll === 'function') window.renderAll();
-      showSyncStatus('good', 'Profile loaded from Supabase.');
     } else {
       localStorage.removeItem(CONFIG.profileKey);
       if (typeof window.showSetup === 'function') window.showSetup();
