@@ -14,6 +14,8 @@
   let usersSearch = '';
   let usersFilter = 'all';
   let usersSearchTimer = null;
+  let teamLoaded = false;
+  let currentStaffRole = '';
 
   const byId = id => document.getElementById(id);
   const show = id => byId(id)?.classList.remove('hidden');
@@ -82,6 +84,20 @@
     if (!el) return;
     el.textContent = message;
     el.className = `metrics-status ${kind}`.trim();
+  }
+
+  function setTeamStatus(message, kind = '') {
+    const el = byId('teamStatus');
+    if (!el) return;
+    el.textContent = message;
+    el.className = `metrics-status team-status ${kind}`.trim();
+  }
+
+  function setTeamFormMessage(message, kind = '') {
+    const el = byId('teamFormMessage');
+    if (!el) return;
+    el.textContent = message;
+    el.className = message ? `team-form-message show ${kind}`.trim() : 'team-form-message';
   }
 
   async function loadMetrics(force = false) {
@@ -273,6 +289,117 @@
     }
   }
 
+  function renderTeam(data) {
+    const summary = data?.summary || {};
+    setMetric('teamTotal', summary.total);
+    setMetric('teamActive', summary.active);
+    setMetric('teamAdmins', summary.admins);
+    setMetric('teamAnalysts', summary.analysts);
+    const canManage = !!data?.can_manage;
+    const panel = byId('teamManagePanel');
+    const form = byId('teamAccessForm');
+    const note = byId('teamOwnerNote');
+    if (panel) panel.classList.toggle('read-only', !canManage);
+    if (form) form.classList.toggle('hidden', !canManage);
+    if (note) note.classList.toggle('hidden', canManage);
+
+    const rows = Array.isArray(data?.team) ? data.team : [];
+    const table = byId('teamTableBody');
+    if (table) {
+      table.innerHTML = rows.length ? rows.map(member => {
+        const role = ['owner','admin','employee','analyst'].includes(member.role) ? member.role : 'employee';
+        const permissions = Array.isArray(member.permissions) ? member.permissions : [];
+        const canEdit = canManage && role !== 'owner';
+        const name = member.full_name || member.email || 'Rolexa team member';
+        const editData = encodeURIComponent(JSON.stringify({
+          email: member.email || '', fullName: member.full_name || '', jobTitle: member.job_title || '',
+          role, active: !!member.is_active
+        }));
+        return `<tr>
+          <td><div class="users-person"><span class="users-avatar">${escapeHtml(initials(name))}</span><div><b>${escapeHtml(name)}</b><small>${escapeHtml(member.email || 'No email')}</small></div></div></td>
+          <td><span class="team-role-title">${escapeHtml(member.job_title || 'Rolexa team member')}</span><small class="team-role-sub">Last active ${escapeHtml(formatDateTime(member.last_sign_in_at))}</small></td>
+          <td><span class="team-access-badge ${role}">${escapeHtml(role)}</span></td>
+          <td><span class="team-status-badge ${member.is_active ? 'active' : 'suspended'}">${member.is_active ? 'Active' : 'Suspended'}</span></td>
+          <td><div class="team-permissions">${permissions.map(item => `<span class="team-permission">${escapeHtml(item)}</span>`).join('')}</div></td>
+          <td><button class="team-edit" type="button" data-team-edit="${editData}" ${canEdit ? '' : 'disabled'}>${role === 'owner' ? 'Protected' : 'Edit'}</button></td>
+        </tr>`;
+      }).join('') : '<tr><td colspan="6" class="users-empty">No internal team access records were found.</td></tr>';
+      table.querySelectorAll('[data-team-edit]:not(:disabled)').forEach(button => button.addEventListener('click', () => {
+        try { fillTeamForm(JSON.parse(decodeURIComponent(button.dataset.teamEdit || ''))); } catch (_) {}
+      }));
+    }
+    const generated = data?.generated_at ? new Date(data.generated_at) : new Date();
+    setTeamStatus(`${number(summary.active)} active team member${Number(summary.active) === 1 ? '' : 's'} · refreshed ${generated.toLocaleString('en-GB')}.`, 'good');
+  }
+
+  function clearTeamForm() {
+    byId('teamAccessForm')?.reset();
+    if (byId('teamEmail')) byId('teamEmail').disabled = false;
+    if (byId('teamFormTitle')) byId('teamFormTitle').textContent = 'Grant team access';
+    setTeamFormMessage('');
+  }
+
+  function fillTeamForm(member) {
+    if (currentStaffRole !== 'owner') return;
+    if (byId('teamEmail')) { byId('teamEmail').value = member.email || ''; byId('teamEmail').disabled = true; }
+    if (byId('teamFullName')) byId('teamFullName').value = member.fullName || '';
+    if (byId('teamJobTitle')) byId('teamJobTitle').value = member.jobTitle || '';
+    if (byId('teamAccessRole')) byId('teamAccessRole').value = member.role || 'employee';
+    if (byId('teamAccessStatus')) byId('teamAccessStatus').value = member.active ? 'active' : 'suspended';
+    if (byId('teamFormTitle')) byId('teamFormTitle').textContent = 'Update team access';
+    setTeamFormMessage('Editing this team member. Owner accounts remain protected.');
+    byId('teamManagePanel')?.scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+
+  async function loadTeam(force = false) {
+    if (teamLoaded && !force) return;
+    if (!client) return;
+    const refresh = byId('refreshTeam');
+    setTeamStatus('Loading secure team access…');
+    if (refresh) { refresh.disabled = true; refresh.textContent = 'Refreshing…'; }
+    try {
+      const { data, error } = await client.rpc('get_rolexa_admin_team');
+      if (error) throw error;
+      renderTeam(data || {});
+      teamLoaded = true;
+    } catch (error) {
+      console.error('Rolexa team access load failed', error);
+      const missingFunction = /get_rolexa_admin_team|schema cache|function/i.test(error?.message || '');
+      setTeamStatus(missingFunction ? 'The secure Team access SQL needs to be applied in Supabase.' : (error?.message || 'Could not load team access.'), 'bad');
+      if (byId('teamTableBody')) byId('teamTableBody').innerHTML = `<tr><td colspan="6" class="users-empty">${missingFunction ? 'Apply supabase-internal-admin-team-access.sql, then press Refresh team.' : 'The team directory is temporarily unavailable.'}</td></tr>`;
+    } finally {
+      if (refresh) { refresh.disabled = false; refresh.textContent = 'Refresh team'; }
+    }
+  }
+
+  async function saveTeamAccess(event) {
+    event.preventDefault();
+    if (currentStaffRole !== 'owner') return;
+    const button = byId('teamSaveAccess');
+    const email = byId('teamEmail')?.value.trim() || '';
+    setTeamFormMessage('Saving secure access…');
+    if (button) { button.disabled = true; button.textContent = 'Saving…'; }
+    try {
+      const { error } = await client.rpc('manage_rolexa_staff_access', {
+        target_email: email,
+        access_role: byId('teamAccessRole')?.value || 'employee',
+        access_active: byId('teamAccessStatus')?.value !== 'suspended',
+        staff_full_name: byId('teamFullName')?.value.trim() || null,
+        staff_job_title: byId('teamJobTitle')?.value.trim() || null
+      });
+      if (error) throw error;
+      setTeamFormMessage('Team access saved successfully.', 'good');
+      teamLoaded = false;
+      await loadTeam(true);
+      window.setTimeout(clearTeamForm, 1200);
+    } catch (error) {
+      console.error('Rolexa team access update failed', error);
+      setTeamFormMessage(error?.message || 'Could not update team access.', 'bad');
+    } finally {
+      if (button) { button.disabled = false; button.textContent = 'Save access'; }
+    }
+  }
+
   async function verifyStaff(user) {
     if (!user) return null;
     const { data, error } = await client.from('rolexa_staff_users').select('user_id,role,is_active,full_name,job_title').eq('user_id', user.id).eq('is_active', true).maybeSingle();
@@ -284,9 +411,10 @@
     hide('loginGate'); hide('deniedGate'); hide('adminApp'); show('loadingGate');
     const { data: { user }, error } = await client.auth.getUser();
     hide('loadingGate');
-    if (error || !user) { metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; show('loginGate'); return; }
+    if (error || !user) { metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; teamLoaded = false; currentStaffRole = ''; show('loginGate'); return; }
     const staff = await verifyStaff(user);
-    if (!staff) { metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; show('deniedGate'); return; }
+    if (!staff) { metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; teamLoaded = false; currentStaffRole = ''; show('deniedGate'); return; }
+    currentStaffRole = staff.role || '';
     byId('staffName').textContent = staff.full_name || user.email || 'Rolexa staff';
     byId('staffRole').textContent = [staff.job_title, staff.role].filter(Boolean).join(' · ');
     show('adminApp');
@@ -304,13 +432,13 @@
       if (error || !data.user) throw error || new Error('Sign-in failed.');
       const staff = await verifyStaff(data.user);
       if (!staff) { await client.auth.signOut(); throw new Error('This account is not approved for Rolexa internal access.'); }
-      metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; await routeSession();
+      metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; teamLoaded = false; await routeSession();
     } catch (error) { setError(error?.message || 'Could not sign in.'); }
     finally { button.disabled = false; button.textContent = 'Sign in securely'; }
   }
 
   async function signOut() {
-    await client.auth.signOut(); metricsLoaded = false; analyticsLoaded = false; usersLoaded = false;
+    await client.auth.signOut(); metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; teamLoaded = false; currentStaffRole = '';
     hide('adminApp'); hide('deniedGate'); show('loginGate');
   }
 
@@ -328,6 +456,9 @@
       byId('deniedSignOut')?.addEventListener('click', signOut);
       byId('refreshMetrics')?.addEventListener('click', refreshAll);
       byId('refreshUsers')?.addEventListener('click', () => { usersLoaded = false; loadUsers(true); });
+      byId('refreshTeam')?.addEventListener('click', () => { teamLoaded = false; loadTeam(true); });
+      byId('teamAccessForm')?.addEventListener('submit', saveTeamAccess);
+      byId('teamCancelEdit')?.addEventListener('click', clearTeamForm);
       byId('usersTypeFilter')?.addEventListener('change', event => {
         usersFilter = event.target.value || 'all'; usersPage = 1; usersLoaded = false; loadUsers(true);
       });
@@ -345,6 +476,7 @@
       });
       window.addEventListener('rolexa:admin-view-opened', event => {
         if (event.detail?.viewId === 'usersView') loadUsers();
+        if (event.detail?.viewId === 'teamView') loadTeam();
       });
       document.querySelectorAll('[data-days]').forEach(button => button.addEventListener('click', async () => {
         analyticsDays = Number(button.dataset.days || 90);
@@ -360,7 +492,7 @@
         const appIsVisible = !byId('adminApp')?.classList.contains('hidden');
         if (event === 'SIGNED_IN' && session?.user && appIsVisible) return;
         if (event === 'SIGNED_OUT') {
-          metricsLoaded = false; analyticsLoaded = false; usersLoaded = false;
+          metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; teamLoaded = false; currentStaffRole = '';
           hide('loadingGate'); hide('deniedGate'); hide('adminApp'); show('loginGate');
           return;
         }
