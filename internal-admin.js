@@ -8,12 +8,30 @@
   let metricsLoaded = false;
   let analyticsLoaded = false;
   let analyticsDays = 90;
+  let usersLoaded = false;
+  let usersPage = 1;
+  let usersTotalPages = 1;
+  let usersSearch = '';
+  let usersFilter = 'all';
+  let usersSearchTimer = null;
 
   const byId = id => document.getElementById(id);
   const show = id => byId(id)?.classList.remove('hidden');
   const hide = id => byId(id)?.classList.add('hidden');
   const number = value => new Intl.NumberFormat('en-GB').format(Number(value || 0));
   const decimal = value => Number(value || 0).toLocaleString('en-GB', { maximumFractionDigits: 2 });
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[character]));
+
+  function formatDateTime(value, empty = 'Never') {
+    if (!value) return empty;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return empty;
+    return date.toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  }
+
+  function initials(value) {
+    return String(value || 'Rolexa user').split(/\s+/).filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'RU';
+  }
 
   function loadSupabase() {
     return new Promise((resolve, reject) => {
@@ -54,6 +72,13 @@
 
   function setAnalyticsStatus(message, kind = '') {
     const el = byId('analyticsStatus');
+    if (!el) return;
+    el.textContent = message;
+    el.className = `metrics-status ${kind}`.trim();
+  }
+
+  function setUsersStatus(message, kind = '') {
+    const el = byId('usersStatus');
     if (!el) return;
     el.textContent = message;
     el.className = `metrics-status ${kind}`.trim();
@@ -174,6 +199,80 @@
     }
   }
 
+  function renderUsers(data) {
+    const summary = data?.summary || {};
+    setMetric('usersTotal', summary.total);
+    setMetric('usersToday', summary.today);
+    setMetric('usersSevenDays', summary.last_7_days);
+    setMetric('usersThirtyDays', summary.last_30_days);
+    setMetric('usersCandidates', summary.candidates);
+    setMetric('usersEmployers', summary.employers);
+    setMetric('usersStaff', summary.staff);
+    setMetric('usersIncomplete', summary.incomplete);
+
+    lineChart('usersGrowthChart', data?.timeline || [], [
+      { key: 'registrations', label: 'Registrations', color: '#176BFF' }
+    ]);
+
+    const rows = Array.isArray(data?.users) ? data.users : [];
+    const table = byId('usersTableBody');
+    if (table) {
+      table.innerHTML = rows.length ? rows.map(user => {
+        const type = ['candidate','employer','staff','incomplete'].includes(user.account_type) ? user.account_type : 'incomplete';
+        const complete = !!user.profile_complete;
+        const activity = type === 'candidate'
+          ? `${number(user.applications)} application${Number(user.applications) === 1 ? '' : 's'}`
+          : type === 'employer'
+            ? `${number(user.jobs)} job${Number(user.jobs) === 1 ? '' : 's'}`
+            : type === 'staff' ? 'Staff access' : 'No profile activity';
+        const displayName = user.display_name || 'Rolexa user';
+        return `<tr>
+          <td><div class="users-person"><span class="users-avatar">${escapeHtml(initials(displayName))}</span><div><b>${escapeHtml(displayName)}</b><small>${escapeHtml(user.email || 'No email')}</small></div></div></td>
+          <td><span class="users-type ${type}">${escapeHtml(type)}</span>${user.organisation ? `<small class="users-organisation">${escapeHtml(user.organisation)}</small>` : ''}</td>
+          <td><span class="users-profile-state ${complete ? 'complete' : 'incomplete'}">${complete ? 'Complete' : 'Incomplete'}</span><small class="users-email-state">${user.email_confirmed ? 'Email confirmed' : 'Email unconfirmed'}</small></td>
+          <td>${escapeHtml(formatDateTime(user.joined_at, 'Unknown'))}</td>
+          <td>${escapeHtml(formatDateTime(user.last_sign_in_at))}</td>
+          <td><span class="users-activity">${escapeHtml(activity)}</span></td>
+        </tr>`;
+      }).join('') : '<tr><td colspan="6" class="users-empty">No users match this search or filter.</td></tr>';
+    }
+
+    const pagination = data?.pagination || {};
+    usersPage = Math.max(1, Number(pagination.page || usersPage));
+    usersTotalPages = Math.max(1, Number(pagination.total_pages || 1));
+    if (byId('usersPageLabel')) byId('usersPageLabel').textContent = `Page ${usersPage} of ${usersTotalPages}`;
+    if (byId('usersPrevious')) byId('usersPrevious').disabled = usersPage <= 1;
+    if (byId('usersNext')) byId('usersNext').disabled = usersPage >= usersTotalPages;
+    const generated = data?.generated_at ? new Date(data.generated_at) : new Date();
+    setUsersStatus(`${number(pagination.total_results)} matching account${Number(pagination.total_results) === 1 ? '' : 's'} · refreshed ${generated.toLocaleString('en-GB')}.`, 'good');
+  }
+
+  async function loadUsers(force = false) {
+    if (usersLoaded && !force) return;
+    if (!client) return;
+    const refresh = byId('refreshUsers');
+    setUsersStatus('Loading the secure user directory…');
+    if (refresh) { refresh.disabled = true; refresh.textContent = 'Refreshing…'; }
+    try {
+      const { data, error } = await client.rpc('get_rolexa_admin_users', {
+        page_number: usersPage,
+        page_size: 20,
+        account_filter: usersFilter,
+        search_text: usersSearch
+      });
+      if (error) throw error;
+      renderUsers(data || {});
+      usersLoaded = true;
+    } catch (error) {
+      console.error('Rolexa users directory load failed', error);
+      const missingFunction = /get_rolexa_admin_users|schema cache|function/i.test(error?.message || '');
+      setUsersStatus(missingFunction ? 'The secure Users SQL needs to be applied in Supabase before this directory can load.' : (error?.message || 'Could not load the secure user directory.'), 'bad');
+      if (byId('usersTableBody')) byId('usersTableBody').innerHTML = `<tr><td colspan="6" class="users-empty">${missingFunction ? 'Apply supabase-internal-admin-users.sql, then press Refresh users.' : 'The user directory is temporarily unavailable.'}</td></tr>`;
+    } finally {
+      if (refresh) { refresh.disabled = false; refresh.textContent = 'Refresh users'; }
+    }
+  }
+
   async function verifyStaff(user) {
     if (!user) return null;
     const { data, error } = await client.from('rolexa_staff_users').select('user_id,role,is_active,full_name,job_title').eq('user_id', user.id).eq('is_active', true).maybeSingle();
@@ -185,9 +284,9 @@
     hide('loginGate'); hide('deniedGate'); hide('adminApp'); show('loadingGate');
     const { data: { user }, error } = await client.auth.getUser();
     hide('loadingGate');
-    if (error || !user) { metricsLoaded = false; analyticsLoaded = false; show('loginGate'); return; }
+    if (error || !user) { metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; show('loginGate'); return; }
     const staff = await verifyStaff(user);
-    if (!staff) { metricsLoaded = false; analyticsLoaded = false; show('deniedGate'); return; }
+    if (!staff) { metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; show('deniedGate'); return; }
     byId('staffName').textContent = staff.full_name || user.email || 'Rolexa staff';
     byId('staffRole').textContent = [staff.job_title, staff.role].filter(Boolean).join(' · ');
     show('adminApp');
@@ -205,13 +304,13 @@
       if (error || !data.user) throw error || new Error('Sign-in failed.');
       const staff = await verifyStaff(data.user);
       if (!staff) { await client.auth.signOut(); throw new Error('This account is not approved for Rolexa internal access.'); }
-      metricsLoaded = false; analyticsLoaded = false; await routeSession();
+      metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; await routeSession();
     } catch (error) { setError(error?.message || 'Could not sign in.'); }
     finally { button.disabled = false; button.textContent = 'Sign in securely'; }
   }
 
   async function signOut() {
-    await client.auth.signOut(); metricsLoaded = false; analyticsLoaded = false;
+    await client.auth.signOut(); metricsLoaded = false; analyticsLoaded = false; usersLoaded = false;
     hide('adminApp'); hide('deniedGate'); show('loginGate');
   }
 
@@ -228,6 +327,25 @@
       byId('adminSignOut')?.addEventListener('click', signOut);
       byId('deniedSignOut')?.addEventListener('click', signOut);
       byId('refreshMetrics')?.addEventListener('click', refreshAll);
+      byId('refreshUsers')?.addEventListener('click', () => { usersLoaded = false; loadUsers(true); });
+      byId('usersTypeFilter')?.addEventListener('change', event => {
+        usersFilter = event.target.value || 'all'; usersPage = 1; usersLoaded = false; loadUsers(true);
+      });
+      byId('usersSearch')?.addEventListener('input', event => {
+        clearTimeout(usersSearchTimer);
+        usersSearchTimer = setTimeout(() => {
+          usersSearch = event.target.value.trim(); usersPage = 1; usersLoaded = false; loadUsers(true);
+        }, 350);
+      });
+      byId('usersPrevious')?.addEventListener('click', () => {
+        if (usersPage <= 1) return; usersPage -= 1; usersLoaded = false; loadUsers(true);
+      });
+      byId('usersNext')?.addEventListener('click', () => {
+        if (usersPage >= usersTotalPages) return; usersPage += 1; usersLoaded = false; loadUsers(true);
+      });
+      window.addEventListener('rolexa:admin-view-opened', event => {
+        if (event.detail?.viewId === 'usersView') loadUsers();
+      });
       document.querySelectorAll('[data-days]').forEach(button => button.addEventListener('click', async () => {
         analyticsDays = Number(button.dataset.days || 90);
         document.querySelectorAll('[data-days]').forEach(item => item.classList.toggle('active', item === button));
