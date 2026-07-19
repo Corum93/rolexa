@@ -315,7 +315,6 @@
     if (!ok) return;
     await ensureStarterMessages();
     renderAllSynced();
-    showStatus('good', 'Jobs and activity loaded from Supabase.');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
