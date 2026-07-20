@@ -449,6 +449,10 @@
       selectedPeopleUserId = (people.find(person => person.is_self) || people[0] || {}).user_id || '';
     }
 
+    if (byId('peoplePageTitle')) byId('peoplePageTitle').textContent = canManage ? 'People & HR' : 'My employment';
+    if (byId('peoplePageDescription')) byId('peoplePageDescription').textContent = canManage
+      ? 'Private employment records and documents for people who work directly for Rolexa.'
+      : 'Your private Rolexa employment details and documents.';
     if (byId('peopleScopeBadge')) byId('peopleScopeBadge').textContent = canManage ? 'Owner & HR access' : 'Your record only';
     if (byId('peopleDirectoryTitle')) byId('peopleDirectoryTitle').textContent = canManage ? 'Rolexa people' : 'Your employee account';
     if (byId('peopleDirectoryDescription')) byId('peopleDirectoryDescription').textContent = canManage
@@ -644,6 +648,8 @@
   }
 
   function applyStaffNavigation(role) {
+    const canManagePeople = role === 'owner' || role === 'hr';
+    if (byId('peopleNavButton')) byId('peopleNavButton').textContent = canManagePeople ? 'People & HR' : 'My employment';
     document.querySelectorAll('.side [data-admin-target],.side [data-admin-view]').forEach(button => {
       const isPeople = button.dataset.adminView === 'peopleView';
       button.classList.toggle('hidden', role === 'hr' && !isPeople);
@@ -666,7 +672,7 @@
     ].forEach(id => { if (byId(id)) byId(id).textContent = '—'; });
     if (byId('usersTableBody')) byId('usersTableBody').innerHTML = '<tr><td colspan="6" class="users-empty">Select Users to load the secure directory.</td></tr>';
     if (byId('teamTableBody')) byId('teamTableBody').innerHTML = '<tr><td colspan="6" class="users-empty">Select Team access to load staff permissions.</td></tr>';
-    if (byId('peopleDirectory')) byId('peopleDirectory').innerHTML = '<div class="people-empty">Open People &amp; HR to load secure records.</div>';
+    if (byId('peopleDirectory')) byId('peopleDirectory').innerHTML = '<div class="people-empty">Open your secure employment records to continue.</div>';
     if (byId('peopleDocumentsBody')) byId('peopleDocumentsBody').innerHTML = '<tr><td colspan="5" class="people-empty">Select a person to view accessible documents.</td></tr>';
     if (byId('peopleSelectedName')) byId('peopleSelectedName').textContent = 'Select a person';
     if (byId('peopleSelectedRole')) byId('peopleSelectedRole').textContent = 'Employment details will appear here.';
