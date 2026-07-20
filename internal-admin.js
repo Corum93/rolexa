@@ -737,8 +737,8 @@
     const canManagePeople = role === 'owner' || role === 'hr';
     if (byId('peopleNavButton')) byId('peopleNavButton').textContent = canManagePeople ? 'People & HR' : 'My employment';
     document.querySelectorAll('.side [data-admin-target],.side [data-admin-view]').forEach(button => {
-      const isPeople = button.dataset.adminView === 'peopleView';
-      button.classList.toggle('hidden', role === 'hr' && !isPeople);
+      const isHrWorkspace = button.dataset.adminView === 'peopleView' || button.dataset.adminView === 'employersView';
+      button.classList.toggle('hidden', role === 'hr' && !isHrWorkspace);
     });
     document.querySelectorAll('.content [data-admin-target]').forEach(button => button.classList.toggle('hidden', role === 'hr'));
   }
@@ -762,7 +762,7 @@
     if (byId('teamTableBody')) byId('teamTableBody').innerHTML = '<tr><td colspan="6" class="users-empty">Select Team access to load staff permissions.</td></tr>';
     if (byId('peopleDirectory')) byId('peopleDirectory').innerHTML = '<div class="people-empty">Open your secure employment records to continue.</div>';
     if (byId('peopleOrgCount')) byId('peopleOrgCount').textContent = 'Internal team';
-    if (byId('peopleOrgChart')) byId('peopleOrgChart').innerHTML = '<div class="people-org-empty">Open People & HR to load the reporting structure.</div>';
+    if (byId('peopleOrgChart')) byId('peopleOrgChart').innerHTML = '<div class="people-org-empty">Open Employers to load the reporting structure.</div>';
     setOrgChartStatus('Waiting for the secure organisation chart…');
     if (byId('peopleDocumentsBody')) byId('peopleDocumentsBody').innerHTML = '<tr><td colspan="5" class="people-empty">Select a person to view accessible documents.</td></tr>';
     if (byId('peopleSelectedName')) byId('peopleSelectedName').textContent = 'Select a person';
@@ -829,8 +829,7 @@
       byId('refreshTeam')?.addEventListener('click', () => { teamLoaded = false; loadTeam(true); });
       byId('refreshPeople')?.addEventListener('click', () => {
         peopleLoaded = false;
-        orgChartLoaded = false;
-        Promise.all([loadPeople(true), loadOrgChart(true)]);
+        loadPeople(true);
       });
       byId('teamAccessForm')?.addEventListener('submit', saveTeamAccess);
       byId('teamCancelEdit')?.addEventListener('click', clearTeamForm);
@@ -854,7 +853,8 @@
       window.addEventListener('rolexa:admin-view-opened', event => {
         if (event.detail?.viewId === 'usersView') loadUsers();
         if (event.detail?.viewId === 'teamView') loadTeam();
-        if (event.detail?.viewId === 'peopleView') Promise.all([loadPeople(), loadOrgChart()]);
+        if (event.detail?.viewId === 'peopleView') loadPeople();
+        if (event.detail?.viewId === 'employersView') loadOrgChart();
       });
       document.querySelectorAll('[data-days]').forEach(button => button.addEventListener('click', async () => {
         analyticsDays = Number(button.dataset.days || 90);
