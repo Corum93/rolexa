@@ -4,7 +4,7 @@
 
 create table if not exists public.rolexa_staff_users (
   user_id uuid primary key references auth.users(id) on delete cascade,
-  role text not null check (role in ('owner','admin','employee','analyst')),
+  role text not null check (role in ('owner','admin','hr','employee','analyst')),
   is_active boolean not null default true,
   full_name text,
   job_title text,
@@ -66,7 +66,7 @@ create policy "Owners and admins can read staff memberships"
 on public.rolexa_staff_users
 for select
 to authenticated
-using (public.is_rolexa_staff(array['owner','admin']));
+using (public.is_rolexa_staff(array['owner','admin','hr']));
 
 -- Only owners can create, change or remove staff access.
 drop policy if exists "Owners can create staff memberships" on public.rolexa_staff_users;
@@ -118,7 +118,7 @@ for insert
 to authenticated
 with check (
   staff_user_id = auth.uid()
-  and public.is_rolexa_staff(array['owner','admin','employee','analyst'])
+  and public.is_rolexa_staff(array['owner','admin','hr','employee','analyst'])
 );
 
 -- IMPORTANT BOOTSTRAP STEP

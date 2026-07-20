@@ -15,6 +15,9 @@
   let usersFilter = 'all';
   let usersSearchTimer = null;
   let teamLoaded = false;
+  let peopleLoaded = false;
+  let peopleData = null;
+  let selectedPeopleUserId = '';
   let currentStaffRole = '';
 
   const byId = id => document.getElementById(id);
@@ -29,6 +32,19 @@
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return empty;
     return date.toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  }
+
+  function formatDate(value, empty = 'Not set') {
+    if (!value) return empty;
+    const date = new Date(`${String(value).slice(0, 10)}T12:00:00`);
+    if (Number.isNaN(date.getTime())) return empty;
+    return date.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  function humanize(value, empty = 'Not set') {
+    const clean = String(value || '').trim();
+    if (!clean) return empty;
+    return clean.replace(/_/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase());
   }
 
   function initials(value) {
@@ -98,6 +114,20 @@
     if (!el) return;
     el.textContent = message;
     el.className = message ? `team-form-message show ${kind}`.trim() : 'team-form-message';
+  }
+
+  function setPeopleStatus(message, kind = '') {
+    const el = byId('peopleStatus');
+    if (!el) return;
+    el.textContent = message;
+    el.className = `metrics-status team-status ${kind}`.trim();
+  }
+
+  function setPeopleMessage(id, message, kind = '') {
+    const el = byId(id);
+    if (!el) return;
+    el.textContent = message;
+    el.className = `people-form-message ${kind}`.trim();
   }
 
   async function loadMetrics(force = false) {
@@ -293,8 +323,8 @@
     const summary = data?.summary || {};
     setMetric('teamTotal', summary.total);
     setMetric('teamActive', summary.active);
+    setMetric('teamHr', summary.hr);
     setMetric('teamAdmins', summary.admins);
-    setMetric('teamAnalysts', summary.analysts);
     const canManage = !!data?.can_manage;
     const panel = byId('teamManagePanel');
     const form = byId('teamAccessForm');
@@ -307,7 +337,7 @@
     const table = byId('teamTableBody');
     if (table) {
       table.innerHTML = rows.length ? rows.map(member => {
-        const role = ['owner','admin','employee','analyst'].includes(member.role) ? member.role : 'employee';
+        const role = ['owner','admin','hr','employee','analyst'].includes(member.role) ? member.role : 'employee';
         const permissions = Array.isArray(member.permissions) ? member.permissions : [];
         const canEdit = canManage && role !== 'owner';
         const name = member.full_name || member.email || 'Rolexa team member';
@@ -400,6 +430,212 @@
     }
   }
 
+  function findSelectedPerson() {
+    const people = Array.isArray(peopleData?.people) ? peopleData.people : [];
+    return people.find(person => person.user_id === selectedPeopleUserId) || people[0] || null;
+  }
+
+  function renderPeople(data) {
+    peopleData = data || {};
+    const summary = peopleData.summary || {};
+    const people = Array.isArray(peopleData.people) ? peopleData.people : [];
+    const canManage = !!peopleData.can_manage;
+    setMetric('peopleTotal', summary.total);
+    setMetric('peopleActive', summary.active);
+    setMetric('peoplePreboarding', summary.preboarding);
+    setMetric('peopleDocuments', summary.documents);
+
+    if (!people.some(person => person.user_id === selectedPeopleUserId)) {
+      selectedPeopleUserId = (people.find(person => person.is_self) || people[0] || {}).user_id || '';
+    }
+
+    if (byId('peopleScopeBadge')) byId('peopleScopeBadge').textContent = canManage ? 'Owner & HR access' : 'Your record only';
+    if (byId('peopleDirectoryTitle')) byId('peopleDirectoryTitle').textContent = canManage ? 'Rolexa people' : 'Your employee account';
+    if (byId('peopleDirectoryDescription')) byId('peopleDirectoryDescription').textContent = canManage
+      ? 'Select a team member to review their employment record.'
+      : 'Only your own employment information is available in this area.';
+
+    const directory = byId('peopleDirectory');
+    if (directory) {
+      directory.innerHTML = people.length ? people.map(person => {
+        const status = ['preboarding','active','leave','ended'].includes(person.employment_status) ? person.employment_status : 'preboarding';
+        const name = person.full_name || person.email || 'Rolexa team member';
+        return `<button class="people-directory-button ${person.user_id === selectedPeopleUserId ? 'active' : ''}" type="button" data-people-user="${escapeHtml(person.user_id)}"><span class="users-avatar">${escapeHtml(initials(name))}</span><span class="people-directory-copy"><b>${escapeHtml(name)}</b><small>${escapeHtml(person.job_title || person.email || 'Rolexa team member')}</small></span><span class="people-directory-state ${status}">${escapeHtml(humanize(status))}</span></button>`;
+      }).join('') : '<div class="people-empty">No employee records are available.</div>';
+      directory.querySelectorAll('[data-people-user]').forEach(button => button.addEventListener('click', () => {
+        selectedPeopleUserId = button.dataset.peopleUser || '';
+        renderPeople(peopleData);
+      }));
+    }
+
+    const selected = findSelectedPerson();
+    const profileForm = byId('peopleProfileForm');
+    const uploadForm = byId('peopleUploadForm');
+    profileForm?.classList.toggle('hidden', !canManage || !selected);
+    uploadForm?.classList.toggle('hidden', !canManage || !selected);
+
+    if (!selected) {
+      if (byId('peopleSelectedName')) byId('peopleSelectedName').textContent = 'No employee selected';
+      if (byId('peopleSelectedRole')) byId('peopleSelectedRole').textContent = 'Employment details are not available.';
+      if (byId('peopleDocumentsBody')) byId('peopleDocumentsBody').innerHTML = '<tr><td colspan="5" class="people-empty">No accessible documents.</td></tr>';
+      return;
+    }
+
+    const selectedName = selected.full_name || selected.email || 'Rolexa team member';
+    if (byId('peopleSelectedAvatar')) byId('peopleSelectedAvatar').textContent = initials(selectedName);
+    if (byId('peopleSelectedName')) byId('peopleSelectedName').textContent = selectedName;
+    if (byId('peopleSelectedRole')) byId('peopleSelectedRole').textContent = [selected.job_title, selected.department, selected.email].filter(Boolean).join(' · ');
+    if (byId('peopleSelectedStatus')) byId('peopleSelectedStatus').textContent = humanize(selected.employment_status || 'preboarding');
+    if (byId('peopleDetailNumber')) byId('peopleDetailNumber').textContent = selected.employee_number || 'Not set';
+    if (byId('peopleDetailDepartment')) byId('peopleDetailDepartment').textContent = selected.department || 'Not set';
+    if (byId('peopleDetailType')) byId('peopleDetailType').textContent = humanize(selected.employment_type);
+    if (byId('peopleDetailStart')) byId('peopleDetailStart').textContent = formatDate(selected.start_date);
+    if (byId('peopleDetailLocation')) byId('peopleDetailLocation').textContent = selected.work_location || 'Not set';
+    if (byId('peopleDetailAccess')) byId('peopleDetailAccess').textContent = `${humanize(selected.access_role)} · ${selected.access_active ? 'Active' : 'Suspended'}`;
+
+    if (canManage) {
+      if (byId('peopleEmployeeNumber')) byId('peopleEmployeeNumber').value = selected.employee_number || '';
+      if (byId('peopleDepartment')) byId('peopleDepartment').value = selected.department || '';
+      if (byId('peopleEmploymentStatus')) byId('peopleEmploymentStatus').value = selected.employment_status || 'preboarding';
+      if (byId('peopleEmploymentType')) byId('peopleEmploymentType').value = selected.employment_type || 'full_time';
+      if (byId('peopleStartDate')) byId('peopleStartDate').value = selected.start_date || '';
+      if (byId('peopleEndDate')) byId('peopleEndDate').value = selected.end_date || '';
+      if (byId('peopleWorkLocation')) byId('peopleWorkLocation').value = selected.work_location || '';
+      const manager = byId('peopleManager');
+      if (manager) {
+        manager.innerHTML = '<option value="">No manager selected</option>' + people
+          .filter(person => person.user_id !== selected.user_id && person.access_active)
+          .map(person => `<option value="${escapeHtml(person.user_id)}">${escapeHtml(person.full_name || person.email || 'Rolexa team member')}</option>`).join('');
+        manager.value = selected.manager_user_id || '';
+      }
+    }
+
+    const documents = Array.isArray(selected.documents) ? selected.documents : [];
+    const documentsBody = byId('peopleDocumentsBody');
+    if (documentsBody) {
+      documentsBody.innerHTML = documents.length ? documents.map(document => `<tr><td><span class="people-document-title">${escapeHtml(document.title || 'HR document')}</span><span class="people-document-type">${escapeHtml(humanize(document.document_type))}</span></td><td><span class="people-document-badge">${escapeHtml(humanize(document.status))}</span></td><td><span class="people-document-badge ${escapeHtml(document.visibility || '')}">${document.visibility === 'hr_only' ? 'HR & Owner' : 'Employee'}</span></td><td>${escapeHtml(formatDateTime(document.created_at, 'Unknown'))}</td><td><button class="people-download" type="button" data-people-document="${escapeHtml(document.id)}">Download</button></td></tr>`).join('') : '<tr><td colspan="5" class="people-empty">No accessible employment documents have been added.</td></tr>';
+      documentsBody.querySelectorAll('[data-people-document]').forEach(button => button.addEventListener('click', () => downloadPeopleDocument(button.dataset.peopleDocument, button)));
+    }
+
+    const generated = peopleData.generated_at ? new Date(peopleData.generated_at) : new Date();
+    setPeopleStatus(`${canManage ? number(summary.total) + ' visible people record' + (Number(summary.total) === 1 ? '' : 's') : 'Your private employment record'} · refreshed ${generated.toLocaleString('en-GB')}.`, 'good');
+  }
+
+  async function loadPeople(force = false) {
+    if (peopleLoaded && !force) return;
+    if (!client) return;
+    const refresh = byId('refreshPeople');
+    setPeopleStatus('Loading private People & HR records…');
+    if (refresh) { refresh.disabled = true; refresh.textContent = 'Refreshing…'; }
+    try {
+      const { data, error } = await client.rpc('get_rolexa_people_hr');
+      if (error) throw error;
+      renderPeople(data || {});
+      peopleLoaded = true;
+    } catch (error) {
+      console.error('Rolexa People & HR load failed', error);
+      const missingFunction = /get_rolexa_people_hr|schema cache|function/i.test(error?.message || '');
+      setPeopleStatus(missingFunction ? 'The People & HR Supabase SQL must be applied before secure employee records can load.' : (error?.message || 'Could not load People & HR records.'), 'bad');
+      if (byId('peopleDirectory')) byId('peopleDirectory').innerHTML = `<div class="people-empty">${missingFunction ? 'Apply supabase-internal-admin-people-hr.sql, then press Refresh.' : 'The employee directory is temporarily unavailable.'}</div>`;
+    } finally {
+      if (refresh) { refresh.disabled = false; refresh.textContent = 'Refresh'; }
+    }
+  }
+
+  async function savePeopleProfile(event) {
+    event.preventDefault();
+    const selected = findSelectedPerson();
+    if (!selected || !peopleData?.can_manage) return;
+    const button = byId('peopleSaveProfile');
+    setPeopleMessage('peopleProfileMessage', 'Saving secure employment record…');
+    if (button) { button.disabled = true; button.textContent = 'Saving…'; }
+    try {
+      const { error } = await client.rpc('manage_rolexa_employee_profile', {
+        target_user_id: selected.user_id,
+        employee_number_value: byId('peopleEmployeeNumber')?.value.trim() || null,
+        department_value: byId('peopleDepartment')?.value.trim() || null,
+        manager_user_id_value: byId('peopleManager')?.value || null,
+        employment_status_value: byId('peopleEmploymentStatus')?.value || 'preboarding',
+        employment_type_value: byId('peopleEmploymentType')?.value || 'full_time',
+        start_date_value: byId('peopleStartDate')?.value || null,
+        end_date_value: byId('peopleEndDate')?.value || null,
+        work_location_value: byId('peopleWorkLocation')?.value.trim() || null
+      });
+      if (error) throw error;
+      setPeopleMessage('peopleProfileMessage', 'Employment record saved.', 'good');
+      peopleLoaded = false;
+      await loadPeople(true);
+    } catch (error) {
+      console.error('Rolexa employee profile update failed', error);
+      setPeopleMessage('peopleProfileMessage', error?.message || 'Could not save this employment record.', 'bad');
+    } finally {
+      if (button) { button.disabled = false; button.textContent = 'Save employment record'; }
+    }
+  }
+
+  async function uploadPeopleDocument(event) {
+    event.preventDefault();
+    const selected = findSelectedPerson();
+    const file = byId('peopleDocumentFile')?.files?.[0];
+    if (!selected || !peopleData?.can_manage || !file) return;
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    if (!isPdf) { setPeopleMessage('peopleUploadMessage', 'Choose a PDF document.', 'bad'); return; }
+    if (file.size > 10485760) { setPeopleMessage('peopleUploadMessage', 'The PDF must be 10 MB or smaller.', 'bad'); return; }
+
+    const button = byId('peopleUploadDocument');
+    const uniqueId = window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const objectPath = `${selected.user_id}/${uniqueId}.pdf`;
+    let uploaded = false;
+    setPeopleMessage('peopleUploadMessage', 'Encrypting and uploading to private storage…');
+    if (button) { button.disabled = true; button.textContent = 'Uploading…'; }
+    try {
+      const { error: uploadError } = await client.storage.from('rolexa-hr-documents').upload(objectPath, file, { contentType:'application/pdf', upsert:false });
+      if (uploadError) throw uploadError;
+      uploaded = true;
+      const { error } = await client.rpc('register_rolexa_hr_document', {
+        target_user_id: selected.user_id,
+        document_type_value: byId('peopleDocumentType')?.value || 'other',
+        document_title: byId('peopleDocumentTitle')?.value.trim() || file.name.replace(/\.pdf$/i, ''),
+        object_path: objectPath,
+        visibility_value: byId('peopleDocumentVisibility')?.value || 'employee',
+        status_value: byId('peopleDocumentStatus')?.value || 'issued',
+        retention_until_value: byId('peopleRetentionUntil')?.value || null
+      });
+      if (error) throw error;
+      byId('peopleUploadForm')?.reset();
+      setPeopleMessage('peopleUploadMessage', 'Private document added successfully.', 'good');
+      peopleLoaded = false;
+      await loadPeople(true);
+    } catch (error) {
+      if (uploaded) await client.storage.from('rolexa-hr-documents').remove([objectPath]);
+      console.error('Rolexa HR document upload failed', error);
+      setPeopleMessage('peopleUploadMessage', error?.message || 'Could not upload this document.', 'bad');
+    } finally {
+      if (button) { button.disabled = false; button.textContent = 'Upload secure document'; }
+    }
+  }
+
+  async function downloadPeopleDocument(documentId, button) {
+    if (!documentId || !client) return;
+    const originalText = button?.textContent || 'Download';
+    if (button) { button.disabled = true; button.textContent = 'Preparing…'; }
+    try {
+      const { data: access, error: accessError } = await client.rpc('open_rolexa_hr_document', { target_document_id: documentId });
+      if (accessError) throw accessError;
+      const { data, error } = await client.storage.from('rolexa-hr-documents').createSignedUrl(access.storage_path, 60, { download: access.title || true });
+      if (error || !data?.signedUrl) throw error || new Error('A secure download link could not be created.');
+      const link = document.createElement('a');
+      link.href = data.signedUrl;
+      link.rel = 'noopener';
+      link.click();
+    } catch (error) {
+      console.error('Rolexa HR document download failed', error);
+      setPeopleStatus(error?.message || 'Could not download this private document.', 'bad');
+    } finally {
+      if (button) { button.disabled = false; button.textContent = originalText; }
+    }
+  }
+
   async function verifyStaff(user) {
     if (!user) return null;
     const { data, error } = await client.from('rolexa_staff_users').select('user_id,role,is_active,full_name,job_title').eq('user_id', user.id).eq('is_active', true).maybeSingle();
@@ -407,17 +643,55 @@
     return data || null;
   }
 
+  function applyStaffNavigation(role) {
+    document.querySelectorAll('.side [data-admin-target],.side [data-admin-view]').forEach(button => {
+      const isPeople = button.dataset.adminView === 'peopleView';
+      button.classList.toggle('hidden', role === 'hr' && !isPeople);
+    });
+    document.querySelectorAll('.content [data-admin-target]').forEach(button => button.classList.toggle('hidden', role === 'hr'));
+  }
+
+  function clearLoadedState() {
+    metricsLoaded = false;
+    analyticsLoaded = false;
+    usersLoaded = false;
+    teamLoaded = false;
+    peopleLoaded = false;
+    peopleData = null;
+    selectedPeopleUserId = '';
+    [
+      'metricTotalUsers','metricCandidates','metricEmployers','metricApplications','metricJobs','metricLiveJobs','metricActiveEmployers',
+      'usersTotal','usersToday','usersSevenDays','usersThirtyDays','teamTotal','teamActive','teamHr','teamAdmins',
+      'peopleTotal','peopleActive','peoplePreboarding','peopleDocuments'
+    ].forEach(id => { if (byId(id)) byId(id).textContent = '—'; });
+    if (byId('usersTableBody')) byId('usersTableBody').innerHTML = '<tr><td colspan="6" class="users-empty">Select Users to load the secure directory.</td></tr>';
+    if (byId('teamTableBody')) byId('teamTableBody').innerHTML = '<tr><td colspan="6" class="users-empty">Select Team access to load staff permissions.</td></tr>';
+    if (byId('peopleDirectory')) byId('peopleDirectory').innerHTML = '<div class="people-empty">Open People &amp; HR to load secure records.</div>';
+    if (byId('peopleDocumentsBody')) byId('peopleDocumentsBody').innerHTML = '<tr><td colspan="5" class="people-empty">Select a person to view accessible documents.</td></tr>';
+    if (byId('peopleSelectedName')) byId('peopleSelectedName').textContent = 'Select a person';
+    if (byId('peopleSelectedRole')) byId('peopleSelectedRole').textContent = 'Employment details will appear here.';
+    ['peopleDetailNumber','peopleDetailDepartment','peopleDetailType','peopleDetailStart','peopleDetailLocation','peopleDetailAccess'].forEach(id => { if (byId(id)) byId(id).textContent = 'Not set'; });
+    byId('peopleProfileForm')?.classList.add('hidden');
+    byId('peopleUploadForm')?.classList.add('hidden');
+  }
+
   async function routeSession() {
     hide('loginGate'); hide('deniedGate'); hide('adminApp'); show('loadingGate');
     const { data: { user }, error } = await client.auth.getUser();
     hide('loadingGate');
-    if (error || !user) { metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; teamLoaded = false; currentStaffRole = ''; show('loginGate'); return; }
+    if (error || !user) { clearLoadedState(); currentStaffRole = ''; show('loginGate'); return; }
     const staff = await verifyStaff(user);
-    if (!staff) { metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; teamLoaded = false; currentStaffRole = ''; show('deniedGate'); return; }
+    if (!staff) { clearLoadedState(); currentStaffRole = ''; show('deniedGate'); return; }
     currentStaffRole = staff.role || '';
+    applyStaffNavigation(currentStaffRole);
     byId('staffName').textContent = staff.full_name || user.email || 'Rolexa staff';
     byId('staffRole').textContent = [staff.job_title, staff.role].filter(Boolean).join(' · ');
     show('adminApp');
+    if (currentStaffRole === 'hr') {
+      document.querySelector('[data-admin-view="peopleView"]')?.click();
+      await loadPeople();
+      return;
+    }
     await Promise.all([loadMetrics(), loadAnalytics()]);
   }
 
@@ -432,13 +706,13 @@
       if (error || !data.user) throw error || new Error('Sign-in failed.');
       const staff = await verifyStaff(data.user);
       if (!staff) { await client.auth.signOut(); throw new Error('This account is not approved for Rolexa internal access.'); }
-      metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; teamLoaded = false; await routeSession();
+      clearLoadedState(); await routeSession();
     } catch (error) { setError(error?.message || 'Could not sign in.'); }
     finally { button.disabled = false; button.textContent = 'Sign in securely'; }
   }
 
   async function signOut() {
-    await client.auth.signOut(); metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; teamLoaded = false; currentStaffRole = '';
+    await client.auth.signOut(); clearLoadedState(); currentStaffRole = '';
     hide('adminApp'); hide('deniedGate'); show('loginGate');
   }
 
@@ -457,8 +731,11 @@
       byId('refreshMetrics')?.addEventListener('click', refreshAll);
       byId('refreshUsers')?.addEventListener('click', () => { usersLoaded = false; loadUsers(true); });
       byId('refreshTeam')?.addEventListener('click', () => { teamLoaded = false; loadTeam(true); });
+      byId('refreshPeople')?.addEventListener('click', () => { peopleLoaded = false; loadPeople(true); });
       byId('teamAccessForm')?.addEventListener('submit', saveTeamAccess);
       byId('teamCancelEdit')?.addEventListener('click', clearTeamForm);
+      byId('peopleProfileForm')?.addEventListener('submit', savePeopleProfile);
+      byId('peopleUploadForm')?.addEventListener('submit', uploadPeopleDocument);
       byId('usersTypeFilter')?.addEventListener('change', event => {
         usersFilter = event.target.value || 'all'; usersPage = 1; usersLoaded = false; loadUsers(true);
       });
@@ -477,6 +754,7 @@
       window.addEventListener('rolexa:admin-view-opened', event => {
         if (event.detail?.viewId === 'usersView') loadUsers();
         if (event.detail?.viewId === 'teamView') loadTeam();
+        if (event.detail?.viewId === 'peopleView') loadPeople();
       });
       document.querySelectorAll('[data-days]').forEach(button => button.addEventListener('click', async () => {
         analyticsDays = Number(button.dataset.days || 90);
@@ -492,7 +770,7 @@
         const appIsVisible = !byId('adminApp')?.classList.contains('hidden');
         if (event === 'SIGNED_IN' && session?.user && appIsVisible) return;
         if (event === 'SIGNED_OUT') {
-          metricsLoaded = false; analyticsLoaded = false; usersLoaded = false; teamLoaded = false; currentStaffRole = '';
+          clearLoadedState(); currentStaffRole = '';
           hide('loadingGate'); hide('deniedGate'); hide('adminApp'); show('loginGate');
           return;
         }

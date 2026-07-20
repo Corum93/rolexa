@@ -11,7 +11,7 @@ as $$
 declare
   result jsonb;
 begin
-  if not public.is_rolexa_staff(array['owner','admin','employee','analyst']) then
+  if not public.is_rolexa_staff(array['owner','admin','hr','employee','analyst']) then
     raise exception 'Rolexa internal staff access required' using errcode = '42501';
   end if;
 
@@ -29,6 +29,7 @@ begin
       case s.role
         when 'owner' then jsonb_build_array('Full platform access','Manage team access','View operational data','Configure security')
         when 'admin' then jsonb_build_array('Manage platform operations','View users and employers','View applications','View analytics')
+        when 'hr' then jsonb_build_array('Manage People & HR','View all employee records','Manage HR documents','View HR audit history')
         when 'employee' then jsonb_build_array('Standard operational access','View users and employers','View applications')
         when 'analyst' then jsonb_build_array('Read-only platform access','View aggregated analytics','View operational reports')
         else '[]'::jsonb
@@ -42,6 +43,7 @@ begin
       'active', (select count(*) from team where is_active),
       'owners', (select count(*) from team where role = 'owner' and is_active),
       'admins', (select count(*) from team where role = 'admin' and is_active),
+      'hr', (select count(*) from team where role = 'hr' and is_active),
       'employees', (select count(*) from team where role = 'employee' and is_active),
       'analysts', (select count(*) from team where role = 'analyst' and is_active)
     ),
@@ -59,7 +61,7 @@ begin
         'access_updated_at', updated_at,
         'last_sign_in_at', last_sign_in_at
       ) order by
-        case role when 'owner' then 1 when 'admin' then 2 when 'employee' then 3 else 4 end,
+        case role when 'owner' then 1 when 'hr' then 2 when 'admin' then 3 when 'employee' then 4 else 5 end,
         is_active desc,
         coalesce(full_name, email)
       ) from team
@@ -103,8 +105,8 @@ begin
     raise exception 'A staff email address is required' using errcode = '22023';
   end if;
 
-  if clean_role not in ('admin','employee','analyst') then
-    raise exception 'Choose Admin, Employee or Analyst access. Owner access cannot be assigned here.' using errcode = '22023';
+  if clean_role not in ('admin','hr','employee','analyst') then
+    raise exception 'Choose Admin, HR, Employee or Analyst access. Owner access cannot be assigned here.' using errcode = '22023';
   end if;
 
   select * into target_user
