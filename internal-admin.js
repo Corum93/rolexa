@@ -18,6 +18,8 @@
   let peopleLoaded = false;
   let peopleData = null;
   let selectedPeopleUserId = '';
+  let orgChartLoaded = false;
+  let orgChartData = null;
   let currentStaffRole = '';
 
   const byId = id => document.getElementById(id);
@@ -128,6 +130,13 @@
     if (!el) return;
     el.textContent = message;
     el.className = `people-form-message ${kind}`.trim();
+  }
+
+  function setOrgChartStatus(message, kind = '') {
+    const el = byId('peopleOrgStatus');
+    if (!el) return;
+    el.textContent = message;
+    el.className = `metrics-status people-org-status ${kind}`.trim();
   }
 
   async function loadMetrics(force = false) {
@@ -435,6 +444,82 @@
     return people.find(person => person.user_id === selectedPeopleUserId) || people[0] || null;
   }
 
+  function renderOrgChart(data) {
+    orgChartData = data || {};
+    const people = (Array.isArray(orgChartData.people) ? orgChartData.people : []).filter(person => person?.user_id);
+    const chart = byId('peopleOrgChart');
+    const count = byId('peopleOrgCount');
+    if (count) count.textContent = `${number(people.length)} team member${people.length === 1 ? '' : 's'}`;
+
+    if (!chart) return;
+    if (!people.length) {
+      chart.innerHTML = '<div class="people-org-empty">No active Rolexa team members are available in the organisation chart yet.</div>';
+      setOrgChartStatus('The secure organisation chart is ready for your first reporting line.', 'good');
+      return;
+    }
+
+    const peopleById = new Map(people.map(person => [String(person.user_id), person]));
+    const childrenByManager = new Map();
+    people.forEach(person => {
+      const personId = String(person.user_id);
+      const managerId = person.manager_user_id ? String(person.manager_user_id) : '';
+      if (!managerId || managerId === personId || !peopleById.has(managerId)) return;
+      if (!childrenByManager.has(managerId)) childrenByManager.set(managerId, []);
+      childrenByManager.get(managerId).push(person);
+    });
+
+    const sortPeople = rows => [...rows].sort((a, b) => String(a.full_name || '').localeCompare(String(b.full_name || ''), 'en-GB'));
+    const roots = sortPeople(people.filter(person => {
+      const personId = String(person.user_id);
+      const managerId = person.manager_user_id ? String(person.manager_user_id) : '';
+      return !managerId || managerId === personId || !peopleById.has(managerId);
+    }));
+    const visited = new Set();
+
+    function renderNode(person, ancestry = new Set()) {
+      const personId = String(person.user_id);
+      if (ancestry.has(personId) || visited.has(personId)) return '';
+      visited.add(personId);
+      const nextAncestry = new Set(ancestry);
+      nextAncestry.add(personId);
+      const name = person.full_name || 'Rolexa team member';
+      const role = person.job_title || 'Rolexa team member';
+      const tags = [
+        person.department ? `<span class="people-org-tag">${escapeHtml(person.department)}</span>` : '',
+        `<span class="people-org-tag">${escapeHtml(humanize(person.employment_status || 'preboarding'))}</span>`
+      ].filter(Boolean).join('');
+      const children = sortPeople(childrenByManager.get(personId) || []).map(child => renderNode(child, nextAncestry)).filter(Boolean).join('');
+      return `<li><article class="people-org-person"><span class="users-avatar">${escapeHtml(initials(name))}</span><span class="people-org-copy"><b>${escapeHtml(name)}</b><small>${escapeHtml(role)}</small><span class="people-org-tags">${tags}</span></span></article>${children ? `<ul>${children}</ul>` : ''}</li>`;
+    }
+
+    const renderedRoots = roots.map(person => renderNode(person)).filter(Boolean);
+    sortPeople(people.filter(person => !visited.has(String(person.user_id)))).forEach(person => {
+      const fallback = renderNode(person);
+      if (fallback) renderedRoots.push(fallback);
+    });
+    chart.innerHTML = `<ul>${renderedRoots.join('')}</ul>`;
+    const generated = orgChartData.generated_at ? new Date(orgChartData.generated_at) : new Date();
+    setOrgChartStatus(`Reporting lines refreshed ${generated.toLocaleString('en-GB')}.`, 'good');
+  }
+
+  async function loadOrgChart(force = false) {
+    if (orgChartLoaded && !force) return;
+    if (!client) return;
+    setOrgChartStatus('Loading the secure Rolexa organisation chart…');
+    try {
+      const { data, error } = await client.rpc('get_rolexa_org_chart');
+      if (error) throw error;
+      renderOrgChart(data || {});
+      orgChartLoaded = true;
+    } catch (error) {
+      console.error('Rolexa organisation chart load failed', error);
+      const missingFunction = /get_rolexa_org_chart|schema cache|function/i.test(error?.message || '');
+      setOrgChartStatus(missingFunction ? 'Apply the organisation chart SQL in Supabase, then press Refresh.' : (error?.message || 'Could not load the organisation chart.'), 'bad');
+      if (byId('peopleOrgCount')) byId('peopleOrgCount').textContent = 'Internal team';
+      if (byId('peopleOrgChart')) byId('peopleOrgChart').innerHTML = `<div class="people-org-empty">${missingFunction ? 'The organisation chart is ready once the small Supabase SQL update is applied.' : 'The reporting structure is temporarily unavailable.'}</div>`;
+    }
+  }
+
   function renderPeople(data) {
     peopleData = data || {};
     const summary = peopleData.summary || {};
@@ -568,7 +653,8 @@
       if (error) throw error;
       setPeopleMessage('peopleProfileMessage', 'Employment record saved.', 'good');
       peopleLoaded = false;
-      await loadPeople(true);
+      orgChartLoaded = false;
+      await Promise.all([loadPeople(true), loadOrgChart(true)]);
     } catch (error) {
       console.error('Rolexa employee profile update failed', error);
       setPeopleMessage('peopleProfileMessage', error?.message || 'Could not save this employment record.', 'bad');
@@ -665,6 +751,8 @@
     peopleLoaded = false;
     peopleData = null;
     selectedPeopleUserId = '';
+    orgChartLoaded = false;
+    orgChartData = null;
     [
       'metricTotalUsers','metricCandidates','metricEmployers','metricApplications','metricJobs','metricLiveJobs','metricActiveEmployers',
       'usersTotal','usersToday','usersSevenDays','usersThirtyDays','teamTotal','teamActive','teamHr','teamAdmins',
@@ -673,6 +761,9 @@
     if (byId('usersTableBody')) byId('usersTableBody').innerHTML = '<tr><td colspan="6" class="users-empty">Select Users to load the secure directory.</td></tr>';
     if (byId('teamTableBody')) byId('teamTableBody').innerHTML = '<tr><td colspan="6" class="users-empty">Select Team access to load staff permissions.</td></tr>';
     if (byId('peopleDirectory')) byId('peopleDirectory').innerHTML = '<div class="people-empty">Open your secure employment records to continue.</div>';
+    if (byId('peopleOrgCount')) byId('peopleOrgCount').textContent = 'Internal team';
+    if (byId('peopleOrgChart')) byId('peopleOrgChart').innerHTML = '<div class="people-org-empty">Open People & HR to load the reporting structure.</div>';
+    setOrgChartStatus('Waiting for the secure organisation chart…');
     if (byId('peopleDocumentsBody')) byId('peopleDocumentsBody').innerHTML = '<tr><td colspan="5" class="people-empty">Select a person to view accessible documents.</td></tr>';
     if (byId('peopleSelectedName')) byId('peopleSelectedName').textContent = 'Select a person';
     if (byId('peopleSelectedRole')) byId('peopleSelectedRole').textContent = 'Employment details will appear here.';
@@ -695,7 +786,6 @@
     show('adminApp');
     if (currentStaffRole === 'hr') {
       document.querySelector('[data-admin-view="peopleView"]')?.click();
-      await loadPeople();
       return;
     }
     await Promise.all([loadMetrics(), loadAnalytics()]);
@@ -737,7 +827,11 @@
       byId('refreshMetrics')?.addEventListener('click', refreshAll);
       byId('refreshUsers')?.addEventListener('click', () => { usersLoaded = false; loadUsers(true); });
       byId('refreshTeam')?.addEventListener('click', () => { teamLoaded = false; loadTeam(true); });
-      byId('refreshPeople')?.addEventListener('click', () => { peopleLoaded = false; loadPeople(true); });
+      byId('refreshPeople')?.addEventListener('click', () => {
+        peopleLoaded = false;
+        orgChartLoaded = false;
+        Promise.all([loadPeople(true), loadOrgChart(true)]);
+      });
       byId('teamAccessForm')?.addEventListener('submit', saveTeamAccess);
       byId('teamCancelEdit')?.addEventListener('click', clearTeamForm);
       byId('peopleProfileForm')?.addEventListener('submit', savePeopleProfile);
@@ -760,7 +854,7 @@
       window.addEventListener('rolexa:admin-view-opened', event => {
         if (event.detail?.viewId === 'usersView') loadUsers();
         if (event.detail?.viewId === 'teamView') loadTeam();
-        if (event.detail?.viewId === 'peopleView') loadPeople();
+        if (event.detail?.viewId === 'peopleView') Promise.all([loadPeople(), loadOrgChart()]);
       });
       document.querySelectorAll('[data-days]').forEach(button => button.addEventListener('click', async () => {
         analyticsDays = Number(button.dataset.days || 90);
