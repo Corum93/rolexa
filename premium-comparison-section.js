@@ -32,7 +32,7 @@
     #why .compare-table tbody tr:last-child td{border-bottom:0!important}
 
     @media(min-width:1180px){
-      #why .compare-table td.col-rolexa{white-space:nowrap;font-size:13px!important;letter-spacing:-.005em}
+      #why .compare-table td.col-rolexa{font-size:13px!important;letter-spacing:-.005em}
     }
 
     @media(max-width:780px){
@@ -63,6 +63,14 @@
     }
   `;
   document.head.appendChild(style);
+
+  const firstRow = section.querySelector('.compare-table tbody tr');
+  if (firstRow) {
+    const cells = firstRow.querySelectorAll('td');
+    if (cells[0]) cells[0].textContent = 'Career progression';
+    if (cells[1]) cells[1].textContent = 'Helps candidates move from entry level into leadership and senior roles';
+    if (cells[2]) cells[2].textContent = 'Usually split across graduate sites, general boards and executive search firms';
+  }
 
   section.querySelectorAll('td.col-rolexa').forEach(cell => {
     cell.textContent = cell.textContent
