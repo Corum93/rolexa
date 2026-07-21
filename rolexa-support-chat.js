@@ -23,6 +23,7 @@
   load('premium-comparison-section.js?v=4', '__rolexaPremiumComparisonSectionRequestedV4');
   load('premium-early-access-section.js?v=1', '__rolexaPremiumAccessSectionRequested');
   load('premium-footer-copy.js?v=2', '__rolexaPremiumFooterCopyRequestedV2');
+  load('premium-section-spacing.js?v=1', '__rolexaPremiumSectionSpacingRequested');
   load('product-feedback.js?v=1', '__rolexaProductFeedbackRequested');
   load('support-feedback-integration.js?v=1', '__rolexaSupportFeedbackIntegrationRequested');
 })();
