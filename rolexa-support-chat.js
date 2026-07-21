@@ -16,7 +16,8 @@
   load('https://cdn.jsdelivr.net/gh/Corum93/rolexa@0a18c2700ff73aa46920c8906d347e66b7ac04e6/rolexa-support-chat.js', '__rolexaStableSupportRequested');
   load('demo-experience.js?v=2', '__rolexaDemoExperienceRequestedV2');
   load('homepage-improvements-premium.js?v=2', '__rolexaHomepageImprovementsPremiumRequestedV2');
-  load('premium-homepage-hero.js?v=1', '__rolexaPremiumHomepageHeroRequested');
+  load('premium-homepage-hero.js?v=2', '__rolexaPremiumHomepageHeroRequestedV2');
+  load('premium-career-progression.js?v=1', '__rolexaPremiumCareerProgressionRequested');
   load('premium-honesty-section.js?v=2', '__rolexaPremiumHonestySectionRequestedV2');
   load('premium-salary-explorer.js?v=1', '__rolexaPremiumSalaryExplorerRequested');
   load('premium-comparison-section.js?v=2', '__rolexaPremiumComparisonSectionRequestedV2');
