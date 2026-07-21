@@ -20,7 +20,7 @@
   load('premium-career-progression.js?v=1', '__rolexaPremiumCareerProgressionRequested');
   load('premium-honesty-section.js?v=2', '__rolexaPremiumHonestySectionRequestedV2');
   load('premium-salary-explorer.js?v=1', '__rolexaPremiumSalaryExplorerRequested');
-  load('premium-comparison-section.js?v=2', '__rolexaPremiumComparisonSectionRequestedV2');
+  load('premium-comparison-section.js?v=3', '__rolexaPremiumComparisonSectionRequestedV3');
   load('premium-early-access-section.js?v=1', '__rolexaPremiumAccessSectionRequested');
   load('product-feedback.js?v=1', '__rolexaProductFeedbackRequested');
   load('support-feedback-integration.js?v=1', '__rolexaSupportFeedbackIntegrationRequested');
