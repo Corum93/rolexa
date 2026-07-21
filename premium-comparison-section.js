@@ -26,6 +26,8 @@
     #why .compare-table td:first-child{font-size:13.5px!important;color:#111a35!important;font-weight:850!important}
     #why .compare-table td.col-rolexa{position:relative;background:#f1f5ff!important;color:#2442b4!important;font-weight:750!important;line-height:1.42!important;font-size:13.5px!important}
     #why .compare-table td.col-rolexa:before{content:'✓';display:inline-grid;place-items:center;width:21px;height:21px;border-radius:50%;background:#dfe8ff;color:#176bff;font-size:12px;font-weight:900;margin-right:10px;vertical-align:middle;flex:0 0 auto}
+    #why .compare-table tbody tr:first-child td.col-rolexa{padding-left:58px!important}
+    #why .compare-table tbody tr:first-child td.col-rolexa:before{position:absolute;left:22px;top:50%;margin:0;transform:translateY(-50%)}
     #why .compare-table td:not(:first-child):not(.col-rolexa){color:#657086!important;line-height:1.48}
     #why .compare-table tbody tr:hover td{background:#fafbff}
     #why .compare-table tbody tr:hover td.col-rolexa{background:#eaf0ff!important}
@@ -50,6 +52,8 @@
       #why .compare-table td{border:0!important;padding:0!important;white-space:normal!important}
       #why .compare-table td:first-child{padding:16px 17px 10px!important;font-size:14px!important;background:#fff}
       #why .compare-table td.col-rolexa{padding:13px 17px!important;background:#eef3ff!important;font-size:13.5px!important;line-height:1.48}
+      #why .compare-table tbody tr:first-child td.col-rolexa{padding:13px 17px!important}
+      #why .compare-table tbody tr:first-child td.col-rolexa:before{position:static;transform:none;margin-right:10px}
       #why .compare-table td:not(:first-child):not(.col-rolexa){padding:12px 17px 16px!important;font-size:13px!important;line-height:1.48;background:#fff}
       #why .compare-table td.col-rolexa:after{content:'Rolexa';display:block;margin-top:5px;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#6680d9}
       #why .compare-table td:not(:first-child):not(.col-rolexa):before{content:'Typical job boards';display:block;margin-bottom:5px;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#9aa3b6;font-weight:800}
@@ -68,7 +72,7 @@
   if (firstRow) {
     const cells = firstRow.querySelectorAll('td');
     if (cells[0]) cells[0].textContent = 'Career progression';
-    if (cells[1]) cells[1].textContent = 'Helps candidates move from entry level into leadership and senior roles';
+    if (cells[1]) cells[1].textContent = 'Supports progression from entry level to leadership roles';
     if (cells[2]) cells[2].textContent = 'Usually split across graduate sites, general boards and executive search firms';
   }
 
