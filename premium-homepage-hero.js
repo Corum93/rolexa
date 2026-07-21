@@ -93,29 +93,29 @@
   wrap.innerHTML = `
     <div class="rx-hero-grid">
       <div class="rx-hero-copy">
-        <div class="rx-hero-eyebrow">One transparent hiring platform</div>
-        <h1>Find the right role. <span>Hire the right person.</span></h1>
-        <p>Rolexa brings job discovery, intelligent matching, applications and direct communication into one clear hiring experience for candidates and employers across the UK.</p>
+        <div class="rx-hero-eyebrow">A career platform built around your next move</div>
+        <h1>Find the role that <span>moves your career forward.</span></h1>
+        <p>From your first job to leadership and senior management, Rolexa helps you discover the right next step for your growing skills, qualifications and experience.</p>
         <div class="rx-hero-actions">
           <a class="rx-hero-primary" href="candidate-login.html">Create candidate profile</a>
           <a class="rx-hero-secondary" href="employer-login.html">Hire with Rolexa</a>
         </div>
-        <a class="rx-hero-demo-link" href="#role-demo-explorer">Explore the candidate and employer demos <span aria-hidden="true">→</span></a>
+        <a class="rx-hero-demo-link" href="#career-progression">See how career progression works <span aria-hidden="true">→</span></a>
         <div class="rx-hero-proof">
-          <div class="rx-hero-proof-item"><b>One profile</b><span>Build it once and use it across relevant applications.</span></div>
-          <div class="rx-hero-proof-item"><b>Clear tracking</b><span>Know exactly where every application stands.</span></div>
-          <div class="rx-hero-proof-item"><b>Direct conversations</b><span>Candidates and employers communicate in one place.</span></div>
+          <div class="rx-hero-proof-item"><b>Understand your next step</b><span>See the roles that can follow from where you are today.</span></div>
+          <div class="rx-hero-proof-item"><b>Grow with your experience</b><span>Return as your skills, qualifications and responsibilities develop.</span></div>
+          <div class="rx-hero-proof-item"><b>Find better-fit opportunities</b><span>Discover roles aligned with your current level and future direction.</span></div>
         </div>
       </div>
-      <aside class="rx-journey-card" aria-label="Rolexa hiring journey preview">
-        <div class="rx-journey-top"><div class="rx-journey-title">Your Rolexa journey</div><span class="rx-journey-pill">Live platform</span></div>
+      <aside class="rx-journey-card" aria-label="Rolexa career progression preview">
+        <div class="rx-journey-top"><div class="rx-journey-title">A career that keeps moving</div><span class="rx-journey-pill">Your next step</span></div>
         <div class="rx-journey-list">
-          <div class="rx-journey-step"><div class="rx-journey-icon">01</div><div class="rx-journey-copy"><b>Match</b><span>Relevant roles and candidates surfaced through clearer hiring signals.</span></div><div class="rx-journey-status">Smart fit</div></div>
-          <div class="rx-journey-step"><div class="rx-journey-icon">02</div><div class="rx-journey-copy"><b>Apply</b><span>Use one complete profile instead of starting again each time.</span></div><div class="rx-journey-status">One profile</div></div>
-          <div class="rx-journey-step"><div class="rx-journey-icon">03</div><div class="rx-journey-copy"><b>Message</b><span>Keep candidate and employer conversations attached to the application.</span></div><div class="rx-journey-status">Direct chat</div></div>
-          <div class="rx-journey-step"><div class="rx-journey-icon">04</div><div class="rx-journey-copy"><b>Interview</b><span>Move forward with clearer expectations and less wasted time.</span></div><div class="rx-journey-status">Next step</div></div>
+          <div class="rx-journey-step"><div class="rx-journey-icon">01</div><div class="rx-journey-copy"><b>Entry level</b><span>Build practical skills, confidence and experience.</span></div><div class="rx-journey-status">Start strong</div></div>
+          <div class="rx-journey-step"><div class="rx-journey-icon">02</div><div class="rx-journey-copy"><b>Team Leader or Supervisor</b><span>Take on responsibility and begin supporting others.</span></div><div class="rx-journey-status">Step up</div></div>
+          <div class="rx-journey-step"><div class="rx-journey-icon">03</div><div class="rx-journey-copy"><b>Assistant Manager or Manager</b><span>Lead teams, projects and performance.</span></div><div class="rx-journey-status">Lead well</div></div>
+          <div class="rx-journey-step"><div class="rx-journey-icon">04</div><div class="rx-journey-copy"><b>Senior Leadership</b><span>Move towards Head, Director or Executive roles.</span></div><div class="rx-journey-status">Shape direction</div></div>
         </div>
-        <div class="rx-journey-foot"><span>Built for candidates and hiring teams</span><span class="rx-journey-match"><strong>1</strong> connected journey</span></div>
+        <div class="rx-journey-foot"><span>Built to support more than one job search</span><span class="rx-journey-match"><strong>4</strong> career stages</span></div>
       </aside>
     </div>`;
 })();
