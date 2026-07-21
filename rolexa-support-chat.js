@@ -22,7 +22,7 @@
   load('premium-salary-explorer.js?v=1', '__rolexaPremiumSalaryExplorerRequested');
   load('premium-comparison-section.js?v=4', '__rolexaPremiumComparisonSectionRequestedV4');
   load('premium-early-access-section.js?v=1', '__rolexaPremiumAccessSectionRequested');
-  load('premium-footer-copy.js?v=1', '__rolexaPremiumFooterCopyRequested');
+  load('premium-footer-copy.js?v=2', '__rolexaPremiumFooterCopyRequestedV2');
   load('product-feedback.js?v=1', '__rolexaProductFeedbackRequested');
   load('support-feedback-integration.js?v=1', '__rolexaSupportFeedbackIntegrationRequested');
 })();
