@@ -15,10 +15,10 @@
     load('candidate-career-direction-refinements.js?v=2', '__rolexaCandidateCareerDirectionRefinementsRequestedV2');
     load('candidate-career-direction-sync.js?v=1', '__rolexaCandidateCareerDirectionSyncRequestedV1');
     load('candidate-verified-jobs.js?v=1', '__rolexaCandidateVerifiedJobsRequestedV1');
-    load('candidate-verified-jobs-filter.js?v=1', '__rolexaVerifiedJobsFilterRequestedV1');
+    load('candidate-verified-jobs-filter.js?v=2', '__rolexaVerifiedJobsFilterRequestedV2');
     load('candidate-mobile-messages-polish.js?v=1', '__rolexaCandidateMobileMessagesPolishRequestedV1');
     load('candidate-mobile-applications-polish.js?v=1', '__rolexaCandidateMobileApplicationsPolishRequestedV1');
-    load('candidate-mobile-job-search-polish.js?v=1', '__rolexaCandidateMobileJobSearchPolishRequestedV1');
+    load('candidate-mobile-job-search-polish.js?v=2', '__rolexaCandidateMobileJobSearchPolishRequestedV2');
     load('candidate-mobile-global-polish.js?v=1', '__rolexaCandidateMobileGlobalPolishRequestedV1');
   }
 
