@@ -14,6 +14,7 @@
     load('candidate-career-direction.js?v=1', '__rolexaCandidateCareerDirectionRequestedV1');
     load('candidate-career-direction-refinements.js?v=2', '__rolexaCandidateCareerDirectionRefinementsRequestedV2');
     load('candidate-career-direction-sync.js?v=1', '__rolexaCandidateCareerDirectionSyncRequestedV1');
+    load('candidate-verified-jobs.js?v=1', '__rolexaCandidateVerifiedJobsRequestedV1');
   }
 
   load('https://cdn.jsdelivr.net/gh/Corum93/rolexa@0a18c2700ff73aa46920c8906d347e66b7ac04e6/rolexa-support-chat.js', '__rolexaStableSupportRequested');
