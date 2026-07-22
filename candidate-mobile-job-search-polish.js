@@ -43,10 +43,6 @@
       #jobSearchPage #jobResults .rx-candidate-trust small{font-size:8.5px;line-height:1.25;margin-bottom:4px}
       #jobSearchPage #jobResults .rx-candidate-trust b{font-size:11.5px;line-height:1.35;overflow-wrap:anywhere}
       #jobSearchPage #jobResults .rx-candidate-trust-note{grid-column:1/-1!important;font-size:10.8px;line-height:1.45;padding-top:2px}
-
-      body.rx-job-search-active .rx-chat-launcher{right:12px!important;bottom:82px!important;width:48px!important;height:48px!important;padding:0!important;justify-content:center!important;border-radius:50%!important}
-      body.rx-job-search-active .rx-chat-launcher>span:last-child{display:none!important}
-      body.rx-job-search-active .rx-chat-launcher .rx-chat-dot{width:11px;height:11px;margin:0}
     }
 
     @media (max-width:390px){
@@ -59,19 +55,4 @@
     }
   `;
   document.head.appendChild(style);
-
-  const syncViewClass = () => {
-    const active = document.getElementById('jobSearchPage')?.classList.contains('active');
-    document.body.classList.toggle('rx-job-search-active', Boolean(active));
-  };
-
-  const start = () => {
-    syncViewClass();
-    const page = document.getElementById('jobSearchPage');
-    if (page) new MutationObserver(syncViewClass).observe(page, { attributes:true, attributeFilter:['class'] });
-    document.addEventListener('click', () => setTimeout(syncViewClass, 0));
-  };
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once:true });
-  else start();
 })();
