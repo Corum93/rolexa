@@ -94,5 +94,5 @@
   loadOnce('employer-verified-jobs-save-repair.js?v=1', 'data-rx-verified-jobs-save-repair');
   loadOnce('employer-verification-reconfirmation.js?v=1', 'data-rx-verification-reconfirmation');
   loadOnce('employer-verification-overview-warning.js?v=1', 'data-rx-verification-overview-warning');
-  loadOnce('employer-accountability-overview.js?v=3', 'data-rx-employer-accountability-overview');
+  loadOnce('employer-accountability-overview.js?v=4', 'data-rx-employer-accountability-overview');
 })();
