@@ -95,4 +95,12 @@
     verifiedJobsScript.dataset.rxVerifiedJobs = 'true';
     document.body.appendChild(verifiedJobsScript);
   }
+
+  if (!document.querySelector('script[data-rx-verified-job-badges]')) {
+    const verifiedBadgesScript = document.createElement('script');
+    verifiedBadgesScript.src = 'employer-verified-job-badges.js?v=1';
+    verifiedBadgesScript.defer = true;
+    verifiedBadgesScript.dataset.rxVerifiedJobBadges = 'true';
+    document.body.appendChild(verifiedBadgesScript);
+  }
 })();
