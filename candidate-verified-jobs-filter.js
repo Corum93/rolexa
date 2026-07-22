@@ -1,10 +1,12 @@
 (() => {
   if (!/candidate-dashboard\.html$/i.test(location.pathname)) return;
-  if (window.__rolexaVerifiedJobsFilter) return;
-  window.__rolexaVerifiedJobsFilter = true;
+  if (window.__rolexaVerifiedJobsFilterV2) return;
+  window.__rolexaVerifiedJobsFilterV2 = true;
 
   let verifiedOnly = false;
   let refreshTimer = null;
+  let observerTimer = null;
+  let resultsObserver = null;
 
   function addStyles() {
     if (document.getElementById('rxVerifiedJobsFilterStyles')) return;
@@ -17,25 +19,35 @@
       .rx-verified-explainer strong{display:block;color:#176b49;margin-bottom:2px}
       .rx-verified-explainer-icon{flex:0 0 auto;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#22a06b;color:#fff;font-weight:900}
       .rx-verified-empty{border:1px dashed rgba(34,160,107,.28);background:#f8fcfa;color:#587064;border-radius:15px;padding:24px;text-align:center;font-size:13px;line-height:1.5}
-      @media(max-width:760px){.rx-verified-filter{width:100%;justify-content:center}.filters{grid-template-columns:1fr!important}}
+      @media(max-width:760px){.rx-verified-filter{width:100%;justify-content:flex-start}.filters{grid-template-columns:1fr!important}}
     `;
     document.head.appendChild(style);
+  }
+
+  function syncStateFromControl() {
+    const input = document.getElementById('rxVerifiedOnly');
+    if (input) verifiedOnly = Boolean(input.checked);
   }
 
   function addControls() {
     const filters = document.querySelector('#jobSearchPage .filters');
     if (!filters) return;
 
-    if (!document.getElementById('rxVerifiedOnly')) {
+    let input = document.getElementById('rxVerifiedOnly');
+    if (!input) {
       const control = document.createElement('label');
       control.className = 'rx-verified-filter';
       control.innerHTML = '<input id="rxVerifiedOnly" type="checkbox"><span>Verified jobs only</span>';
       filters.appendChild(control);
-      control.querySelector('input').addEventListener('change', event => {
-        verifiedOnly = event.target.checked;
+      input = control.querySelector('input');
+      input.addEventListener('change', () => {
+        syncStateFromControl();
         applyFilterAndRanking();
+        boundedRefresh();
       });
     }
+
+    input.checked = verifiedOnly;
 
     if (!document.querySelector('.rx-verified-explainer')) {
       const explainer = document.createElement('div');
@@ -46,27 +58,35 @@
   }
 
   function isVerified(card) {
-    return Boolean(card.dataset.rxVerifiedJob || card.querySelector('.rx-candidate-verified-badge'));
+    return Boolean(
+      card?.dataset?.rxVerifiedJob ||
+      card?.querySelector?.('.rx-candidate-verified-badge') ||
+      [...(card?.querySelectorAll?.('.tag,.job-actions span') || [])].some(el => /verified active/i.test(el.textContent || ''))
+    );
   }
 
   function sortContainer(container) {
     if (!container) return;
-    const cards = [...container.querySelectorAll(':scope > .job')];
-    cards.sort((a, b) => Number(isVerified(b)) - Number(isVerified(a)));
-    cards.forEach(card => container.appendChild(card));
+    const current = [...container.querySelectorAll(':scope > .job')];
+    const sorted = [...current].sort((a, b) => Number(isVerified(b)) - Number(isVerified(a)));
+    const changed = sorted.some((card, index) => card !== current[index]);
+    if (changed) sorted.forEach(card => container.appendChild(card));
   }
 
   function applyFilterAndRanking() {
+    syncStateFromControl();
     const results = document.getElementById('jobResults');
     if (results) {
       const cards = [...results.querySelectorAll(':scope > .job')];
       cards.forEach(card => {
-        card.style.display = verifiedOnly && !isVerified(card) ? 'none' : '';
+        const shouldHide = verifiedOnly && !isVerified(card);
+        card.hidden = shouldHide;
+        card.style.display = shouldHide ? 'none' : '';
       });
       sortContainer(results);
 
       let empty = results.querySelector('.rx-verified-empty');
-      const visible = cards.filter(card => card.style.display !== 'none').length;
+      const visible = cards.filter(card => !card.hidden && card.style.display !== 'none').length;
       if (verifiedOnly && !visible) {
         if (!empty) {
           empty = document.createElement('div');
@@ -83,27 +103,48 @@
     sortContainer(document.getElementById('savedJobsList'));
   }
 
+  function scheduleApply(delay = 60) {
+    clearTimeout(observerTimer);
+    observerTimer = setTimeout(applyFilterAndRanking, delay);
+  }
+
+  function observeResults() {
+    const results = document.getElementById('jobResults');
+    if (!results || results.dataset.rxVerifiedFilterObserved === 'true') return;
+    results.dataset.rxVerifiedFilterObserved = 'true';
+    resultsObserver = new MutationObserver(() => scheduleApply(40));
+    resultsObserver.observe(results, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'data-rx-verified-job']
+    });
+  }
+
   function boundedRefresh() {
     clearInterval(refreshTimer);
     let attempts = 0;
     addControls();
+    observeResults();
     applyFilterAndRanking();
     refreshTimer = setInterval(() => {
       addControls();
+      observeResults();
       applyFilterAndRanking();
       attempts += 1;
-      if (attempts >= 10) clearInterval(refreshTimer);
-    }, 350);
+      if (attempts >= 18) clearInterval(refreshTimer);
+    }, 300);
   }
 
   function bindRefreshes() {
     document.addEventListener('click', event => {
       const trigger = event.target.closest?.('[data-view="jobSearch"],[data-view="savedJobs"],button[onclick*="renderJobSearch"],button[onclick*="saveJob"],button[onclick*="removeSaved"]');
-      if (trigger) setTimeout(boundedRefresh, 140);
+      if (trigger) setTimeout(boundedRefresh, 120);
     });
-    document.getElementById('jobQuery')?.addEventListener('input', () => setTimeout(boundedRefresh, 100));
-    document.getElementById('jobLocation')?.addEventListener('change', () => setTimeout(boundedRefresh, 100));
-    document.getElementById('jobStyle')?.addEventListener('change', () => setTimeout(boundedRefresh, 100));
+    document.getElementById('jobQuery')?.addEventListener('input', () => setTimeout(boundedRefresh, 80));
+    document.getElementById('jobLocation')?.addEventListener('change', () => setTimeout(boundedRefresh, 80));
+    document.getElementById('jobStyle')?.addEventListener('change', () => setTimeout(boundedRefresh, 80));
+    document.addEventListener('rolexa:verified-jobs-updated', () => boundedRefresh());
   }
 
   function init() {
