@@ -15,21 +15,54 @@
     const style = document.createElement('style');
     style.id = 'rxEmployerAccountabilityStyles';
     style.textContent = `
-      .rx-accountability-card{margin-top:14px;padding:16px 18px;border-radius:18px;background:linear-gradient(135deg,#071025 0%,#10255b 100%);color:#fff;box-shadow:0 14px 34px rgba(7,16,37,.10)}
-      .rx-accountability-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;margin-bottom:12px}
+      .rx-accountability-card{margin-top:14px;padding:16px 18px;border-radius:18px;background:linear-gradient(135deg,#071025 0%,#10255b 100%);color:#fff;box-shadow:0 14px 34px rgba(7,16,37,.10);min-width:0}
+      .rx-accountability-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;margin-bottom:12px;min-width:0}
       .rx-accountability-kicker{font-size:9px;font-weight:900;letter-spacing:.075em;text-transform:uppercase;color:#8ca6ff;margin-bottom:4px}
       .rx-accountability-head h2{margin:0 0 3px;font-size:18px;color:#fff}
       .rx-accountability-head p{margin:0;color:#c7d3ff;font-size:11.5px;line-height:1.4;max-width:760px}
       .rx-accountability-score{display:flex;align-items:center;gap:9px;white-space:nowrap}
       .rx-accountability-score strong{display:block;font-family:'Space Grotesk',sans-serif;font-size:32px;line-height:1;color:#fff}
       .rx-accountability-score span{display:inline-flex;padding:4px 8px;border-radius:999px;background:rgba(140,166,255,.16);color:#dbe3ff;font-size:9px;font-weight:900}
-      .rx-accountability-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+      .rx-accountability-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;min-width:0}
       .rx-accountability-metric{padding:9px 11px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.055);border-radius:11px;min-width:0}
       .rx-accountability-metric small{display:block;color:#aab6d8;font-size:7.8px;font-weight:900;letter-spacing:.045em;text-transform:uppercase;margin-bottom:3px}
       .rx-accountability-metric b{display:block;color:#fff;font-size:12px;line-height:1.3;overflow-wrap:anywhere}
       .rx-accountability-note{margin-top:9px;color:#aab6d8;font-size:9.5px;line-height:1.35}
-      @media(max-width:900px){.rx-accountability-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
-      @media(max-width:620px){.rx-accountability-card{padding:15px}.rx-accountability-head{grid-template-columns:1fr}.rx-accountability-score{justify-content:flex-start}.rx-accountability-metrics{grid-template-columns:1fr}}
+
+      @media (min-width:761px) and (max-width:1180px){
+        .rx-accountability-card{padding:16px;border-radius:17px}
+        .rx-accountability-head{gap:12px;margin-bottom:11px}
+        .rx-accountability-head h2{font-size:17px}
+        .rx-accountability-head p{font-size:11px;max-width:600px}
+        .rx-accountability-score strong{font-size:29px}
+        .rx-accountability-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+        .rx-accountability-metric{padding:10px 11px}
+        .rx-accountability-metric small{font-size:8px}
+        .rx-accountability-metric b{font-size:12.5px}
+      }
+
+      @media(max-width:760px){
+        .rx-accountability-card{margin-top:12px;padding:15px;border-radius:17px}
+        .rx-accountability-head{grid-template-columns:1fr;gap:10px;margin-bottom:11px}
+        .rx-accountability-kicker{font-size:8px}
+        .rx-accountability-head h2{font-size:17px}
+        .rx-accountability-head p{font-size:11px;line-height:1.45}
+        .rx-accountability-score{justify-content:space-between;gap:10px;width:100%}
+        .rx-accountability-score strong{font-size:29px}
+        .rx-accountability-score span{font-size:8.5px;padding:4px 7px}
+        .rx-accountability-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+        .rx-accountability-metric{padding:9px 10px;border-radius:10px}
+        .rx-accountability-metric small{font-size:7.4px;line-height:1.25}
+        .rx-accountability-metric b{font-size:11.5px}
+        .rx-accountability-note{font-size:9px;line-height:1.4;margin-top:8px}
+      }
+
+      @media(max-width:430px){
+        .rx-accountability-card{padding:14px 13px}
+        .rx-accountability-metrics{grid-template-columns:1fr}
+        .rx-accountability-score strong{font-size:27px}
+        .rx-accountability-metric{padding:9px 10px}
+      }
     `;
     document.head.appendChild(style);
   }
