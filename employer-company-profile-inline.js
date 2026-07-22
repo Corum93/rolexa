@@ -80,16 +80,11 @@
     closeMobileMenu();
   }, true);
 
-  const load = (src, marker) => {
-    if (document.querySelector(`script[${marker}]`)) return;
-    const script = document.createElement('script');
-    script.src = src;
-    script.defer = true;
-    script.setAttribute(marker,'true');
-    document.body.appendChild(script);
-  };
-
-  load('product-feedback.js?v=1','data-rx-product-feedback');
-  load('employer-verified-jobs-phase2.js?v=1','data-rx-verified-jobs');
-  load('employer-verified-job-badges.js?v=1','data-rx-verified-job-badges');
+  if (!document.querySelector('script[data-rx-product-feedback]')) {
+    const feedbackScript = document.createElement('script');
+    feedbackScript.src = 'product-feedback.js?v=1';
+    feedbackScript.defer = true;
+    feedbackScript.dataset.rxProductFeedback = 'true';
+    document.body.appendChild(feedbackScript);
+  }
 })();
