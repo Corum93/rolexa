@@ -87,4 +87,12 @@
     feedbackScript.dataset.rxProductFeedback = 'true';
     document.body.appendChild(feedbackScript);
   }
+
+  if (!document.querySelector('script[data-rx-verified-jobs]')) {
+    const verifiedJobsScript = document.createElement('script');
+    verifiedJobsScript.src = 'employer-verified-jobs-phase2.js?v=1';
+    verifiedJobsScript.defer = true;
+    verifiedJobsScript.dataset.rxVerifiedJobs = 'true';
+    document.body.appendChild(verifiedJobsScript);
+  }
 })();
