@@ -80,11 +80,15 @@
     closeMobileMenu();
   }, true);
 
-  if (!document.querySelector('script[data-rx-product-feedback]')) {
-    const feedbackScript = document.createElement('script');
-    feedbackScript.src = 'product-feedback.js?v=1';
-    feedbackScript.defer = true;
-    feedbackScript.dataset.rxProductFeedback = 'true';
-    document.body.appendChild(feedbackScript);
-  }
+  const loadOnce = (src, marker) => {
+    if (document.querySelector(`script[${marker}]`)) return;
+    const script = document.createElement('script');
+    script.src = src;
+    script.defer = true;
+    script.setAttribute(marker, 'true');
+    document.body.appendChild(script);
+  };
+
+  loadOnce('product-feedback.js?v=1', 'data-rx-product-feedback');
+  loadOnce('employer-verified-jobs-safe.js?v=1', 'data-rx-verified-jobs-safe');
 })();
