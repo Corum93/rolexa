@@ -11,6 +11,7 @@
 
   if (/candidate-dashboard\.html$/.test(location.pathname)) {
     load('candidate-messaging-inbox.js?v=2', '__rolexaCandidateInboxRequested');
+    load('candidate-career-direction.js?v=1', '__rolexaCandidateCareerDirectionRequestedV1');
   }
 
   load('https://cdn.jsdelivr.net/gh/Corum93/rolexa@0a18c2700ff73aa46920c8906d347e66b7ac04e6/rolexa-support-chat.js', '__rolexaStableSupportRequested');
