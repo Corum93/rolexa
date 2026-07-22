@@ -92,5 +92,4 @@
   load('product-feedback.js?v=1','data-rx-product-feedback');
   load('employer-verified-jobs-phase2.js?v=1','data-rx-verified-jobs');
   load('employer-verified-job-badges.js?v=1','data-rx-verified-job-badges');
-  load('employer-job-verification-supabase.js?v=1','data-rx-verification-supabase');
 })();
