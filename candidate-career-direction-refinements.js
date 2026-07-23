@@ -51,18 +51,18 @@
     const style = document.createElement('style');
     style.id = 'rxCareerDirectionRefinementStyles';
     style.textContent = `
-      #rxCareerDashboardCard{grid-column:1/-1!important;min-height:0!important;height:auto!important;padding:18px 20px!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:'title action' 'route action' 'progress action'!important;column-gap:24px!important;row-gap:8px!important;align-items:center!important;align-self:start!important}
+      #rxCareerDashboardCard{grid-column:1/-1!important;min-height:0!important;height:auto!important;padding:18px 20px!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;grid-template-areas:'title status action' 'route status action' 'progress status action'!important;column-gap:18px!important;row-gap:8px!important;align-items:center!important;align-self:start!important}
       #rxCareerDashboardCard:after{width:120px!important;height:120px!important;right:-58px!important;bottom:-76px!important}
       #rxCareerDashboardCard h2{grid-area:title;margin:0!important;font-size:18px!important;line-height:1.2!important}
       #rxCareerDashboardCard p{display:none!important}
       #rxCareerDashboardCard .rx-career-route{grid-area:route;margin:0!important;gap:7px!important}
       #rxCareerDashboardCard .rx-career-node{padding:6px 9px!important;font-size:10.5px!important}
-      #rxCareerDashboardCard .rx-career-progress{grid-area:progress;margin:1px 0 0!important;max-width:none!important;height:6px!important;padding-right:150px}
-      #rxCareerDashboardCard .mini{grid-area:progress;justify-self:end;align-self:center;margin:0!important;font-size:10.5px!important;white-space:nowrap}
+      #rxCareerDashboardCard .rx-career-progress{grid-area:progress;margin:1px 0 0!important;max-width:none!important;height:6px!important;padding-right:0!important}
+      #rxCareerDashboardCard .mini{grid-area:status;justify-self:end;align-self:end;margin:0 0 -1px!important;font-size:10.5px!important;white-space:nowrap}
       #rxCareerDashboardCard .primary{grid-area:action;margin:0!important;white-space:nowrap;padding:10px 15px!important;font-size:12.5px!important}
       .rx-summary-box{position:relative;padding-top:45px!important}.rx-summary-edit{position:absolute;right:14px;top:12px;border:1px solid rgba(23,107,255,.18);background:#f5f8ff;color:#2946c7;border-radius:999px;padding:7px 10px;font-size:10.5px;font-weight:900;cursor:pointer}
       .rx-summary-edit:hover{background:#e9efff}.rx-summary-skills{background:linear-gradient(180deg,#fff,#fafbff)}
-      @media(max-width:900px){#rxCareerDashboardCard{grid-template-columns:1fr auto!important;grid-template-areas:'title action' 'route route' 'progress progress'!important}#rxCareerDashboardCard .rx-career-progress{padding-right:120px}.rx-summary-box{padding-top:43px!important}}
+      @media(max-width:900px){#rxCareerDashboardCard{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:'title action' 'route route' 'progress status'!important}#rxCareerDashboardCard .mini{align-self:center;margin:0!important}.rx-summary-box{padding-top:43px!important}}
       @media(max-width:760px){#rxCareerDashboardCard{grid-template-columns:1fr!important;grid-template-areas:'title' 'route' 'progress' 'action'!important;padding:16px!important;row-gap:10px!important}#rxCareerDashboardCard .primary{justify-self:start!important;width:auto!important}#rxCareerDashboardCard .mini{display:none!important}#rxCareerDashboardCard .rx-career-progress{padding-right:0!important}#rxCareerDashboardCard .rx-career-route{gap:6px!important}#rxCareerDashboardCard .rx-career-node{font-size:10px!important;padding:6px 8px!important}}
     `;
     document.head.appendChild(style);
