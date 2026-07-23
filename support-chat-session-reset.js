@@ -1,6 +1,6 @@
 (() => {
-  if (window.__rolexaSupportSessionResetV2) return;
-  window.__rolexaSupportSessionResetV2 = true;
+  if (window.__rolexaSupportSessionResetV3) return;
+  window.__rolexaSupportSessionResetV3 = true;
 
   const STORAGE_KEY = 'rolexa_support_chat_v1';
   const WELCOME = 'Hi, I’m the Rolexa support assistant. I can help with early access, candidate signups, employer access and the demo.';
@@ -16,22 +16,28 @@
   }
 
   function addStyles() {
-    if (document.getElementById('rxSupportSessionResetStylesV2')) return;
+    if (document.getElementById('rxSupportSessionResetStylesV3')) return;
     const style = document.createElement('style');
-    style.id = 'rxSupportSessionResetStylesV2';
+    style.id = 'rxSupportSessionResetStylesV3';
     style.textContent = `
       .rx-chat-head-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
       .rx-chat-end{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.09);color:#fff;border-radius:999px;padding:7px 10px;font:800 11px Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
       .rx-chat-end:hover{background:rgba(255,255,255,.16)}
-      .rx-chat-ended-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
-      .rx-chat-ended-actions .rx-chip{font-weight:800}
+      .rx-chat-ended-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:4px;width:100%}
+      .rx-chat-ended-actions .rx-chip{font-weight:800;min-height:40px;display:flex;align-items:center;justify-content:center;text-align:center;white-space:normal;line-height:1.25}
       .rx-chat-start-new{border-color:rgba(10,14,26,.14)!important;color:#1a275c!important}
       .rx-chat-panel[data-conversation-ended="true"] .rx-chat-form,
       .rx-chat-panel[data-conversation-ended="true"] .rx-chat-small{display:none!important}
-      @media(max-width:420px){
-        .rx-chat-head{padding:15px 14px 13px!important}
+      @media(max-width:780px){
+        .rx-chat-ended-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+        .rx-chat-ended-actions .rx-chip{padding:9px 10px;font-size:12px}
+      }
+      @media(max-width:520px){
+        .rx-chat-head{padding:15px 14px 13px!important;gap:8px!important}
         .rx-chat-head-actions{gap:6px}
         .rx-chat-end{font-size:10px;padding:6px 8px}
+        .rx-chat-ended-actions{grid-template-columns:1fr}
+        .rx-chat-ended-actions .rx-chip{width:100%;min-height:42px}
       }
     `;
     document.head.appendChild(style);
@@ -119,8 +125,8 @@
     const head = panel?.querySelector('.rx-chat-head');
     const close = panel?.querySelector('.rx-chat-close');
     if (!panel || !head || !close) return false;
-    if (panel.dataset.rxSessionResetReady === 'v2') return true;
-    panel.dataset.rxSessionResetReady = 'v2';
+    if (panel.dataset.rxSessionResetReady === 'v3') return true;
+    panel.dataset.rxSessionResetReady = 'v3';
     addStyles();
 
     let actions = head.querySelector('.rx-chat-head-actions');
