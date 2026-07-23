@@ -12,7 +12,7 @@
   if (/candidate-dashboard\.html$/.test(location.pathname)) {
     load('candidate-messaging-inbox.js?v=2', '__rolexaCandidateInboxRequested');
     load('candidate-career-direction.js?v=1', '__rolexaCandidateCareerDirectionRequestedV1');
-    load('candidate-career-direction-refinements.js?v=2', '__rolexaCandidateCareerDirectionRefinementsRequestedV2');
+    load('candidate-career-direction-refinements.js?v=3', '__rolexaCandidateCareerDirectionRefinementsRequestedV3');
     load('candidate-career-direction-sync.js?v=1', '__rolexaCandidateCareerDirectionSyncRequestedV1');
     load('candidate-verified-jobs.js?v=1', '__rolexaCandidateVerifiedJobsRequestedV1');
     load('candidate-verified-jobs-filter.js?v=2', '__rolexaVerifiedJobsFilterRequestedV2');
