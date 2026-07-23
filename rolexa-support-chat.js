@@ -22,7 +22,9 @@
     load('candidate-mobile-global-polish.js?v=1', '__rolexaCandidateMobileGlobalPolishRequestedV1');
   }
 
+  try { localStorage.removeItem('rolexa_support_chat_v1'); } catch (error) {}
   load('https://cdn.jsdelivr.net/gh/Corum93/rolexa@0a18c2700ff73aa46920c8906d347e66b7ac04e6/rolexa-support-chat.js', '__rolexaStableSupportRequested');
+  load('support-chat-session-reset.js?v=1', '__rolexaSupportSessionResetRequestedV1');
   load('demo-experience.js?v=2', '__rolexaDemoExperienceRequestedV2');
   load('homepage-improvements-premium.js?v=2', '__rolexaHomepageImprovementsPremiumRequestedV2');
   load('premium-homepage-hero.js?v=2', '__rolexaPremiumHomepageHeroRequestedV2');
