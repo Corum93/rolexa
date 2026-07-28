@@ -15,6 +15,7 @@
     const style = document.createElement('style');
     style.id = 'rxEmployerAccountabilityStyles';
     style.textContent = `
+      .rx-app-card>.rx-app-actions{grid-column:1/-1!important;margin-left:0!important;justify-content:flex-start!important}
       .rx-accountability-card{margin-top:14px;padding:16px 18px;border-radius:18px;background:linear-gradient(135deg,#071025 0%,#10255b 100%);color:#fff;box-shadow:0 14px 34px rgba(7,16,37,.10);min-width:0}
       .rx-accountability-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;margin-bottom:12px;min-width:0}
       .rx-accountability-kicker{font-size:9px;font-weight:900;letter-spacing:.075em;text-transform:uppercase;color:#8ca6ff;margin-bottom:4px}
@@ -42,6 +43,7 @@
       }
 
       @media(max-width:760px){
+        .rx-app-card>.rx-app-actions{grid-column:1/-1!important}
         .rx-accountability-card{margin-top:12px;padding:15px;border-radius:17px}
         .rx-accountability-head{grid-template-columns:1fr;gap:10px;margin-bottom:11px}
         .rx-accountability-kicker{font-size:8px}
@@ -65,6 +67,15 @@
       }
     `;
     document.head.appendChild(style);
+  }
+
+  function ensureActivityTimeline() {
+    if (document.querySelector('script[data-rx-employer-application-activity-direct]')) return;
+    const script = document.createElement('script');
+    script.src = 'employer-application-activity.js?v=2';
+    script.defer = true;
+    script.setAttribute('data-rx-employer-application-activity-direct', 'true');
+    document.body.appendChild(script);
   }
 
   function loadSupabase() {
@@ -142,6 +153,7 @@
 
   async function init() {
     addStyles();
+    ensureActivityTimeline();
     try {
       const lib = await loadSupabase();
       client = lib.createClient(CONFIG.url, CONFIG.key);
