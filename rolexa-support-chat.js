@@ -21,6 +21,7 @@
     load('candidate-mobile-job-search-polish.js?v=2', '__rolexaCandidateMobileJobSearchPolishRequestedV2');
     load('candidate-mobile-global-polish.js?v=1', '__rolexaCandidateMobileGlobalPolishRequestedV1');
     load('candidate-application-activity.js?v=1', '__rolexaCandidateApplicationActivityRequestedV1');
+    load('candidate-notification-centre.js?v=1', '__rolexaCandidateNotificationCentreRequestedV1');
   }
 
   try { localStorage.removeItem('rolexa_support_chat_v1'); } catch (error) {}
