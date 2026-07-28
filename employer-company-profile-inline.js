@@ -96,5 +96,4 @@
   loadOnce('employer-verification-overview-warning.js?v=1', 'data-rx-verification-overview-warning');
   loadOnce('employer-hiring-stages.js?v=1', 'data-rx-employer-hiring-stages');
   loadOnce('employer-accountability-overview.js?v=4', 'data-rx-employer-accountability-overview');
-  loadOnce('employer-application-hiring-stages.js?v=1', 'data-rx-employer-application-hiring-stages');
 })();
