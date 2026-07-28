@@ -9,7 +9,6 @@
   function initials(name){ return String(name || 'Candidate').split(' ').filter(Boolean).map(part => part[0]).join('').slice(0,2).toUpperCase() || 'C'; }
   function shortId(value){ return String(value || 'candidate').slice(0,8); }
   function dateText(value){ try { return value ? new Date(value).toLocaleDateString('en-GB') : 'Date not available'; } catch(e){ return 'Date not available'; } }
-
   function emptyHtml(){ return '<div class="empty">No real applications yet. When a candidate applies to one of your jobs, they will appear here. Demo candidates have been removed.</div>'; }
 
   function showStatus(message, type = 'info') {
@@ -17,9 +16,7 @@
     if (!bar) return;
     bar.className = `statusbar show ${type}`;
     bar.textContent = message;
-    setTimeout(() => {
-      if (bar.textContent === message) bar.className = 'statusbar';
-    }, 4500);
+    setTimeout(() => { if (bar.textContent === message) bar.className = 'statusbar'; }, 4500);
   }
 
   function applyApplicationsLabels(){
@@ -55,57 +52,40 @@
     const style = document.createElement('style');
     style.id = 'rxApplicationsLiveStyles';
     style.textContent = `
-      .rx-app-card{grid-template-columns:45px minmax(0,1fr) auto;align-items:flex-start}
+      .rx-app-card{grid-template-columns:45px minmax(0,1fr);align-items:flex-start}
       .rx-app-main{min-width:0;display:grid;gap:5px}
       .rx-app-title{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px;font-weight:900;color:#071025}
       .rx-app-meta{font-size:12.5px;color:#6B7280;line-height:1.45}
       .rx-app-meta b{color:#26324C}
-      .rx-app-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:420px}
+      .rx-app-actions{grid-column:2/-1;display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-start;margin-top:5px}
       .rx-app-warning{grid-column:1/-1;border:1px solid rgba(224,83,63,.18);background:#FFF8F6;border-radius:13px;padding:10px 11px;font-size:12.8px;line-height:1.45;color:#A33327}
       .rx-status-btn{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900}
       .rx-status-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
       .rx-status-btn.danger{border-color:rgba(224,83,63,.25);color:#A33327;background:#FFF8F6}
       .rx-status-btn:disabled{opacity:.6;cursor:not-allowed}
+      .rx-stage-panel{grid-column:1/-1;border:1px solid rgba(23,107,255,.14);background:#F8FAFF;border-radius:15px;padding:12px 13px;margin-top:5px;display:grid;gap:10px}
+      .rx-stage-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+      .rx-stage-head b{font-size:13px;color:#071025}.rx-stage-head span{font-size:12px;color:#51617F;font-weight:800}
+      .rx-stage-track{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+      .rx-stage-step{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(7,16,37,.1);background:#fff;color:#71809C;border-radius:999px;padding:6px 9px;font-size:11.5px;font-weight:900}
+      .rx-stage-step:before{content:'';width:8px;height:8px;border-radius:50%;background:#DCE5F6}
+      .rx-stage-step.done{background:#E1F6EB;color:#176B49;border-color:rgba(34,160,107,.18)}.rx-stage-step.done:before{background:#22A06B}
+      .rx-stage-step.current{background:#E9EDFF;color:#2946C7;border-color:rgba(23,107,255,.18)}.rx-stage-step.current:before{background:#176BFF}
+      .rx-stage-arrow{color:#B5C2DB;font-weight:900}
       .rx-modal-backdrop{position:fixed;inset:0;background:rgba(7,16,37,.58);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px}
       .rx-modal{width:min(760px,100%);max-height:88vh;overflow:auto;background:#fff;border-radius:24px;border:1px solid var(--line);box-shadow:0 30px 80px rgba(7,16,37,.35)}
       .rx-modal-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;padding:22px 24px;border-bottom:1px solid var(--line)}
       .rx-candidate-head{display:grid;grid-template-columns:82px minmax(0,1fr);gap:16px;align-items:center;min-width:0}
       .rx-candidate-photo{width:82px;height:82px;border-radius:21px;background:linear-gradient(135deg,#176BFF,#8CA6FF);display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:900;overflow:hidden;border:3px solid #fff;box-shadow:0 10px 24px rgba(7,16,37,.18)}
-      .rx-candidate-photo img{width:100%;height:100%;object-fit:cover;display:block}
-      .rx-candidate-copy{min-width:0}
-      .rx-candidate-copy h2{margin:0;font-size:25px;overflow-wrap:anywhere}
-      .rx-candidate-role{font-size:14px;font-weight:800;color:#26324C;margin-top:5px}
-      .rx-candidate-meta{font-size:12.5px;color:#6B7280;margin-top:5px;line-height:1.45;display:flex;gap:7px;flex-wrap:wrap}
+      .rx-candidate-photo img{width:100%;height:100%;object-fit:cover;display:block}.rx-candidate-copy{min-width:0}.rx-candidate-copy h2{margin:0;font-size:25px;overflow-wrap:anywhere}
+      .rx-candidate-role{font-size:14px;font-weight:800;color:#26324C;margin-top:5px}.rx-candidate-meta{font-size:12.5px;color:#6B7280;margin-top:5px;line-height:1.45;display:flex;gap:7px;flex-wrap:wrap}
       .rx-candidate-privacy{display:inline-flex;align-items:center;gap:6px;color:#176B49;background:#E1F6EB;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;margin-top:8px}
-      .rx-modal-close{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 13px;font-weight:900;flex:0 0 auto}
-      .rx-modal-body{padding:22px 24px;display:grid;gap:14px}
-      .rx-profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-      .rx-profile-field{border:1px solid var(--line);background:#F5F7FC;border-radius:14px;padding:13px}
-      .rx-profile-field b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#6B7280;margin-bottom:5px}
-      .rx-profile-field span{font-size:14px;color:#071025;font-weight:800;line-height:1.4}
-      .rx-profile-field.full{grid-column:1/-1}
-      .rx-modal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
-      @media(max-width:760px){
-        .rx-app-card{grid-template-columns:42px 1fr}
-        .rx-app-actions{grid-column:2;justify-content:flex-start}
-        .rx-app-warning{grid-column:1/-1}
-        .rx-profile-grid{grid-template-columns:1fr}
-        .rx-modal-backdrop{padding:10px;align-items:flex-end}
-        .rx-modal{max-height:92vh;border-radius:22px 22px 0 0}
-        .rx-modal-head{padding:18px 16px;gap:10px}
-        .rx-candidate-head{grid-template-columns:64px minmax(0,1fr);gap:12px}
-        .rx-candidate-photo{width:64px;height:64px;border-radius:17px;font-size:19px}
-        .rx-candidate-copy h2{font-size:21px}
-        .rx-candidate-role{font-size:13px}
-        .rx-candidate-meta{font-size:11.5px}
-        .rx-modal-body{padding:16px}
-      }
-      @media(max-width:420px){
-        .rx-modal-head{display:grid;grid-template-columns:1fr auto}
-        .rx-candidate-head{grid-template-columns:56px minmax(0,1fr)}
-        .rx-candidate-photo{width:56px;height:56px;border-radius:15px}
-        .rx-modal-close{padding:8px 10px;font-size:12px}
-      }
+      .rx-modal-close{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 13px;font-weight:900;flex:0 0 auto}.rx-modal-body{padding:22px 24px;display:grid;gap:14px}
+      .rx-profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.rx-profile-field{border:1px solid var(--line);background:#F5F7FC;border-radius:14px;padding:13px}
+      .rx-profile-field b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#6B7280;margin-bottom:5px}.rx-profile-field span{font-size:14px;color:#071025;font-weight:800;line-height:1.4}
+      .rx-profile-field.full{grid-column:1/-1}.rx-modal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+      @media(max-width:760px){.rx-app-card{grid-template-columns:42px 1fr}.rx-app-actions{grid-column:1/-1}.rx-stage-panel{padding:11px}.rx-stage-track{gap:6px}.rx-stage-step{font-size:11px}.rx-profile-grid{grid-template-columns:1fr}.rx-modal-backdrop{padding:10px;align-items:flex-end}.rx-modal{max-height:92vh;border-radius:22px 22px 0 0}.rx-modal-head{padding:18px 16px;gap:10px}.rx-candidate-head{grid-template-columns:64px minmax(0,1fr);gap:12px}.rx-candidate-photo{width:64px;height:64px;border-radius:17px;font-size:19px}.rx-candidate-copy h2{font-size:21px}.rx-candidate-role{font-size:13px}.rx-candidate-meta{font-size:11.5px}.rx-modal-body{padding:16px}}
+      @media(max-width:420px){.rx-modal-head{display:grid;grid-template-columns:1fr auto}.rx-candidate-head{grid-template-columns:56px minmax(0,1fr)}.rx-candidate-photo{width:56px;height:56px;border-radius:15px}.rx-modal-close{padding:8px 10px;font-size:12px}.rx-stage-head{display:grid;gap:3px}}
     `;
     document.head.appendChild(style);
   }
@@ -145,53 +125,89 @@
     const jobs = jobsRes.data || [];
     const jobIds = jobs.map(job => job.id).filter(Boolean);
     if (!jobIds.length) return;
-    const appsRes = await client.from('candidate_applications').select('id,user_id,job_id,status,applied_at,updated_at').in('job_id', jobIds).order('applied_at', { ascending:false });
+
+    const [appsRes, stagesRes] = await Promise.all([
+      client.from('candidate_applications').select('id,user_id,job_id,status,applied_at,updated_at,current_hiring_stage_id,hiring_stage_updated_at').in('job_id', jobIds).order('applied_at', { ascending:false }),
+      client.from('job_hiring_stages').select('id,job_id,stage_order,stage_name,stage_type').in('job_id', jobIds).order('stage_order', { ascending:true })
+    ]);
     if (appsRes.error) { loadError = appsRes.error.message || 'Could not load applications.'; return; }
+    if (stagesRes.error) { loadError = stagesRes.error.message || 'Could not load hiring stages.'; return; }
+
     const apps = appsRes.data || [];
     const userIds = [...new Set(apps.map(app => app.user_id).filter(Boolean))];
     let profiles = [];
     let profileWarning = '';
     if (userIds.length) {
-      const pRes = await client
-        .from('candidate_profiles')
-        .select('user_id,full_name,email,target_role,current_level,location,work_style,minimum_salary,skills,profile_summary,has_cv,cv_file_path,cv_file_name,cv_file_type,open_to_work,open_to_relocate,photo_file_path,photo_file_name,photo_file_type')
-        .in('user_id', userIds);
+      const pRes = await client.from('candidate_profiles').select('user_id,full_name,email,target_role,current_level,location,work_style,minimum_salary,skills,profile_summary,has_cv,cv_file_path,cv_file_name,cv_file_type,open_to_work,open_to_relocate,photo_file_path,photo_file_name,photo_file_type').in('user_id', userIds);
       if (pRes.error) profileWarning = pRes.error.message || 'Candidate profile access blocked.';
       else profiles = pRes.data || [];
     }
+
     const jobMap = new Map(jobs.map(job => [job.id, job]));
     const profileMap = new Map(profiles.map(profile => [profile.user_id, profile]));
-    applications = apps.map(app => ({ app, job: jobMap.get(app.job_id) || {}, profile: profileMap.get(app.user_id) || {}, profileWarning }));
+    const stageMap = new Map();
+    (stagesRes.data || []).forEach(stage => {
+      if (!stageMap.has(stage.job_id)) stageMap.set(stage.job_id, []);
+      stageMap.get(stage.job_id).push(stage);
+    });
+    applications = apps.map(app => ({ app, job: jobMap.get(app.job_id) || {}, profile: profileMap.get(app.user_id) || {}, stages: stageMap.get(app.job_id) || [], profileWarning }));
   }
 
   function reviewButtons(app, profile){
     const id = safe(app.id);
     const hasCv = Boolean(profile && (profile.cv_file_path || profile.cv_file_name || profile.has_cv));
-    return [
-      `<button class="rx-status-btn" type="button" data-review-profile="${id}">View profile</button>`,
-      `<button class="rx-status-btn" type="button" data-review-cv="${id}" ${hasCv ? '' : 'disabled'}>View CV</button>`
-    ].join('');
+    return [`<button class="rx-status-btn" type="button" data-review-profile="${id}">View profile</button>`,`<button class="rx-status-btn" type="button" data-review-cv="${id}" ${hasCv ? '' : 'disabled'}>View CV</button>`].join('');
   }
 
-  function actionButtons(app, profile){
+  function currentStageFor(row){
+    const stages = row.stages || [];
+    const app = row.app || {};
+    return stages.find(stage => stage.id === app.current_hiring_stage_id) || stages[0] || null;
+  }
+
+  function broadStatusFor(stage, fallback){
+    if (!stage) return fallback || 'Applied';
+    if (stage.stage_type === 'review') return 'Applied';
+    if (stage.stage_type === 'shortlist') return 'Shortlisted';
+    if (stage.stage_type === 'assessment' || stage.stage_type === 'interview' || stage.stage_type === 'custom') return 'Interview';
+    if (stage.stage_type === 'offer') return 'Offer';
+    return fallback || 'Applied';
+  }
+
+  function stagePanel(row){
+    const stages = row.stages || [];
+    if (!stages.length) return '<div class="rx-app-warning"><b>Hiring process unavailable:</b> No stages are linked to this job yet.</div>';
+    const current = currentStageFor(row);
+    const currentIndex = Math.max(0, stages.findIndex(stage => current && stage.id === current.id));
+    const track = stages.map((stage, index) => {
+      const state = index < currentIndex ? 'done' : index === currentIndex ? 'current' : '';
+      const step = `<span class="rx-stage-step ${state}">${safe(stage.stage_name)}</span>`;
+      return index < stages.length - 1 ? `${step}<span class="rx-stage-arrow">→</span>` : step;
+    }).join('');
+    return `<div class="rx-stage-panel"><div class="rx-stage-head"><b>Hiring process</b><span>Stage ${currentIndex + 1} of ${stages.length} · Current: ${safe(current?.stage_name || 'Application review')}</span></div><div class="rx-stage-track">${track}</div></div>`;
+  }
+
+  function actionButtons(row){
+    const app = row.app || {};
+    const profile = row.profile || {};
+    const stages = row.stages || [];
     const id = safe(app.id);
     const status = app.status || 'Applied';
+    const terminal = ['Rejected','Withdrawn','Hired'].includes(status);
     const buttons = [reviewButtons(app, profile)];
-    if (status === 'Applied') {
-      buttons.push(`<button class="rx-status-btn primary" type="button" data-app-id="${id}" data-next-status="Shortlisted">Shortlist</button>`);
-      buttons.push(`<button class="rx-status-btn danger" type="button" data-app-id="${id}" data-next-status="Rejected">Reject</button>`);
-    } else if (status === 'Shortlisted') {
-      buttons.push(`<button class="rx-status-btn primary" type="button" data-app-id="${id}" data-next-status="Interview">Move to interview</button>`);
-      buttons.push(`<button class="rx-status-btn danger" type="button" data-app-id="${id}" data-next-status="Rejected">Reject</button>`);
-    } else if (status === 'Interview') {
-      buttons.push(`<button class="rx-status-btn primary" type="button" data-app-id="${id}" data-next-status="Offer">Make offer</button>`);
-      buttons.push(`<button class="rx-status-btn danger" type="button" data-app-id="${id}" data-next-status="Rejected">Reject</button>`);
-    } else if (status === 'Offer') {
-      buttons.push(`<button class="rx-status-btn primary" type="button" data-app-id="${id}" data-next-status="Hired">Mark hired</button>`);
-      buttons.push(`<button class="rx-status-btn danger" type="button" data-app-id="${id}" data-next-status="Rejected">Reject</button>`);
-    } else {
+    if (terminal) {
       buttons.push(`<span class="tag blue">${safe(status)}</span>`);
+      return buttons.join('');
     }
+    const current = currentStageFor(row);
+    const currentIndex = stages.findIndex(stage => current && stage.id === current.id);
+    const next = currentIndex >= 0 ? stages[currentIndex + 1] : stages[0];
+    if (next) {
+      buttons.push(`<button class="rx-status-btn primary" type="button" data-stage-app-id="${id}" data-next-stage-id="${safe(next.id)}">Next stage: ${safe(next.stage_name)}</button>`);
+    } else if (current?.stage_type === 'offer' || status === 'Offer') {
+      buttons.push(`<button class="rx-status-btn primary" type="button" data-app-id="${id}" data-next-status="Hired">Mark hired</button>`);
+    }
+    buttons.push(`<button class="rx-status-btn danger" type="button" data-app-id="${id}" data-next-status="Rejected">Reject</button>`);
     return buttons.join('');
   }
 
@@ -208,16 +224,11 @@
     const skills = profile.skills || 'Skills not added yet';
     const cv = profile.has_cv || profile.cv_file_name ? (profile.cv_file_name || 'CV uploaded') : 'No CV uploaded yet';
     const warning = row.profileWarning ? `<div class="rx-app-warning"><b>Profile access warning:</b> ${safe(row.profileWarning)}. The application is real, but Supabase may still need profile read access for applicant names.</div>` : '';
-    return `<div class="item rx-app-card"><div class="logo green">${safe(initials(name))}</div><div class="rx-app-main"><div class="rx-app-title">${safe(name)} <span class="tag blue">${safe(status)}</span></div><div class="rx-app-meta">Applied for <b>${safe(job.title || app.job_id)}</b>${job.company ? ' at ' + safe(job.company) : ''} · ${safe(dateText(app.applied_at || app.updated_at))}</div><div class="rx-app-meta">${safe(role)} · ${safe(level)} · ${safe(location)} · ${safe(style)}</div><div class="rx-app-meta"><b>Skills:</b> ${safe(skills)}</div><div class="rx-app-meta"><b>Candidate file:</b> ${safe(cv)}</div></div><div class="rx-app-actions">${actionButtons(app, profile)}</div>${warning}</div>`;
+    return `<div class="item rx-app-card"><div class="logo green">${safe(initials(name))}</div><div class="rx-app-main"><div class="rx-app-title">${safe(name)} <span class="tag blue">${safe(status)}</span></div><div class="rx-app-meta">Applied for <b>${safe(job.title || app.job_id)}</b>${job.company ? ' at ' + safe(job.company) : ''} · ${safe(dateText(app.applied_at || app.updated_at))}</div><div class="rx-app-meta">${safe(role)} · ${safe(level)} · ${safe(location)} · ${safe(style)}</div><div class="rx-app-meta"><b>Skills:</b> ${safe(skills)}</div><div class="rx-app-meta"><b>Candidate file:</b> ${safe(cv)}</div></div>${stagePanel(row)}<div class="rx-app-actions">${actionButtons(row)}</div>${warning}</div>`;
   }
 
-  function findApplication(applicationId){
-    return applications.find(row => row.app && row.app.id === applicationId);
-  }
-
-  function modalField(label, value, full = false){
-    return `<div class="rx-profile-field ${full ? 'full' : ''}"><b>${safe(label)}</b><span>${safe(value || 'Not added')}</span></div>`;
-  }
+  function findApplication(applicationId){ return applications.find(row => row.app && row.app.id === applicationId); }
+  function modalField(label, value, full = false){ return `<div class="rx-profile-field ${full ? 'full' : ''}"><b>${safe(label)}</b><span>${safe(value || 'Not added')}</span></div>`; }
 
   async function candidatePhotoUrl(profile){
     if (!profile?.photo_file_path || !client) return '';
@@ -239,34 +250,23 @@
     document.body.insertAdjacentHTML('beforeend', html);
     const photoUrl = await candidatePhotoUrl(profile);
     const photo = byId('rxEmployerCandidatePhoto');
-    if (photoUrl && photo && byId('rxProfileModal')) {
-      photo.innerHTML = `<img src="${safe(photoUrl)}" alt="${safe(name)} profile photo">`;
-    }
+    if (photoUrl && photo && byId('rxProfileModal')) photo.innerHTML = `<img src="${safe(photoUrl)}" alt="${safe(name)} profile photo">`;
   }
 
   async function openCv(applicationId, button){
     const row = findApplication(applicationId);
     if (!row) { showStatus('Could not find candidate CV.', 'bad'); return; }
     const profile = row.profile || {};
-    if (!profile.cv_file_path) {
-      showStatus(profile.cv_file_name ? 'CV file name exists, but storage path is missing.' : 'No CV uploaded for this candidate.', 'bad');
-      return;
-    }
+    if (!profile.cv_file_path) { showStatus(profile.cv_file_name ? 'CV file name exists, but storage path is missing.' : 'No CV uploaded for this candidate.', 'bad'); return; }
     const previousText = button ? button.textContent : '';
     if (button) { button.disabled = true; button.textContent = 'Opening...'; }
     const { data, error } = await client.storage.from('candidate-cvs').createSignedUrl(profile.cv_file_path, 60 * 10);
     if (button) { button.disabled = false; button.textContent = previousText; }
-    if (error || !data || !data.signedUrl) {
-      showStatus((error && error.message) || 'Could not open CV from Supabase Storage.', 'bad');
-      return;
-    }
+    if (error || !data?.signedUrl) { showStatus(error?.message || 'Could not open CV from Supabase Storage.', 'bad'); return; }
     window.open(data.signedUrl, '_blank', 'noopener');
   }
 
-  function closeModal(){
-    const modal = byId('rxProfileModal');
-    if (modal) modal.remove();
-  }
+  function closeModal(){ byId('rxProfileModal')?.remove(); }
 
   function renderApplications(){
     applyApplicationsLabels();
@@ -278,25 +278,29 @@
     [byId('matchesList'), byId('overviewMatches')].filter(Boolean).forEach(target => { target.innerHTML = html; });
   }
 
-  async function refreshApplications(){
-    await loadApplications();
-    renderApplications();
-  }
+  async function refreshApplications(){ await loadApplications(); renderApplications(); }
 
   async function updateApplicationStatus(applicationId, nextStatus, button){
     if (!client || !currentUser || !applicationId || !nextStatus) return;
     const previousText = button ? button.textContent : '';
     if (button) { button.disabled = true; button.textContent = 'Saving...'; }
-    const { error } = await client
-      .from('candidate_applications')
-      .update({ status: nextStatus, updated_at: new Date().toISOString() })
-      .eq('id', applicationId);
-    if (error) {
-      if (button) { button.disabled = false; button.textContent = previousText; }
-      showStatus(error.message || 'Could not update application status.', 'bad');
-      return;
-    }
+    const { error } = await client.from('candidate_applications').update({ status: nextStatus, updated_at: new Date().toISOString() }).eq('id', applicationId);
+    if (error) { if (button) { button.disabled = false; button.textContent = previousText; } showStatus(error.message || 'Could not update application status.', 'bad'); return; }
     showStatus(`Application moved to ${nextStatus}.`, 'good');
+    await refreshApplications();
+  }
+
+  async function moveToStage(applicationId, nextStageId, button){
+    const row = findApplication(applicationId);
+    const nextStage = row?.stages?.find(stage => stage.id === nextStageId);
+    if (!client || !currentUser || !row || !nextStage) { showStatus('Could not find the next hiring stage.', 'bad'); return; }
+    const previousText = button ? button.textContent : '';
+    if (button) { button.disabled = true; button.textContent = 'Saving...'; }
+    const now = new Date().toISOString();
+    const payload = { current_hiring_stage_id: nextStage.id, hiring_stage_updated_at: now, status: broadStatusFor(nextStage, row.app.status), updated_at: now };
+    const { error } = await client.from('candidate_applications').update(payload).eq('id', applicationId);
+    if (error) { if (button) { button.disabled = false; button.textContent = previousText; } showStatus(error.message || 'Could not move the candidate to the next stage.', 'bad'); return; }
+    showStatus(`Candidate moved to ${nextStage.stage_name}.`, 'good');
     await refreshApplications();
   }
 
@@ -308,7 +312,7 @@
       const config = await readConfig();
       client = lib.createClient(config.url, config.key);
       const sessionRes = await client.auth.getSession();
-      currentUser = sessionRes.data && sessionRes.data.session && sessionRes.data.session.user;
+      currentUser = sessionRes.data?.session?.user;
       if (!currentUser) { renderApplications(); return; }
       const originalShowView = window.rolexaEmployerShowView;
       if (typeof originalShowView === 'function' && !window.__rxApplicationsShowWrapped) {
@@ -316,26 +320,16 @@
         window.rolexaEmployerShowView = function(view){ originalShowView(view); setTimeout(renderApplications, 80); };
       }
       document.addEventListener('click', event => {
-        const statusAction = event.target && event.target.closest('[data-app-id][data-next-status]');
-        if (statusAction) {
-          updateApplicationStatus(statusAction.getAttribute('data-app-id'), statusAction.getAttribute('data-next-status'), statusAction);
-          return;
-        }
-        const profileAction = event.target && event.target.closest('[data-review-profile]');
-        if (profileAction) {
-          showProfile(profileAction.getAttribute('data-review-profile'));
-          return;
-        }
-        const cvAction = event.target && event.target.closest('[data-review-cv]');
-        if (cvAction) {
-          openCv(cvAction.getAttribute('data-review-cv'), cvAction);
-          return;
-        }
-        if (event.target && (event.target.matches('[data-close-modal]') || event.target.id === 'rxProfileModal')) {
-          closeModal();
-          return;
-        }
-        if (event.target && event.target.matches('[data-view="matches"]')) setTimeout(refreshApplications, 100);
+        const stageAction = event.target?.closest('[data-stage-app-id][data-next-stage-id]');
+        if (stageAction) { moveToStage(stageAction.getAttribute('data-stage-app-id'), stageAction.getAttribute('data-next-stage-id'), stageAction); return; }
+        const statusAction = event.target?.closest('[data-app-id][data-next-status]');
+        if (statusAction) { updateApplicationStatus(statusAction.getAttribute('data-app-id'), statusAction.getAttribute('data-next-status'), statusAction); return; }
+        const profileAction = event.target?.closest('[data-review-profile]');
+        if (profileAction) { showProfile(profileAction.getAttribute('data-review-profile')); return; }
+        const cvAction = event.target?.closest('[data-review-cv]');
+        if (cvAction) { openCv(cvAction.getAttribute('data-review-cv'), cvAction); return; }
+        if (event.target && (event.target.matches('[data-close-modal]') || event.target.id === 'rxProfileModal')) { closeModal(); return; }
+        if (event.target?.matches('[data-view="matches"]')) setTimeout(refreshApplications, 100);
       });
       await refreshApplications();
       setTimeout(refreshApplications, 1200);
