@@ -15,6 +15,7 @@
     const style = document.createElement('style');
     style.id = 'rxEmployerActivityStyles';
     style.textContent = `
+      .rx-app-card>.rx-app-actions{grid-column:1/-1;margin-left:0}
       .rx-activity-panel{grid-column:1/-1;border-top:1px solid rgba(7,16,37,.08);padding-top:12px;margin-top:2px}
       .rx-activity-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
       .rx-activity-heading b{font-size:13px;color:#071025}
