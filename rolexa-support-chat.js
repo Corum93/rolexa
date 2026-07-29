@@ -25,6 +25,10 @@
     load('candidate-notification-position.js?v=1', '__rolexaCandidateNotificationPositionRequestedV1');
   }
 
+  if (/employer-dashboard\.html$/.test(location.pathname)) {
+    load('employer-pipeline-review-pagination.js?v=1', '__rolexaEmployerReviewPaginationRequestedV1');
+  }
+
   try { localStorage.removeItem('rolexa_support_chat_v1'); } catch (error) {}
   load('https://cdn.jsdelivr.net/gh/Corum93/rolexa@0a18c2700ff73aa46920c8906d347e66b7ac04e6/rolexa-support-chat.js', '__rolexaStableSupportRequested');
   load('support-chat-session-reset.js?v=3', '__rolexaSupportSessionResetRequestedV3');
