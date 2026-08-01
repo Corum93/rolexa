@@ -33,7 +33,11 @@
             '__rolexaInternalProductFeatureEditorRequested',
             () => load(
               'internal-product-feature-checklist.js?v=1',
-              '__rolexaInternalProductFeatureChecklistRequested'
+              '__rolexaInternalProductFeatureChecklistRequested',
+              () => load(
+                'internal-product-feature-dependencies.js?v=1',
+                '__rolexaInternalProductFeatureDependenciesRequested'
+              )
             )
           )
         )
