@@ -19,6 +19,13 @@
   load(
     'https://cdn.jsdelivr.net/gh/Corum93/rolexa@8294255716dc69dcd3fe45ba8107fbd7292798b8/internal-admin.js',
     '__rolexaStableInternalAdminRequested',
-    () => load('internal-product-roadmap.js?v=1', '__rolexaInternalProductRoadmapRequested')
+    () => load(
+      'internal-product-roadmap.js?v=1',
+      '__rolexaInternalProductRoadmapRequested',
+      () => load(
+        'internal-product-feature-details.js?v=1',
+        '__rolexaInternalProductFeatureDetailsRequested'
+      )
+    )
   );
 })();
