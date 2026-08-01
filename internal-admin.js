@@ -27,7 +27,11 @@
         '__rolexaInternalProductFeatureDetailsRequested',
         () => load(
           'internal-product-feature-copy-polish.js?v=1',
-          '__rolexaInternalProductFeatureCopyPolishRequested'
+          '__rolexaInternalProductFeatureCopyPolishRequested',
+          () => load(
+            'internal-product-feature-editor.js?v=1',
+            '__rolexaInternalProductFeatureEditorRequested'
+          )
         )
       )
     )
