@@ -24,7 +24,11 @@
       '__rolexaInternalProductRoadmapRequested',
       () => load(
         'internal-product-feature-details.js?v=1',
-        '__rolexaInternalProductFeatureDetailsRequested'
+        '__rolexaInternalProductFeatureDetailsRequested',
+        () => load(
+          'internal-product-feature-copy-polish.js?v=1',
+          '__rolexaInternalProductFeatureCopyPolishRequested'
+        )
       )
     )
   );
