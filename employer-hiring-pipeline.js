@@ -109,7 +109,7 @@
 
   async function loadData() {
     const jobsResult = await client.from('jobs')
-      .select('id,title,company,created_at')
+      .select('*')
       .eq('employer_user_id', user.id)
       .order('created_at', { ascending: false });
     if (jobsResult.error) throw jobsResult.error;
@@ -204,6 +204,8 @@
     const activeApplications = row.applications.filter(item => !['Rejected', 'Withdrawn', 'Hired'].includes(item.app.status));
     const hired = row.applications.filter(item => item.app.status === 'Hired');
     const configured = row.stages.length ? row.stages : [{ id: 'fallback-review', stage_name: 'Application review', stage_order: 1, stage_type: 'review' }];
+    const applicationLimit = Math.max(1, Number(row.job.application_limit) || 100);
+    const applicationCount = Math.max(row.applications.length, Number(row.job.application_count) || 0);
 
     const columns = configured.map(stage => {
       const items = activeApplications.filter(item => {
@@ -215,7 +217,7 @@
 
     columns.push(columnHtml(row, { stage_name: 'Hired' }, hired, 'hired'));
 
-    return `<section class="rx-pipeline-role"><div class="rx-pipeline-role-head"><div><h2>${safe(row.job.title || 'Untitled role')}</h2><p>${safe(row.job.company || 'Employer')} · ${row.applications.length} application${row.applications.length === 1 ? '' : 's'}</p></div><span class="rx-pipeline-role-count">${row.applications.length}</span></div><div class="rx-pipeline-board">${columns.join('')}</div></section>`;
+    return `<section class="rx-pipeline-role"><div class="rx-pipeline-role-head"><div><h2>${safe(row.job.title || 'Untitled role')}</h2><p>${safe(row.job.company || 'Employer')} · ${applicationCount} of ${applicationLimit} applications</p></div><span class="rx-pipeline-role-count">${applicationCount} / ${applicationLimit}</span></div><div class="rx-pipeline-board">${columns.join('')}</div></section>`;
   }
 
   function render() {
