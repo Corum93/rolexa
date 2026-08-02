@@ -95,7 +95,7 @@
     if (typing) typing.classList.remove('show');
     panel.dataset.conversationEnded = 'true';
 
-    body.appendChild(makeMessage('Thanks for speaking with Rolexa support. If you’re happy with this conversation, please share your feedback — it helps us improve the experience.', 'bot'));
+    body.appendChild(makeMessage('Thanks for speaking with Rolexa support. If you’re happy with this conversation, please share your feedback. It helps us improve the experience.', 'bot'));
 
     const actions = document.createElement('div');
     actions.className = 'rx-chat-ended-actions';
