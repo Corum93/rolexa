@@ -182,7 +182,7 @@
 #peopleTeamAccess .metrics-status.good:before{background:#22a06b;box-shadow:0 0 0 4px rgba(34,160,107,.09)}
 #peopleTeamAccess .metrics-status.bad{border-color:rgba(163,51,39,.10);background:#fff3f1;color:#a33327}
 #peopleTeamAccess .metrics-status.bad:before{background:#c95345}
-#peopleTeamAccess .team-manage-card{top:98px}
+#peopleTeamAccess .team-manage-card{position:sticky;top:98px;align-self:start}
 #peopleTeamAccess .team-manage-head{gap:14px;margin-bottom:22px}
 #peopleTeamAccess .team-lock{width:42px;height:42px;border-radius:13px;background:linear-gradient(145deg,#eee7ff,#f7f3ff);box-shadow:inset 0 0 0 1px rgba(111,60,228,.045);color:#6636c7}
 #peopleTeamAccess .team-manage-head h2{color:#142441;font-size:20px;line-height:1.25;letter-spacing:-.025em}
