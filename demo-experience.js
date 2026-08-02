@@ -29,6 +29,7 @@
     .rx-account-next{padding:18px 0 50px;background:#f5f7fc}
     .rx-account-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
     .rx-account-card{position:relative;overflow:hidden;border-radius:24px;padding:34px;color:#fff;box-shadow:0 20px 48px rgba(10,14,26,.13)}
+    #employer-access{scroll-margin-top:86px}
     .rx-account-card.candidate{background:linear-gradient(145deg,#0a0e1a,#1a275c)}
     .rx-account-card.employer{background:linear-gradient(145deg,#4c74ff,#2946c7)}
     .rx-account-kicker{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;opacity:.72;margin-bottom:12px}
@@ -81,9 +82,10 @@
   section.innerHTML = `<div class="wrap"><div class="rx-demo-head"><span class="rx-demo-eyebrow">Interactive product tour</span><h2>Explore Rolexa</h2><p>Choose a workspace and see how Rolexa supports both sides of hiring. No account is required and no real data will be changed.</p></div><div class="rx-demo-grid"><article class="rx-demo-card candidate"><div class="rx-demo-icon">C</div><h3>Explore as a candidate</h3><p>See how candidates discover relevant roles, track every application and communicate directly with employers.</p><ul class="rx-demo-points"><li>Track application status clearly</li><li>Review saved jobs and profile strength</li><li>See employer messages in one place</li></ul><div class="rx-demo-action"><a class="rx-demo-button" href="candidate-demo.html">Preview candidate dashboard</a><span class="rx-demo-note">Demo only<br>No application submitted</span></div></article><article class="rx-demo-card employer"><div class="rx-demo-icon">E</div><h3>Explore as an employer</h3><p>See how employers publish roles, review applicants and manage their hiring pipeline from one workspace.</p><ul class="rx-demo-points"><li>Review roles and real hiring signals</li><li>See Role Health and Rolexa Suggestions</li><li>Manage applications and messages</li></ul><div class="rx-demo-action"><a class="rx-demo-button" href="employer-demo.html">Preview employer dashboard</a><span class="rx-demo-note">Demo only<br>No role or message created</span></div></article></div><div class="rx-demo-trust"><span>✓ No account required</span><span>✓ No real data changed</span><span>✓ Takes less than two minutes</span></div></div>`;
 
   const accountSection = document.createElement('section');
-  accountSection.id = 'employer-access';
   accountSection.className = 'rx-account-next';
   accountSection.innerHTML = `<div class="wrap"><div class="rx-account-grid"><article class="rx-account-card candidate"><div class="rx-account-kicker">Looking for your next role?</div><h3>Create your candidate account</h3><p>Build your profile, discover relevant opportunities, track applications clearly and speak directly with employers from one place.</p><a class="rx-account-button" href="candidate-login.html">Create candidate account</a></article><article class="rx-account-card employer"><div class="rx-account-kicker">Hiring talent?</div><h3>Create your employer account</h3><p>Publish roles, review real applicants, shortlist candidates and manage your hiring pipeline through the live Rolexa workspace.</p><a class="rx-account-button" href="employer-login.html">Start hiring with Rolexa</a></article></div></div>`;
+  const employerAccountCard = accountSection.querySelector('.rx-account-card.employer');
+  if (employerAccountCard) employerAccountCard.id = 'employer-access';
 
   jobs.insertAdjacentElement('afterend', section);
   section.insertAdjacentElement('afterend', accountSection);
