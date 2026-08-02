@@ -238,3 +238,37 @@
 @media(max-width:1250px){#peopleDirectory .people-summary-grid{gap:15px}#peopleDirectory .people-directory-list{gap:11px}}
 @media(max-width:760px){#peopleDirectory .people-summary-grid{gap:14px;margin-bottom:16px}#peopleDirectory .people-summary{min-height:130px;padding:20px;border-radius:18px}#peopleDirectory .people-summary:before{left:20px}#peopleDirectory .people-privacy-note{padding:17px 18px}#peopleDirectory .people-directory-card{padding:20px;border-radius:19px}#peopleDirectory .users-directory-head{align-items:stretch;flex-direction:column}#peopleDirectory .refresh{align-self:flex-start}#peopleDirectory .people-directory-list{margin-top:18px}#peopleDirectory .people-directory-button{min-height:70px}#peopleDirectory .metrics-status{display:flex;width:100%}}
 
+/* Premium People Overview workspace */
+#peopleOverview .metric-grid{gap:18px}
+#peopleOverview .metric-card{min-height:162px;padding:23px 22px;border-color:rgba(15,35,77,.075);border-radius:20px;background:linear-gradient(145deg,#fff 0%,#fff 72%,#f8fbfa 100%);box-shadow:0 16px 38px rgba(7,19,47,.065);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+#peopleOverview .metric-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--metric-accent,#0f8c7f) 22%,transparent);box-shadow:0 20px 44px rgba(7,19,47,.085)}
+#peopleOverview .metric-card:before{right:-20px;top:-23px;width:102px;height:102px;opacity:.9}
+#peopleOverview .metric-card:after{height:3px}
+#peopleOverview .metric-label{color:#53647f;font-size:12.5px;line-height:1.35}
+#peopleOverview .metric-value{margin-top:13px;color:#101d39;font-size:40px;line-height:1}
+#peopleOverview .metric-note{max-width:245px;margin-top:12px;color:#74839a;font-size:11.5px;line-height:1.5}
+#peopleOverview .not-configured{margin-top:12px;padding:6px 8px;border:1px solid rgba(15,35,77,.035);background:#f0f3f8;color:#6f7d93;font-size:8.5px}
+#peopleOverview .overview-grid{grid-template-columns:minmax(0,1.48fr) minmax(330px,.62fr);gap:20px;margin-top:20px}
+#peopleOverview .status-card,#peopleOverview .journey-card{position:relative;overflow:hidden;padding:27px;border-color:rgba(15,35,77,.075);border-radius:22px;background:linear-gradient(145deg,#fff 0%,#fff 70%,#f8fbfa 100%);box-shadow:0 20px 48px rgba(7,19,47,.075)}
+#peopleOverview .status-card:before,#peopleOverview .journey-card:before{content:'';position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#0f8c7f,#42c8b3)}
+#peopleOverview .journey-card:before{background:linear-gradient(90deg,#246bfd,#6f3ce4 60%,#a783f2)}
+#peopleOverview .section-title{gap:18px;margin-bottom:21px}
+#peopleOverview .section-title h2{color:#142441;font-size:21px;line-height:1.25;letter-spacing:-.025em}
+#peopleOverview .section-title p{max-width:760px;margin-top:7px;color:#708097;font-size:12.5px;line-height:1.6}
+#peopleOverview .phase-pill{min-height:32px;display:inline-flex;align-items:center;flex:0 0 auto;padding:0 11px;border:1px solid rgba(15,140,127,.07);background:linear-gradient(135deg,#e5f7f2,#effaf7);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);font-size:9px}
+#peopleOverview .readiness-list{gap:12px}
+#peopleOverview .readiness-item{min-height:72px;gap:13px;padding:15px 16px;border-color:rgba(15,35,77,.08);border-radius:16px;background:linear-gradient(145deg,#fbfcfe,#f6faf9);box-shadow:0 8px 20px rgba(7,19,47,.035);transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+#peopleOverview .readiness-item:hover{transform:translateY(-1px);border-color:rgba(15,140,127,.18);box-shadow:0 12px 26px rgba(7,19,47,.055)}
+#peopleOverview .readiness-mark{width:36px;height:36px;flex-basis:36px;border-radius:11px;background:linear-gradient(145deg,#d9f5ed,#eaf9f5);box-shadow:inset 0 0 0 1px rgba(15,140,127,.045);color:#087568;font-size:17px}
+#peopleOverview .readiness-item b{color:#203451;font-size:12.5px;line-height:1.35}
+#peopleOverview .readiness-item small{margin-top:4px;color:#74839a;font-size:10.5px;line-height:1.4}
+#peopleOverview .journey-list{gap:3px}
+#peopleOverview .journey-step{gap:14px;padding:5px 0 22px}
+#peopleOverview .journey-step:last-child{padding-bottom:3px}
+#peopleOverview .journey-step:not(:last-child):before{left:18px;top:39px;background:linear-gradient(#b7d8d2,#dce7e5)}
+#peopleOverview .journey-number{width:37px;height:37px;flex-basis:37px;border:1px solid rgba(15,140,127,.055);border-radius:12px;background:linear-gradient(145deg,#e7f7f3,#f1faf8);box-shadow:0 6px 15px rgba(8,117,104,.055);color:#087568;font-size:11px}
+#peopleOverview .journey-step b{color:#203451;font-size:12.5px;line-height:1.35}
+#peopleOverview .journey-step small{margin-top:5px;color:#74839a;font-size:10.5px;line-height:1.5}
+@media(max-width:1240px){#peopleOverview .overview-grid{grid-template-columns:1fr}#peopleOverview .journey-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}#peopleOverview .journey-step{min-height:88px;padding:14px;border:1px solid rgba(15,35,77,.07);border-radius:15px;background:#f9fbfc}#peopleOverview .journey-step:not(:last-child):before{display:none}}
+@media(max-width:900px){#peopleOverview .metric-grid{gap:15px}#peopleOverview .metric-card{min-height:150px}}
+@media(max-width:650px){#peopleOverview .metric-grid{gap:14px}#peopleOverview .metric-card{min-height:142px;padding:20px;border-radius:18px}#peopleOverview .metric-value{font-size:38px}#peopleOverview .status-card,#peopleOverview .journey-card{padding:20px;border-radius:19px}#peopleOverview .section-title{align-items:flex-start;flex-direction:column}#peopleOverview .readiness-list,#peopleOverview .journey-list{grid-template-columns:1fr}#peopleOverview .journey-step{min-height:auto}#peopleOverview .phase-pill{align-self:flex-start}}
