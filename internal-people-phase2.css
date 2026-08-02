@@ -201,3 +201,40 @@
 #peopleTeamAccess .team-owner-note{padding:15px;border:1px solid rgba(149,96,0,.08);border-radius:13px;background:linear-gradient(145deg,#fff7e3,#fffaf0);font-size:11.5px;line-height:1.55}
 @media(max-width:1250px){#peopleTeamAccess .team-workspace-grid{grid-template-columns:1fr}#peopleTeamAccess .team-manage-card{position:relative;top:auto}}
 @media(max-width:760px){#peopleTeamAccess .team-summary-grid{gap:14px}#peopleTeamAccess .team-summary{min-height:130px;padding:20px;border-radius:18px}#peopleTeamAccess .access-levels-card,#peopleTeamAccess .team-directory-card,#peopleTeamAccess .team-manage-card{padding:20px;border-radius:19px}#peopleTeamAccess .users-directory-head{align-items:stretch;flex-direction:column}#peopleTeamAccess .users-live-label,#peopleTeamAccess .refresh{align-self:flex-start}#peopleTeamAccess .access-level-grid{gap:10px}#peopleTeamAccess .access-level{min-height:auto}#peopleTeamAccess .team-workspace-grid{gap:14px}#peopleTeamAccess .team-manage-head h2,#peopleTeamAccess .users-directory-head h2{font-size:18px}#peopleTeamAccess .team-form-actions{flex-direction:column}#peopleTeamAccess .team-save,#peopleTeamAccess .team-cancel{width:100%}#peopleTeamAccess .metrics-status{display:flex;width:100%}}
+
+/* Premium People directory workspace */
+#peopleDirectory .people-summary-grid{gap:18px;margin-bottom:20px}
+#peopleDirectory .people-summary{position:relative;min-height:148px;padding:23px 22px;border-color:rgba(15,35,77,.075);border-radius:20px;background:linear-gradient(145deg,#fff 0%,#fff 68%,#f8fbfa 100%);box-shadow:0 16px 38px rgba(7,19,47,.065);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+#peopleDirectory .people-summary:hover{transform:translateY(-2px);border-color:rgba(15,140,127,.15);box-shadow:0 20px 44px rgba(7,19,47,.085)}
+#peopleDirectory .people-summary:before{content:'';position:absolute;inset:0 auto auto 22px;width:38px;height:3px;border-radius:0 0 999px 999px;background:linear-gradient(90deg,#0f8c7f,#42c8b3)}
+#peopleDirectory .people-summary:after{right:-24px;bottom:-32px;width:104px;height:104px;background:rgba(15,159,140,.065)}
+#peopleDirectory .people-summary.primary-summary{border-color:rgba(15,140,127,.18);background:linear-gradient(145deg,#ebfaf6 0%,#fff 76%)}
+#peopleDirectory .people-summary span{color:#566681;font-size:12.5px;line-height:1.35}
+#peopleDirectory .people-summary b{margin-top:12px;font-size:38px;line-height:1;letter-spacing:-.05em}
+#peopleDirectory .people-summary small{margin-top:10px;color:#76849a;font-size:11.5px;line-height:1.45}
+#peopleDirectory .people-privacy-note{position:relative;overflow:hidden;gap:14px;margin-bottom:20px;padding:20px 22px;border-color:rgba(15,140,127,.18);border-radius:18px;background:linear-gradient(135deg,#eefbf8 0%,#f8fcff 100%);box-shadow:0 12px 30px rgba(7,19,47,.045);color:#426761;font-size:12px;line-height:1.65}
+#peopleDirectory .people-privacy-note:before{width:34px;height:34px;flex-basis:34px;border-radius:11px;background:linear-gradient(145deg,#d7f4ed,#e7f8f4);box-shadow:inset 0 0 0 1px rgba(15,140,127,.05)}
+#peopleDirectory .people-privacy-note:after{content:'';position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#0f8c7f,#42c8b3 58%,transparent)}
+#peopleDirectory .people-privacy-note b{margin-bottom:4px;color:#0f514a;font-size:12.5px}
+#peopleDirectory .people-directory-card{position:relative;overflow:hidden;padding:27px;border-color:rgba(15,35,77,.075);border-radius:22px;background:linear-gradient(145deg,#fff 0%,#fff 72%,#f8fbfa 100%);box-shadow:0 20px 48px rgba(7,19,47,.075)}
+#peopleDirectory .people-directory-card:before{content:'';position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#0f8c7f,#42c8b3)}
+#peopleDirectory .users-directory-head{align-items:center}
+#peopleDirectory .users-directory-head h2{color:#142441;font-size:20px;line-height:1.25;letter-spacing:-.025em}
+#peopleDirectory .users-directory-head p{margin-top:7px;color:#728097;font-size:12px;line-height:1.55}
+#peopleDirectory .refresh{min-height:42px;padding:0 15px;border-color:rgba(15,35,77,.10);border-radius:12px;background:linear-gradient(180deg,#fff,#f6f8fc);box-shadow:0 6px 16px rgba(7,19,47,.045);color:#34435f;font-size:11px;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+#peopleDirectory .refresh:hover:not(:disabled){transform:translateY(-1px);border-color:rgba(15,140,127,.28);box-shadow:0 9px 20px rgba(7,19,47,.07);color:#0f6158}
+#peopleDirectory .people-directory-list{gap:12px;margin-top:22px}
+#peopleDirectory .people-directory-button{min-height:72px;gap:13px;padding:14px 15px;border-color:rgba(15,35,77,.08);border-radius:16px;background:linear-gradient(145deg,#fbfcfe,#f7faf9);box-shadow:0 7px 18px rgba(7,19,47,.035);transition:transform .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease}
+#peopleDirectory .people-directory-button:hover{transform:translateY(-1px);border-color:rgba(15,159,140,.26);background:linear-gradient(145deg,#f8fdfc,#eef9f6);box-shadow:0 11px 24px rgba(8,117,104,.075)}
+#peopleDirectory .people-directory-button.active{border-color:rgba(15,159,140,.34);background:linear-gradient(145deg,#e9f8f4,#f5fcfa);box-shadow:0 12px 28px rgba(8,117,104,.10)}
+#peopleDirectory .people-directory-button .users-avatar{width:42px;height:42px;border-radius:13px;box-shadow:0 8px 18px rgba(8,117,104,.16);font-size:11px}
+#peopleDirectory .people-directory-copy b{color:#17233f;font-size:13px;line-height:1.3}
+#peopleDirectory .people-directory-copy small{margin-top:4px;color:#738197;font-size:10.5px;line-height:1.35}
+#peopleDirectory .people-directory-state{padding:6px 9px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(34,160,107,.04);font-size:8.5px;letter-spacing:.035em}
+#peopleDirectory .metrics-status{display:inline-flex;align-items:center;min-height:30px;margin-top:16px;padding:7px 10px;border-radius:10px;background:#f4f8f7;color:#64778f;font-size:11px;line-height:1.45}
+#peopleDirectory .metrics-status.good{background:#edf9f6;color:#087568}
+#peopleDirectory .metrics-status.bad{background:#fff1ef;color:#a33327}
+#peopleDirectory .people-empty{padding:32px 20px!important;border:1px dashed rgba(15,35,77,.11);border-radius:15px;background:#fafcfc;color:#738197!important;font-size:11.5px}
+@media(max-width:1250px){#peopleDirectory .people-summary-grid{gap:15px}#peopleDirectory .people-directory-list{gap:11px}}
+@media(max-width:760px){#peopleDirectory .people-summary-grid{gap:14px;margin-bottom:16px}#peopleDirectory .people-summary{min-height:130px;padding:20px;border-radius:18px}#peopleDirectory .people-summary:before{left:20px}#peopleDirectory .people-privacy-note{padding:17px 18px}#peopleDirectory .people-directory-card{padding:20px;border-radius:19px}#peopleDirectory .users-directory-head{align-items:stretch;flex-direction:column}#peopleDirectory .refresh{align-self:flex-start}#peopleDirectory .people-directory-list{margin-top:18px}#peopleDirectory .people-directory-button{min-height:70px}#peopleDirectory .metrics-status{display:flex;width:100%}}
+
