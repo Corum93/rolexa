@@ -48,7 +48,11 @@
                       '__rolexaInternalAdminNavigationStateFixRequested',
                       () => load(
                         'internal-product-roadmap-refresh-polish.js?v=1',
-                        '__rolexaInternalProductRoadmapRefreshPolishRequested'
+                        '__rolexaInternalProductRoadmapRefreshPolishRequested',
+                        () => load(
+                          'internal-executive-overview.js?v=1',
+                          '__rolexaInternalExecutiveOverviewRequested'
+                        )
                       )
                     )
                   )
