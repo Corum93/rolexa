@@ -60,13 +60,36 @@ begin
   candidates_per_employer := case when employer_total > 0 then round(candidate_total::numeric / employer_total, 2) else 0 end;
   live_jobs_per_candidate := case when candidate_total > 0 then round(live_job_total::numeric / candidate_total, 2) else 0 end;
 
-  with days as (
+  with marketplace_users as (
+    select user_id
+    from public.candidate_profiles
+    where user_id is not null
+    union
+    select user_id
+    from public.employer_profiles
+    where user_id is not null
+    union
+    select employer_user_id as user_id
+    from public.jobs
+    where employer_user_id is not null
+  ),
+  employer_users as (
+    select user_id
+    from public.employer_profiles
+    where user_id is not null
+    union
+    select employer_user_id as user_id
+    from public.jobs
+    where employer_user_id is not null
+  ),
+  days as (
     select generate_series(start_day, current_date, interval '1 day')::date as day
   ),
   registrations as (
-    select created_at::date as day, count(*)::bigint as value
-    from auth.users
-    where created_at::date >= start_day
+    select u.created_at::date as day, count(*)::bigint as value
+    from auth.users u
+    join marketplace_users marketplace on marketplace.user_id = u.id
+    where u.created_at::date >= start_day
     group by 1
   ),
   candidate_growth as (
@@ -87,17 +110,12 @@ begin
     where coalesce(applied_at, updated_at)::date >= start_day
     group by 1
   ),
-  employer_first_activity as (
-    select employer_user_id, min(created_at)::date as day
-    from public.jobs
-    where employer_user_id is not null
-    group by employer_user_id
-  ),
   employer_growth as (
-    select day, count(*)::bigint as value
-    from employer_first_activity
-    where day >= start_day
-    group by day
+    select u.created_at::date as day, count(*)::bigint as value
+    from auth.users u
+    join employer_users employer on employer.user_id = u.id
+    where u.created_at::date >= start_day
+    group by u.created_at::date
   )
   select jsonb_agg(
     jsonb_build_object(
@@ -141,4 +159,4 @@ revoke all on function public.get_rolexa_admin_growth_analytics(integer) from pu
 grant execute on function public.get_rolexa_admin_growth_analytics(integer) to authenticated;
 
 comment on function public.get_rolexa_admin_growth_analytics(integer) is
-'Returns aggregated Rolexa growth, demand and marketplace ratio analytics only to approved internal staff.';
+'Returns marketplace-only growth, demand and ratio analytics to approved internal staff. Raw Auth and staff accounts are excluded from marketplace registration growth.';
