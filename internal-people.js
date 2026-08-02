@@ -5,6 +5,7 @@
   const SUPABASE_URL = 'https://hndzomiigjjyyconeqpc.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_bHyw-HOLRFv_7FDAI1amhQ_MX-Sjocd';
   let client = null;
+  let currentStaff = null;
 
   const byId = id => document.getElementById(id);
   const show = id => byId(id)?.classList.remove('hidden');
@@ -59,6 +60,7 @@
     if (updateHash) history.replaceState(null, '', selected.id === 'peopleOverview' ? '#overview' : `#${selected.id.replace(/^people/, '').toLowerCase()}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     closeMobileNavigation();
+    document.dispatchEvent(new CustomEvent('rolexa:people-section-opened', { detail: { sectionId: selected.id } }));
   }
 
   function sectionFromHash() {
@@ -104,9 +106,13 @@
       show('peopleDeniedGate');
       return;
     }
+    currentStaff = staff;
+    window.RolexaPeopleContext = { client, staff: currentStaff };
     byId('peopleStaffName').textContent = staff.full_name || user.email || 'Rolexa staff';
     byId('peopleStaffRole').textContent = [staff.job_title, staff.role].filter(Boolean).join(' · ');
     show('peopleApp');
+    document.dispatchEvent(new CustomEvent('rolexa:people-ready', { detail: window.RolexaPeopleContext }));
+    document.dispatchEvent(new CustomEvent('rolexa:people-section-opened', { detail: { sectionId: sectionFromHash() } }));
   }
 
   async function signIn(event) {
@@ -137,6 +143,9 @@
 
   async function signOut() {
     await client.auth.signOut();
+    currentStaff = null;
+    window.RolexaPeopleContext = { client, staff: null };
+    document.dispatchEvent(new CustomEvent('rolexa:people-signed-out'));
     hide('peopleApp');
     hide('peopleDeniedGate');
     show('peopleLoginGate');
@@ -147,6 +156,7 @@
     try {
       const supabase = await loadSupabase();
       client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      window.RolexaPeopleContext = { client, staff: null };
       byId('peopleLoginForm')?.addEventListener('submit', signIn);
       byId('peopleSignOut')?.addEventListener('click', signOut);
       byId('peopleDeniedSignOut')?.addEventListener('click', signOut);
