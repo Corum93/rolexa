@@ -42,7 +42,11 @@
                   '__rolexaInternalProductFeatureWorkItemsRequested',
                   () => load(
                     'internal-product-feature-activity.js?v=1',
-                    '__rolexaInternalProductFeatureActivityRequested'
+                    '__rolexaInternalProductFeatureActivityRequested',
+                    () => load(
+                      'internal-admin-navigation-state-fix.js?v=1',
+                      '__rolexaInternalAdminNavigationStateFixRequested'
+                    )
                   )
                 )
               )
