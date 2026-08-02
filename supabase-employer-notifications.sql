@@ -5,7 +5,7 @@ create table if not exists public.employer_notifications (
   id uuid primary key default gen_random_uuid(),
   employer_user_id uuid not null references auth.users(id) on delete cascade,
   application_id uuid references public.candidate_applications(id) on delete cascade,
-  job_id uuid references public.jobs(id) on delete cascade,
+  job_id text references public.jobs(id) on delete cascade,
   candidate_user_id uuid references auth.users(id) on delete set null,
   notification_type text not null check (notification_type in (
     'new_application',
@@ -60,7 +60,7 @@ grant all on table public.employer_notifications to service_role;
 create or replace function public.enqueue_employer_notification(
   p_employer_user_id uuid,
   p_application_id uuid,
-  p_job_id uuid,
+  p_job_id text,
   p_candidate_user_id uuid,
   p_notification_type text,
   p_title text,
@@ -197,7 +197,7 @@ as $function$
 declare
   employer_id uuid;
   application_id uuid;
-  job_id uuid;
+  job_id text;
   job_title text;
   candidate_name text;
 begin
@@ -246,7 +246,7 @@ set search_path = ''
 as $function$
 declare
   employer_id uuid;
-  job_id uuid;
+  job_id text;
   job_title text;
   candidate_id uuid;
   candidate_name text;
@@ -298,7 +298,7 @@ set search_path = ''
 as $function$
 declare
   employer_id uuid;
-  job_id uuid;
+  job_id text;
   job_title text;
   candidate_id uuid;
   candidate_name text;
@@ -387,7 +387,7 @@ after insert on public.application_activity
 for each row
 execute function public.notify_employer_candidate_activity();
 
-revoke all on function public.enqueue_employer_notification(uuid, uuid, uuid, uuid, text, text, text, text, text)
+revoke all on function public.enqueue_employer_notification(uuid, uuid, text, uuid, text, text, text, text, text)
 from public, anon, authenticated;
 
 revoke all on function public.notify_employer_new_application()
@@ -427,5 +427,5 @@ comment on table public.employer_notifications is
 comment on column public.employer_notifications.email_delivery_enabled is
   'Reserved for optional employer email alerts; in-app notifications are the current delivery channel.';
 
-comment on function public.enqueue_employer_notification(uuid, uuid, uuid, uuid, text, text, text, text, text) is
+comment on function public.enqueue_employer_notification(uuid, uuid, text, uuid, text, text, text, text, text) is
   'Creates one idempotent employer notification for a real candidate event.';
