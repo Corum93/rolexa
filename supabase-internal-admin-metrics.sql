@@ -22,7 +22,11 @@ declare
   successful_hires_count bigint := 0;
   jobs_count bigint := 0;
   live_jobs_count bigint := 0;
+  draft_jobs_count bigint := 0;
   active_employers_count bigint := 0;
+  roadmap_completion numeric := 0;
+  open_bugs_count bigint := 0;
+  open_improvements_count bigint := 0;
   application_statuses jsonb := '{}'::jsonb;
 begin
   if not public.is_rolexa_staff(array['owner','admin','employee','analyst']) then
@@ -123,8 +127,28 @@ begin
   if to_regclass('public.jobs') is not null then
     execute 'select count(*) from public.jobs' into jobs_count;
     execute 'select count(*) from public.jobs where is_active = true' into live_jobs_count;
+    execute $metric$
+      select count(*)
+      from public.jobs
+      where lower(trim(coalesce(lifecycle_status, ''))) = 'draft'
+    $metric$ into draft_jobs_count;
     execute 'select count(distinct employer_user_id) from public.jobs where is_active = true and employer_user_id is not null'
       into active_employers_count;
+  end if;
+
+  if to_regclass('public.product_roadmap_summary') is not null then
+    execute 'select coalesce(overall_completion_percentage, 0) from public.product_roadmap_summary limit 1'
+      into roadmap_completion;
+  end if;
+
+  if to_regclass('public.product_feature_work_items') is not null then
+    execute $metric$
+      select
+        count(*) filter (where lower(trim(coalesce(item_type, ''))) = 'bug'),
+        count(*) filter (where lower(trim(coalesce(item_type, ''))) = 'improvement')
+      from public.product_feature_work_items
+      where lower(trim(coalesce(status, ''))) not in ('resolved', 'closed', 'cancelled')
+    $metric$ into open_bugs_count, open_improvements_count;
   end if;
 
   return jsonb_build_object(
@@ -145,7 +169,11 @@ begin
     'application_statuses', application_statuses,
     'jobs', jobs_count,
     'live_jobs', live_jobs_count,
+    'draft_jobs', draft_jobs_count,
     'active_employers', active_employers_count,
+    'roadmap_completion', roadmap_completion,
+    'open_bugs', open_bugs_count,
+    'open_improvements', open_improvements_count,
     'generated_at', now()
   );
 end;
@@ -155,4 +183,4 @@ revoke all on function public.get_rolexa_admin_headline_metrics() from public;
 grant execute on function public.get_rolexa_admin_headline_metrics() to authenticated;
 
 comment on function public.get_rolexa_admin_headline_metrics() is
-'Returns secure executive marketplace metrics to approved active internal staff. Marketplace users are deduplicated and separated from raw Auth accounts and internal staff.';
+'Returns secure Phase 5 executive metrics to approved active internal staff, including marketplace activity, job lifecycle, roadmap completion and open product work.';
