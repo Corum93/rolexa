@@ -14,6 +14,11 @@
     if (element) element.textContent = number(value);
   };
 
+  const setText = (id, value) => {
+    const element = byId(id);
+    if (element) element.textContent = String(value ?? '');
+  };
+
   const statusColours = {
     applied: '#176bff',
     review: '#0891b2',
@@ -59,6 +64,29 @@
     }).join('');
   }
 
+  function ensurePlatformHealth() {
+    if (byId('platformHealthSection')) return;
+    const pipeline = byId('pipelineSection');
+    if (!pipeline) return;
+    const section = document.createElement('section');
+    section.className = 'executive-section nav-target';
+    section.id = 'platformHealthSection';
+    section.innerHTML = `
+      <div class="executive-section-head">
+        <div><h2>Operational position</h2><p>Live marketplace, product and delivery indicators from Rolexa's current records.</p></div>
+        <span class="executive-section-label" id="metricPlatformStatus">Loading</span>
+      </div>
+      <div class="grid executive-grid">
+        <div class="card stat"><span>Active hiring companies</span><b id="metricActiveEmployers"> </b><small>Employers with at least one live role</small></div>
+        <div class="card stat"><span>Total jobs</span><b id="metricTotalJobs"> </b><small>Every job record across all lifecycle stages</small></div>
+        <div class="card stat"><span>Draft jobs</span><b id="metricDraftJobs"> </b><small>Roles saved but not currently live</small></div>
+        <div class="card stat"><span>Roadmap completion</span><b id="metricRoadmapCompletion"> </b><small>Completion across tracked product features</small></div>
+        <div class="card stat"><span>Open bugs</span><b id="metricOpenBugs"> </b><small>Unresolved bugs recorded in the roadmap</small></div>
+        <div class="card stat"><span>Open improvements</span><b id="metricOpenImprovements"> </b><small>Unresolved improvements recorded in the roadmap</small></div>
+      </div>`;
+    pipeline.insertAdjacentElement('afterend', section);
+  }
+
   async function loadInternalStaffFallback() {
     const { data, error } = await client.rpc('get_rolexa_admin_users', {
       page_number: 1,
@@ -88,27 +116,38 @@
       setMetric('metricApplicationsToday', metrics.applications_today);
       setMetric('metricApplicationsMonth', metrics.applications_this_month);
       setMetric('metricCurrentInterviews', metrics.current_interviews);
+      setMetric('metricActiveEmployers', metrics.active_employers);
+      setMetric('metricTotalJobs', metrics.jobs);
+      setMetric('metricDraftJobs', metrics.draft_jobs);
+      setText('metricRoadmapCompletion', `${number(metrics.roadmap_completion)}%`);
+      setMetric('metricOpenBugs', metrics.open_bugs);
+      setMetric('metricOpenImprovements', metrics.open_improvements);
+      setText('metricPlatformStatus', 'Live data');
       renderPipeline(metrics.application_statuses, metrics.applications);
 
       const period = byId('executivePeriodLabel');
       if (period) period.textContent = new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
 
-      if (metrics.marketplace_users === undefined) {
+      const phase5Ready = ['draft_jobs', 'roadmap_completion', 'open_bugs', 'open_improvements']
+        .every(key => metrics[key] !== undefined);
+      if (!phase5Ready) {
         const status = byId('metricsStatus');
         if (status && !status.classList.contains('bad')) {
-          status.textContent = 'Core figures are live. Apply the Phase 4 executive metrics SQL to activate pipeline detail.';
+          status.textContent = 'Core figures are live. Apply the Phase 5 KPI SQL to activate the full operational position.';
         }
       }
     } catch (error) {
       console.error('Rolexa executive overview load failed', error);
       const container = byId('executivePipelineList');
       if (container) container.innerHTML = '<div class="pipeline-empty">Pipeline detail is temporarily unavailable.</div>';
+      setText('metricPlatformStatus', 'Unavailable');
     } finally {
       loading = false;
     }
   }
 
   async function initialise() {
+    ensurePlatformHealth();
     for (let attempt = 0; attempt < 80 && !window.supabase?.createClient; attempt += 1) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
