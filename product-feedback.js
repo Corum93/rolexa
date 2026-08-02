@@ -163,7 +163,7 @@
         if (result.error) throw result.error;
         localStorage.setItem('rolexa_feedback_last_sent',String(Date.now()));
         status.className = 'rx-feedback-status good';
-        status.textContent = 'Thank you — your feedback has been received.';
+        status.textContent = 'Thank you. Your feedback has been received.';
         form.reset();
         activeRating = 0;
         backdrop.querySelectorAll('.rx-feedback-rate').forEach(item => item.classList.remove('active'));
