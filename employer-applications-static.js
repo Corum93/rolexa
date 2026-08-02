@@ -44,7 +44,7 @@
     const sideCopy = document.querySelector('.side-card p');
     if (sideCopy) sideCopy.textContent = 'Post a job, review real applications, shortlist profiles and start a conversation.';
     const search = byId('globalSearch');
-    if (search) search.placeholder = 'Search jobs, applications, candidates...';
+    if (search) search.placeholder = 'Search candidates, applications or roles...';
   }
 
   function addStyles(){
