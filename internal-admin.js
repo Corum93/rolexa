@@ -50,7 +50,7 @@
                         'internal-product-roadmap-refresh-polish.js?v=1',
                         '__rolexaInternalProductRoadmapRefreshPolishRequested',
                         () => load(
-                          'internal-executive-overview.js?v=1',
+                          'internal-executive-overview.js?v=2',
                           '__rolexaInternalExecutiveOverviewRequested'
                         )
                       )
