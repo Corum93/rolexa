@@ -97,7 +97,7 @@
       </div>
       <div class="rx-career-foot">
         <strong>Your career does not have to follow one fixed route.</strong>
-        <span>Rolexa can support the next realistic move — upward, sideways into a new specialism, or into a different industry.</span>
+        <span>Rolexa can support the next realistic move: upward, sideways into a new specialism, or into a different industry.</span>
       </div>
     </div>`;
 
