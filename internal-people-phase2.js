@@ -5,11 +5,14 @@
   let client = null;
   let currentStaffRole = '';
   let teamLoaded = false;
+  let teamLoading = false;
   let teamCanManage = false;
   let peopleLoaded = false;
+  let peopleLoading = false;
   let peopleData = null;
   let selectedPeopleUserId = '';
   let orgChartLoaded = false;
+  let orgChartLoading = false;
   let orgChartData = null;
 
   const byId = id => document.getElementById(id);
@@ -166,7 +169,8 @@
   }
 
   async function loadTeam(force = false) {
-    if (teamLoaded && !force || !client) return;
+    if ((teamLoaded && !force) || teamLoading || !client) return;
+    teamLoading = true;
     const refresh = byId('refreshTeam'); setStatus('teamStatus', 'Loading secure team access…');
     if (refresh) { refresh.disabled = true; refresh.textContent = 'Refreshing…'; }
     try {
@@ -177,7 +181,7 @@
       console.error('Rolexa People team access load failed', error);
       setStatus('teamStatus', error?.message || 'Could not load team access.', 'bad');
       if (byId('teamTableBody')) byId('teamTableBody').innerHTML = '<tr><td colspan="6" class="users-empty">The secure team directory is temporarily unavailable.</td></tr>';
-    } finally { if (refresh) { refresh.disabled = false; refresh.textContent = 'Refresh team'; } }
+    } finally { teamLoading = false; if (refresh) { refresh.disabled = false; refresh.textContent = 'Refresh team'; } }
   }
 
   async function saveTeamAccess(event) {
@@ -257,12 +261,13 @@
   }
 
   async function loadPeople(force = false) {
-    if (peopleLoaded && !force || !client) return;
+    if ((peopleLoaded && !force) || peopleLoading || !client) return;
+    peopleLoading = true;
     const refresh = byId('refreshPeople'); setStatus('peopleStatus', 'Loading private employee records…');
     if (refresh) { refresh.disabled = true; refresh.textContent = 'Refreshing…'; }
     try { const { data, error } = await client.rpc('get_rolexa_people_hr'); if (error) throw error; renderPeople(data || {}); peopleLoaded = true; }
     catch (error) { console.error('Rolexa People employee records load failed', error); setStatus('peopleStatus', error?.message || 'Could not load employee records.', 'bad'); if (byId('peopleDirectoryList')) byId('peopleDirectoryList').innerHTML = '<div class="people-empty">The secure employee directory is temporarily unavailable.</div>'; }
-    finally { if (refresh) { refresh.disabled = false; refresh.textContent = 'Refresh'; } }
+    finally { peopleLoading = false; if (refresh) { refresh.disabled = false; refresh.textContent = 'Refresh'; } }
   }
 
   async function savePeopleProfile(event) {
@@ -314,10 +319,10 @@
   }
 
   async function loadOrgChart(force = false) {
-    if (orgChartLoaded && !force || !client) return; const refresh = byId('refreshOrgChart'); setStatus('peopleOrgStatus', 'Loading the secure Rolexa organisation chart…'); if (refresh) { refresh.disabled = true; refresh.textContent = 'Refreshing…'; }
+    if ((orgChartLoaded && !force) || orgChartLoading || !client) return; orgChartLoading = true; const refresh = byId('refreshOrgChart'); setStatus('peopleOrgStatus', 'Loading the secure Rolexa organisation chart…'); if (refresh) { refresh.disabled = true; refresh.textContent = 'Refreshing…'; }
     try { const { data, error } = await client.rpc('get_rolexa_org_chart'); if (error) throw error; renderOrgChart(data || {}); orgChartLoaded = true; }
     catch (error) { console.error('Rolexa People organisation chart load failed', error); setStatus('peopleOrgStatus', error?.message || 'Could not load the organisation chart.', 'bad'); if (byId('peopleOrgChart')) byId('peopleOrgChart').innerHTML = '<div class="people-org-empty">The reporting structure is temporarily unavailable.</div>'; }
-    finally { if (refresh) { refresh.disabled = false; refresh.textContent = 'Refresh'; } }
+    finally { orgChartLoading = false; if (refresh) { refresh.disabled = false; refresh.textContent = 'Refresh'; } }
   }
 
   function loadForSection(sectionId) {
