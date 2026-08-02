@@ -39,7 +39,11 @@
                 '__rolexaInternalProductFeatureDependenciesRequested',
                 () => load(
                   'internal-product-feature-work-items.js?v=1',
-                  '__rolexaInternalProductFeatureWorkItemsRequested'
+                  '__rolexaInternalProductFeatureWorkItemsRequested',
+                  () => load(
+                    'internal-product-feature-activity.js?v=1',
+                    '__rolexaInternalProductFeatureActivityRequested'
+                  )
                 )
               )
             )
