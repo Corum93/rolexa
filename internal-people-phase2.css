@@ -127,3 +127,77 @@
 #peopleOrganisationChart .metrics-status.bad{border-color:rgba(163,51,39,.10);background:#fff3f1;color:#a33327}
 #peopleOrganisationChart .metrics-status.bad:before{background:#c95345}
 @media(max-width:760px){#peopleOrganisationChart .people-org-card{padding:20px;border-radius:19px}#peopleOrganisationChart .people-section-title{align-items:stretch;flex-direction:column}#peopleOrganisationChart .workspace-actions{justify-content:space-between;width:100%}#peopleOrganisationChart .people-org-tree{margin-top:18px;padding:16px}#peopleOrganisationChart .people-org-tree>ul{grid-template-columns:1fr}#peopleOrganisationChart .people-org-person{min-height:74px;padding:13px}#peopleOrganisationChart .metrics-status{display:flex;width:100%}}
+
+
+/* Premium Team Access workspace */
+#peopleTeamAccess .team-summary-grid{gap:18px;margin-bottom:20px}
+#peopleTeamAccess .team-summary{position:relative;min-height:145px;padding:23px;border-color:rgba(15,35,77,.075);border-radius:20px;background:linear-gradient(145deg,#fff 0%,#fff 70%,#f8f9ff 100%);box-shadow:0 16px 38px rgba(7,19,47,.065);transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+#peopleTeamAccess .team-summary:before{content:'';position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#6f3ce4,#a783f2)}
+#peopleTeamAccess .team-summary:nth-child(2):before{background:linear-gradient(90deg,#246bfd,#67a0ff)}
+#peopleTeamAccess .team-summary:nth-child(3):before{background:linear-gradient(90deg,#0f8c7f,#42c8b3)}
+#peopleTeamAccess .team-summary:nth-child(4):before{background:linear-gradient(90deg,#2855b7,#5685ea)}
+#peopleTeamAccess .team-summary:hover{transform:translateY(-1px);border-color:rgba(111,60,228,.15);box-shadow:0 20px 42px rgba(7,19,47,.085)}
+#peopleTeamAccess .team-summary:after{right:-18px;bottom:-28px;width:104px;height:104px;background:rgba(111,60,228,.065)}
+#peopleTeamAccess .team-summary span{color:#566681;font-size:12.5px}
+#peopleTeamAccess .team-summary b{margin-top:11px;color:#142441;font-size:38px}
+#peopleTeamAccess .team-summary small{margin-top:9px;color:#7b899f;font-size:11.5px;line-height:1.45}
+#peopleTeamAccess .team-summary.primary-summary{border-color:rgba(111,60,228,.18);background:linear-gradient(145deg,#f4f0ff 0%,#fff 72%,#f8f5ff 100%)}
+#peopleTeamAccess .team-summary.primary-summary b{color:#6636c7}
+#peopleTeamAccess .access-levels-card,#peopleTeamAccess .team-directory-card,#peopleTeamAccess .team-manage-card{position:relative;overflow:hidden;border-color:rgba(15,35,77,.075);border-radius:22px;background:linear-gradient(145deg,#fff 0%,#fff 68%,#f8f9fd 100%);box-shadow:0 20px 48px rgba(7,19,47,.075)}
+#peopleTeamAccess .access-levels-card:before,#peopleTeamAccess .team-directory-card:before,#peopleTeamAccess .team-manage-card:before{content:'';position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#6f3ce4,#246bfd 58%,#42c8b3)}
+#peopleTeamAccess .access-levels-card{margin-bottom:20px;padding:27px}
+#peopleTeamAccess .users-directory-head{align-items:flex-start;gap:18px}
+#peopleTeamAccess .users-directory-head h2{color:#142441;font-size:20px;line-height:1.25;letter-spacing:-.025em}
+#peopleTeamAccess .users-directory-head p{max-width:760px;margin-top:7px;color:#728097;font-size:12px;line-height:1.6}
+#peopleTeamAccess .users-live-label{padding:8px 11px;border:1px solid rgba(34,160,107,.055);background:linear-gradient(135deg,#e7f7ef,#effaf7);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);font-size:9px}
+#peopleTeamAccess .access-level-grid{gap:13px;margin-top:22px}
+#peopleTeamAccess .access-level{min-height:145px;padding:19px;border-color:rgba(15,35,77,.085);border-radius:17px;background:linear-gradient(145deg,#fbfcff,#f6f8fd);box-shadow:0 9px 22px rgba(7,19,47,.04);transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+#peopleTeamAccess .access-level:hover{transform:translateY(-1px);border-color:rgba(111,60,228,.16);box-shadow:0 13px 27px rgba(7,19,47,.06)}
+#peopleTeamAccess .access-level:before{width:38px;height:4px;margin-bottom:16px}
+#peopleTeamAccess .access-level b{color:#142441;font-size:14px;line-height:1.35}
+#peopleTeamAccess .access-level p{margin-top:8px;color:#718097;font-size:11.5px;line-height:1.58}
+#peopleTeamAccess .team-workspace-grid{grid-template-columns:minmax(0,1.65fr) minmax(330px,.65fr);gap:20px}
+#peopleTeamAccess .team-directory-card,#peopleTeamAccess .team-manage-card{padding:27px}
+#peopleTeamAccess .refresh{min-height:42px;padding:0 15px;border-color:rgba(15,35,77,.105);border-radius:11px;background:#f7f9fd;box-shadow:0 5px 13px rgba(7,19,47,.035);color:#34435d;font-size:11px;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease,background .16s ease}
+#peopleTeamAccess .refresh:hover:not(:disabled){transform:translateY(-1px);border-color:rgba(111,60,228,.22);background:#fff;box-shadow:0 9px 20px rgba(7,19,47,.06);color:#6636c7}
+#peopleTeamAccess .team-table-wrap{margin-top:22px;border-color:rgba(15,35,77,.09);border-radius:17px;background:#fff;box-shadow:0 9px 24px rgba(7,19,47,.04)}
+#peopleTeamAccess .team-table th{padding:14px 14px;background:linear-gradient(180deg,#f7f9fc,#f3f6fa);color:#687791;font-size:9.5px;letter-spacing:.085em}
+#peopleTeamAccess .team-table td{padding:16px 14px;color:#52617a;font-size:11.5px}
+#peopleTeamAccess .team-table tbody tr{transition:background .16s ease}
+#peopleTeamAccess .team-table tbody tr:hover{background:#fbfcff}
+#peopleTeamAccess .users-avatar{width:40px;height:40px;border-radius:12px;box-shadow:0 9px 20px rgba(36,107,253,.15);font-size:10.5px}
+#peopleTeamAccess .users-person{gap:12px}
+#peopleTeamAccess .users-person b{color:#142441;font-size:12px}
+#peopleTeamAccess .users-person small{margin-top:4px;color:#7a899f;font-size:10px}
+#peopleTeamAccess .team-role-title{color:#142441;font-size:12px}
+#peopleTeamAccess .team-role-sub{margin-top:5px;color:#7a899f;font-size:10px}
+#peopleTeamAccess .team-access-badge,#peopleTeamAccess .team-status-badge{padding:7px 10px;border:1px solid rgba(15,35,77,.035);font-size:9.5px}
+#peopleTeamAccess .team-permissions{max-width:290px;gap:6px}
+#peopleTeamAccess .team-permission{padding:6px 8px;border:1px solid rgba(15,35,77,.045);border-radius:8px;background:#f1f4f9;color:#5e6d85;font-size:9px}
+#peopleTeamAccess .team-edit{padding:8px 11px;border-radius:10px;background:#f3f6ff;font-size:10px;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+#peopleTeamAccess .team-edit:hover:not(:disabled){transform:translateY(-1px);border-color:rgba(36,107,253,.26);box-shadow:0 7px 16px rgba(36,107,253,.09)}
+#peopleTeamAccess .metrics-status{display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:9px 12px;border:1px solid rgba(15,35,77,.06);border-radius:10px;background:#f7f9fc;color:#718097;font-size:10.5px;line-height:1.45}
+#peopleTeamAccess .metrics-status:before{content:'';width:7px;height:7px;flex:0 0 auto;border-radius:50%;background:#91a0b5}
+#peopleTeamAccess .metrics-status.good{border-color:rgba(15,140,127,.09);background:#eff9f6;color:#087568}
+#peopleTeamAccess .metrics-status.good:before{background:#22a06b;box-shadow:0 0 0 4px rgba(34,160,107,.09)}
+#peopleTeamAccess .metrics-status.bad{border-color:rgba(163,51,39,.10);background:#fff3f1;color:#a33327}
+#peopleTeamAccess .metrics-status.bad:before{background:#c95345}
+#peopleTeamAccess .team-manage-card{top:98px}
+#peopleTeamAccess .team-manage-head{gap:14px;margin-bottom:22px}
+#peopleTeamAccess .team-lock{width:42px;height:42px;border-radius:13px;background:linear-gradient(145deg,#eee7ff,#f7f3ff);box-shadow:inset 0 0 0 1px rgba(111,60,228,.045);color:#6636c7}
+#peopleTeamAccess .team-manage-head h2{color:#142441;font-size:20px;line-height:1.25;letter-spacing:-.025em}
+#peopleTeamAccess .team-manage-head p{margin-top:7px;color:#728097;font-size:11.5px;line-height:1.55}
+#peopleTeamAccess .team-manage-card form{gap:14px}
+#peopleTeamAccess .team-manage-card label{gap:8px;color:#40516e;font-size:10px;letter-spacing:.065em}
+#peopleTeamAccess .team-manage-card input,#peopleTeamAccess .team-manage-card select{height:48px;padding:0 14px;border-color:rgba(15,35,77,.12);border-radius:12px;background:#f8f9fd;color:#142441;font-size:12px;box-shadow:inset 0 1px 2px rgba(7,19,47,.025);transition:border-color .18s ease,background .18s ease,box-shadow .18s ease}
+#peopleTeamAccess .team-manage-card input:hover,#peopleTeamAccess .team-manage-card select:hover{border-color:rgba(111,60,228,.22);background:#fff}
+#peopleTeamAccess .team-manage-card input:focus,#peopleTeamAccess .team-manage-card select:focus{border-color:#6f3ce4;box-shadow:0 0 0 4px rgba(111,60,228,.09)}
+#peopleTeamAccess .team-form-actions{gap:10px;margin-top:4px}
+#peopleTeamAccess .team-save,#peopleTeamAccess .team-cancel{min-height:44px;border-radius:11px;font-size:11.5px;transition:transform .16s ease,box-shadow .16s ease}
+#peopleTeamAccess .team-save{background:linear-gradient(135deg,#246bfd,#5b50dd);box-shadow:0 12px 24px rgba(36,107,253,.20)}
+#peopleTeamAccess .team-save:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 15px 28px rgba(36,107,253,.25)}
+#peopleTeamAccess .team-cancel:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(7,19,47,.055)}
+#peopleTeamAccess .team-form-message{padding:11px 12px;border-radius:11px;font-size:11px}
+#peopleTeamAccess .team-owner-note{padding:15px;border:1px solid rgba(149,96,0,.08);border-radius:13px;background:linear-gradient(145deg,#fff7e3,#fffaf0);font-size:11.5px;line-height:1.55}
+@media(max-width:1250px){#peopleTeamAccess .team-workspace-grid{grid-template-columns:1fr}#peopleTeamAccess .team-manage-card{position:relative;top:auto}}
+@media(max-width:760px){#peopleTeamAccess .team-summary-grid{gap:14px}#peopleTeamAccess .team-summary{min-height:130px;padding:20px;border-radius:18px}#peopleTeamAccess .access-levels-card,#peopleTeamAccess .team-directory-card,#peopleTeamAccess .team-manage-card{padding:20px;border-radius:19px}#peopleTeamAccess .users-directory-head{align-items:stretch;flex-direction:column}#peopleTeamAccess .users-live-label,#peopleTeamAccess .refresh{align-self:flex-start}#peopleTeamAccess .access-level-grid{gap:10px}#peopleTeamAccess .access-level{min-height:auto}#peopleTeamAccess .team-workspace-grid{gap:14px}#peopleTeamAccess .team-manage-head h2,#peopleTeamAccess .users-directory-head h2{font-size:18px}#peopleTeamAccess .team-form-actions{flex-direction:column}#peopleTeamAccess .team-save,#peopleTeamAccess .team-cancel{width:100%}#peopleTeamAccess .metrics-status{display:flex;width:100%}}
