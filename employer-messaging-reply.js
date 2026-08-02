@@ -45,7 +45,7 @@
         if (url && key) return { url, key };
       } catch(e) {}
     }
-    throw new Error('Supabase config could not be found.');
+    throw new Error('Connection settings could not be found.');
   }
 
   async function enableComposer(){

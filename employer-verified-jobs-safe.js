@@ -139,7 +139,7 @@
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
       script.onload = resolve;
-      script.onerror = () => reject(new Error('Supabase could not load'));
+      script.onerror = () => reject(new Error('Connection could not be established'));
       document.head.appendChild(script);
     });
     return window.supabase;
@@ -195,7 +195,7 @@
       const { error } = await client.from('job_verifications').upsert(payload, { onConflict: 'job_id' });
       if (error) throw error;
       await loadVerifications();
-      showStatus('good', 'Job and verification details saved securely to Supabase.');
+      showStatus('good', 'Job and verification details saved securely.');
     } catch (error) {
       console.warn('[Rolexa] Verification save failed', error);
       showStatus('bad', error.message || 'The job saved, but its verification details could not be saved.');
@@ -236,7 +236,7 @@
     const anchor = overview.querySelector('.two');
     const section = document.createElement('div');
     section.className = 'rx-safe-overview';
-    section.innerHTML = `<article class="card"><h2>Verified vacancy standard</h2><p>Each verified role has its own hiring owner, response commitment and expected hiring date stored securely in Supabase.</p><div class="rx-safe-status-list"><div class="rx-safe-status-row"><b>Verified vacancies</b><span id="rxSafeVerifiedCount">0</span></div><div class="rx-safe-status-row"><b>Latest hiring owner</b><span id="rxSafeLatestOwner">Not assigned</span></div><div class="rx-safe-status-row"><b>Latest review promise</b><span id="rxSafeLatestReview">Not set</span></div></div></article><article class="card"><h2>Candidate trust</h2><p>Verified signals help candidates see that a vacancy is genuine, actively reviewed and expected to reach a real outcome.</p><button class="primary" type="button" onclick="window.rolexaEmployerShowView('postJob')">Create a verified job</button></article>`;
+    section.innerHTML = `<article class="card"><h2>Verified vacancy standard</h2><p>Each verified role has its own hiring owner, response commitment and expected hiring date stored securely.</p><div class="rx-safe-status-list"><div class="rx-safe-status-row"><b>Verified vacancies</b><span id="rxSafeVerifiedCount">0</span></div><div class="rx-safe-status-row"><b>Latest hiring owner</b><span id="rxSafeLatestOwner">Not assigned</span></div><div class="rx-safe-status-row"><b>Latest review promise</b><span id="rxSafeLatestReview">Not set</span></div></div></article><article class="card"><h2>Candidate trust</h2><p>Verified signals help candidates see that a vacancy is genuine, actively reviewed and expected to reach a real outcome.</p><button class="primary" type="button" onclick="window.rolexaEmployerShowView('postJob')">Create a verified job</button></article>`;
     anchor?.insertAdjacentElement('beforebegin', section);
   }
 

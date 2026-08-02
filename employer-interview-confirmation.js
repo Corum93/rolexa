@@ -33,7 +33,7 @@
         if (url && key) return {url,key};
       } catch(error) {}
     }
-    throw new Error('Supabase config unavailable');
+    throw new Error('Connection settings unavailable');
   }
 
   function addStyles(){

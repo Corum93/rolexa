@@ -24,7 +24,7 @@
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
       script.onload = () => resolve(window.supabase);
-      script.onerror = () => reject(new Error('Supabase could not load'));
+      script.onerror = () => reject(new Error('Connection could not be established'));
       document.head.appendChild(script);
     });
   }
@@ -185,7 +185,7 @@
     const { data, error } = await client.from(PROFILE_TABLE).select('*').eq('user_id', currentUser.id).maybeSingle();
     if (error) {
       console.warn('Employer profile load error', error);
-      notify(error.message?.includes('does not exist') ? 'The employer profile database setup still needs to be applied before this page can save.' : 'Could not load the company profile from Supabase.', 'bad');
+      notify(error.message?.includes('does not exist') ? 'The employer profile database setup still needs to be applied before this page can save.' : 'Could not load the company profile.', 'bad');
       populate({});
       return;
     }
@@ -294,7 +294,7 @@
       await loadProfile();
     } catch (error) {
       console.error('Employer company profile initialisation error', error);
-      notify('Company profile could not connect to Supabase.', 'bad');
+      notify('Company profile could not connect.', 'bad');
     }
   }
 

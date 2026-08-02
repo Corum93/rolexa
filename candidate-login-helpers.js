@@ -87,7 +87,7 @@
     const note = document.createElement('div');
     note.className = 'rx-account-note';
     note.id = 'accountDeleteNote';
-    note.innerHTML = '<b>Account deletion note:</b> deleting profile rows in Supabase tables does not delete the login account. The real login account lives under Authentication → Users in Supabase.';
+    note.innerHTML = '<b>Account deletion note:</b> deleting your profile does not delete your login account. Login account deletion must be completed separately.';
     sessionArea.appendChild(note);
   }
 

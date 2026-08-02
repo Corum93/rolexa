@@ -49,7 +49,7 @@
       const s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
       s.onload = () => resolve(window.supabase);
-      s.onerror = () => reject(new Error('Supabase could not load'));
+      s.onerror = () => reject(new Error('Connection could not be established'));
       document.head.appendChild(s);
     });
   }
@@ -134,7 +134,7 @@
     ]);
     if (jobsRes.error || savedRes.error || appsRes.error || msgRes.error) {
       console.warn('Rolexa activity load error', jobsRes.error || savedRes.error || appsRes.error || msgRes.error);
-      showStatus('bad', 'Could not load activity from Supabase.');
+      showStatus('bad', 'Could not load your activity.');
       return false;
     }
     syncedJobs = (jobsRes.data || []).map(mapJob);
@@ -210,7 +210,7 @@
   async function ensureStarterMessages(){
     if (syncedMessages.length) return;
     const starter = [
-      { user_id: user.id, thread_key: 'support', sender: 'support', sender_name: 'Rolexa Support', body: 'Welcome to your Rolexa candidate dashboard. Your messages are now connected to Supabase.' }
+      { user_id: user.id, thread_key: 'support', sender: 'support', sender_name: 'Rolexa Support', body: 'Welcome to your Rolexa candidate dashboard.' }
     ];
     await client.from('candidate_messages').insert(starter);
     await loadData();
@@ -245,7 +245,7 @@
     if (!client || !user) return;
     const { error } = await client.from('candidate_saved_jobs').upsert({ user_id: user.id, job_id: id }, { onConflict: 'user_id,job_id' });
     if (error) { console.warn(error); showStatus('bad', 'Could not save job.'); return; }
-    await loadData(); renderAllSynced(); showStatus('good', 'Job saved to Supabase.');
+    await loadData(); renderAllSynced(); showStatus('good', 'Job saved.');
   };
 
   window.removeSaved = async function(id){
@@ -279,7 +279,7 @@
     if (!client || !user) return;
     const { error } = await client.from('candidate_applications').upsert({ user_id: user.id, job_id: id, status: 'Applied', updated_at: new Date().toISOString() }, { onConflict: 'user_id,job_id' });
     if (error) { console.warn(error); showStatus('bad', 'Could not apply to job.'); return; }
-    await loadData(); renderAllSynced(); if (typeof window.showView === 'function') window.showView('applications'); showStatus('good', 'Application saved to Supabase.');
+    await loadData(); renderAllSynced(); if (typeof window.showView === 'function') window.showView('applications'); showStatus('good', 'Application saved.');
   };
 
   window.renderJobSearch = renderJobSearch;
@@ -296,7 +296,7 @@
     input.value = '';
     const { error } = await client.from('candidate_messages').insert({ user_id: user.id, thread_key: activeThread || 'support', sender: 'candidate', sender_name: 'Candidate', body: text });
     if (error) { console.warn(error); showStatus('bad', 'Could not send message.'); return; }
-    await loadData(); renderMessages(); showStatus('good', 'Message saved to Supabase.');
+    await loadData(); renderMessages(); showStatus('good', 'Message sent.');
   };
 
   async function init(){

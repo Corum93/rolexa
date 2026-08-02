@@ -54,7 +54,7 @@
       const s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
       s.onload = () => resolve(window.supabase);
-      s.onerror = () => reject(new Error('Supabase could not load'));
+      s.onerror = () => reject(new Error('Connection could not be established'));
       document.head.appendChild(s);
     });
   }
@@ -239,7 +239,7 @@
 
     if (error) {
       console.warn('Rolexa profile load error', error);
-      showSyncStatus('bad', 'Could not load profile from Supabase.');
+      showSyncStatus('bad', 'Could not load your profile.');
     } else if (data) {
       const localProfile = dbToLocal(data);
       localStorage.setItem(CONFIG.profileKey, JSON.stringify(localProfile));
@@ -252,7 +252,7 @@
       if (typeof window.showSetup === 'function') window.showSetup();
       if (byId('email')) byId('email').value = user.email || '';
       updateCvStatus('', false);
-      showSyncStatus('info', 'Create your profile to save it to Supabase.');
+      showSyncStatus('info', 'Create your profile to save it to your account.');
     }
 
     const form = byId('profileForm');
@@ -260,7 +260,7 @@
     form.dataset.supabaseSyncAttached = 'true';
     form.addEventListener('submit', async () => {
       try {
-        showSyncStatus('info', 'Saving profile to Supabase...');
+        showSyncStatus('info', 'Saving profile...');
         const payload = formToDb(user);
         const cv = await uploadCvIfSelected(client, user);
         if (cv) {
@@ -274,7 +274,7 @@
         const { error: saveError } = await client.from('candidate_profiles').upsert(payload, { onConflict: 'user_id' });
         if (saveError) {
           console.warn('Rolexa profile save error', saveError);
-          showSyncStatus('bad', 'Profile saved locally, but Supabase save failed.');
+          showSyncStatus('bad', 'Your profile could not be saved to your account.');
           return;
         }
         const refreshed = dbToLocal({ ...payload, cv_file_path: payload.cv_file_path || storedCvPath(), cv_file_name: payload.cv_file_name || storedCvName() });
@@ -282,10 +282,10 @@
         fillFormFromLocal(refreshed);
         window.dispatchEvent(new CustomEvent('rolexa:candidate-profile-updated', { detail: refreshed }));
         window.dispatchEvent(new CustomEvent('rolexa:candidate-links-updated', { detail: refreshed }));
-        showSyncStatus('good', 'Profile saved to Supabase.');
+        showSyncStatus('good', 'Profile saved.');
       } catch (err) {
         console.warn('Rolexa profile sync error', err);
-        showSyncStatus('bad', err.message || 'Could not save profile to Supabase.');
+        showSyncStatus('bad', err.message || 'Could not save your profile.');
       }
     });
   }

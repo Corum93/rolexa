@@ -314,7 +314,7 @@
           if (url && key) return window.supabase.createClient(url, key);
         } catch (_) {}
       }
-      throw new Error('Supabase configuration could not be found.');
+      throw new Error('Connection settings could not be found.');
     })();
     return clientPromise;
   }

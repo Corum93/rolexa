@@ -23,14 +23,14 @@
       const existing = document.querySelector('script[data-rx-candidate-notification-supabase]');
       if (existing) {
         existing.addEventListener('load', () => resolve(window.supabase), { once: true });
-        existing.addEventListener('error', () => reject(new Error('Supabase could not load')), { once: true });
+        existing.addEventListener('error', () => reject(new Error('Connection could not be established')), { once: true });
         return;
       }
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
       script.dataset.rxCandidateNotificationSupabase = 'true';
       script.onload = () => resolve(window.supabase);
-      script.onerror = () => reject(new Error('Supabase could not load'));
+      script.onerror = () => reject(new Error('Connection could not be established'));
       document.head.appendChild(script);
     });
   }

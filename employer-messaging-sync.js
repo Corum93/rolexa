@@ -98,7 +98,7 @@
         if (url && key) return {url,key};
       } catch(error) {}
     }
-    throw new Error('Supabase config could not be found.');
+    throw new Error('Connection settings could not be found.');
   }
 
   async function loadApplications(){

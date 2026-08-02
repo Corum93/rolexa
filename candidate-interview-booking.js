@@ -30,7 +30,7 @@
     const text = await response.text();
     const url = (text.match(/https:\/\/[a-z0-9-]+\.supabase\.co/) || [])[0];
     const key = (text.match(/sb_publishable_[A-Za-z0-9_-]+/) || [])[0];
-    if (!url || !key) throw new Error('Supabase config unavailable');
+    if (!url || !key) throw new Error('Connection settings unavailable');
     return {url,key};
   }
 

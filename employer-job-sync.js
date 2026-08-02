@@ -39,7 +39,7 @@
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
       script.onload = () => resolve(window.supabase);
-      script.onerror = () => reject(new Error('Supabase could not load'));
+      script.onerror = () => reject(new Error('Connection could not be established'));
       document.head.appendChild(script);
     });
   }
@@ -135,7 +135,7 @@
   async function loadJobs() {
     if (!db || !currentUser) return;
     const { data, error } = await db.from('jobs').select('*').eq('employer_user_id', currentUser.id).order('created_at', { ascending: false });
-    if (error) { console.warn('Employer job load error', error); employerJobs = []; showStatus('bad', 'Could not load employer jobs from Supabase.'); return; }
+    if (error) { console.warn('Employer job load error', error); employerJobs = []; showStatus('bad', 'Could not load employer jobs.'); return; }
     employerJobs = (data || []).map(mapJob);
   }
 
@@ -239,7 +239,7 @@
     if (byId('openRolesCount')) byId('openRolesCount').textContent = activeJobs.length;
     if (byId('matchCount')) byId('matchCount').textContent = activeJobs.length ? sampleCandidates.length : 0;
     if (byId('shortlistCount')) byId('shortlistCount').textContent = shortlisted.length;
-    const emptyJobs = '<div class="empty">No employer jobs in Supabase yet. Post your first role.</div>';
+    const emptyJobs = '<div class="empty">No employer jobs yet. Post your first role.</div>';
     const emptyMatches = '<div class="empty">Post a job first, then candidate matches will appear here.</div>';
     if (byId('overviewJobs')) byId('overviewJobs').innerHTML = employerJobs.length ? employerJobs.slice(0, 3).map(jobCard).join('') : emptyJobs;
     if (byId('jobsList')) byId('jobsList').innerHTML = employerJobs.length ? employerJobs.map(jobCard).join('') : emptyJobs;
@@ -290,8 +290,8 @@
       const result = await db.from('jobs').insert(payload);
       error = result.error;
     }
-    if (button) { button.disabled = false; button.textContent = 'Publish job to Supabase'; }
-    if (error) { console.warn('Employer job save error', error); showStatus('bad', error.message || 'Could not save job to Supabase.'); return; }
+    if (button) { button.disabled = false; button.textContent = 'Publish job'; }
+    if (error) { console.warn('Employer job save error', error); showStatus('bad', error.message || 'Could not save job.'); return; }
     editingJobId = null;
     event.target.reset();
     await loadJobs();
@@ -302,7 +302,7 @@
 
   async function protect() {
     let supabaseLib;
-    try { supabaseLib = await loadSupabase(); } catch (error) { console.warn(error); showStatus('bad', 'Could not load Supabase.'); return; }
+    try { supabaseLib = await loadSupabase(); } catch (error) { console.warn(error); showStatus('bad', 'Could not connect.'); return; }
     db = supabaseLib.createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data } = await db.auth.getSession();
     const session = data && data.session;
@@ -311,10 +311,10 @@
     const email = currentUser.email || 'Employer';
     if (byId('topName')) byId('topName').textContent = email;
     if (byId('topAvatar')) byId('topAvatar').textContent = email.slice(0, 1).toUpperCase();
-    showStatus('info', 'Loading employer jobs from Supabase...');
+    showStatus('info', 'Loading employer jobs...');
     await loadJobs();
     renderAll();
-    showStatus('good', 'Employer dashboard connected to Supabase.');
+    showStatus('good', 'Employer dashboard connected.');
   }
 
   window.rolexaEmployerShowView = showView;
@@ -348,14 +348,14 @@
 
   window.rolexaEmployerDeleteJob = async function(id) {
     if (!db || !currentUser) return;
-    if (!confirm('Delete this role? If Supabase blocks deletion, Rolexa will close the role instead.')) return;
+    if (!confirm('Delete this role? If deletion is unavailable, Rolexa will close the role instead.')) return;
     const result = await db.from('jobs').delete().eq('id', id).eq('employer_user_id', currentUser.id);
     if (result.error) {
       const fallback = await db.from('jobs').update({ is_active: false, updated_at: new Date().toISOString() }).eq('id', id).eq('employer_user_id', currentUser.id);
       if (fallback.error) { showStatus('bad', fallback.error.message || 'Could not delete or close role.'); return; }
       await loadJobs();
       renderAll();
-      showStatus('good', 'Supabase blocked delete, so the role was closed instead.');
+      showStatus('good', 'The role could not be deleted, so it was closed instead.');
       return;
     }
     await loadJobs();
@@ -368,7 +368,7 @@
     if (!items.includes(id)) items.push(id);
     setJSON(SHORTLIST_KEY, items);
     renderAll();
-    showStatus('good', 'Candidate shortlisted in this prototype.');
+    showStatus('good', 'Candidate shortlisted.');
   };
 
   window.rolexaEmployerSignOut = async function() {

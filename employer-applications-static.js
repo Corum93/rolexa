@@ -34,7 +34,7 @@
       const label = stats[1].querySelector('span:first-child');
       const note = stats[1].querySelector('span:last-child');
       if (label) label.textContent = 'Applications';
-      if (note) note.textContent = 'Real applications from Supabase.';
+      if (note) note.textContent = 'Applications from candidates.';
     }
     const overviewCard = byId('overviewMatches')?.closest('.card');
     if (overviewCard) {
@@ -113,7 +113,7 @@
         if (url && key) return { url, key };
       } catch(e) {}
     }
-    throw new Error('Supabase config could not be found.');
+    throw new Error('Connection settings could not be found.');
   }
 
   async function loadApplications(){
@@ -223,7 +223,7 @@
     const style = profile.work_style || 'Work style not added';
     const skills = profile.skills || 'Skills not added yet';
     const cv = profile.has_cv || profile.cv_file_name ? (profile.cv_file_name || 'CV uploaded') : 'No CV uploaded yet';
-    const warning = row.profileWarning ? `<div class="rx-app-warning"><b>Profile access warning:</b> ${safe(row.profileWarning)}. The application is real, but Supabase may still need profile read access for applicant names.</div>` : '';
+    const warning = row.profileWarning ? `<div class="rx-app-warning"><b>Profile access warning:</b> ${safe(row.profileWarning)}. Some applicant details may not be available.</div>` : '';
     return `<div class="item rx-app-card"><div class="logo green">${safe(initials(name))}</div><div class="rx-app-main"><div class="rx-app-title">${safe(name)} <span class="tag blue">${safe(status)}</span></div><div class="rx-app-meta">Applied for <b>${safe(job.title || app.job_id)}</b>${job.company ? ' at ' + safe(job.company) : ''} · ${safe(dateText(app.applied_at || app.updated_at))}</div><div class="rx-app-meta">${safe(role)} · ${safe(level)} · ${safe(location)} · ${safe(style)}</div><div class="rx-app-meta"><b>Skills:</b> ${safe(skills)}</div><div class="rx-app-meta"><b>Candidate file:</b> ${safe(cv)}</div></div>${stagePanel(row)}<div class="rx-app-actions">${actionButtons(row)}</div>${warning}</div>`;
   }
 
@@ -262,7 +262,7 @@
     if (button) { button.disabled = true; button.textContent = 'Opening...'; }
     const { data, error } = await client.storage.from('candidate-cvs').createSignedUrl(profile.cv_file_path, 60 * 10);
     if (button) { button.disabled = false; button.textContent = previousText; }
-    if (error || !data?.signedUrl) { showStatus(error?.message || 'Could not open CV from Supabase Storage.', 'bad'); return; }
+    if (error || !data?.signedUrl) { showStatus(error?.message || 'Could not open CV.', 'bad'); return; }
     window.open(data.signedUrl, '_blank', 'noopener');
   }
 
@@ -274,7 +274,7 @@
     const shortlisted = applications.filter(row => row.app.status === 'Shortlisted').length;
     if (byId('matchCount')) byId('matchCount').textContent = count;
     if (byId('shortlistCount')) byId('shortlistCount').textContent = shortlisted;
-    const html = loadError ? `<div class="empty">Could not load real applications from Supabase.<br><br>${safe(loadError)}</div>` : (applications.length ? applications.map(appCard).join('') : emptyHtml());
+    const html = loadError ? `<div class="empty">Could not load applications.<br><br>${safe(loadError)}</div>` : (applications.length ? applications.map(appCard).join('') : emptyHtml());
     [byId('matchesList'), byId('overviewMatches')].filter(Boolean).forEach(target => { target.innerHTML = html; });
   }
 

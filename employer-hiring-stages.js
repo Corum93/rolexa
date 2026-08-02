@@ -244,13 +244,13 @@
               resolve();
             }
           }, 50);
-          setTimeout(() => { clearInterval(timer); reject(new Error('Supabase did not load.')); }, 6000);
+          setTimeout(() => { clearInterval(timer); reject(new Error('Connection could not be established.')); }, 6000);
           return;
         }
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
         script.onload = resolve;
-        script.onerror = () => reject(new Error('Supabase could not load.'));
+        script.onerror = () => reject(new Error('Connection could not be established.'));
         document.head.appendChild(script);
       });
     }

@@ -114,7 +114,7 @@
       const bar = byId('statusBar');
       if (bar) {
         bar.className = 'statusbar show good';
-        bar.textContent = 'Job and verification details saved securely to Supabase.';
+        bar.textContent = 'Job and verification details saved securely.';
       }
       setTimeout(() => location.reload(), 900);
     } catch (error) {

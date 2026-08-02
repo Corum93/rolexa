@@ -324,7 +324,7 @@
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
         script.onload = () => resolve(window.supabase);
-        script.onerror = () => reject(new Error('Supabase could not load'));
+        script.onerror = () => reject(new Error('Connection could not be established'));
         document.head.appendChild(script);
       });
       client = library.createClient(CONFIG.url, CONFIG.key);

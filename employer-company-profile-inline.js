@@ -30,8 +30,8 @@
     const statusBar = document.getElementById('statusBar');
     if (!statusBar) return;
     const message = (statusBar.textContent || '').trim();
-    if (/^Employer dashboard connected to Supabase\.?$/i.test(message)) {
-      console.info('[Rolexa] Employer dashboard connected to Supabase.');
+    if (/^Employer dashboard connected\.?$/i.test(message)) {
+      console.info('[Rolexa] Employer dashboard connected.');
       statusBar.className = 'statusbar';
       statusBar.textContent = '';
     }
