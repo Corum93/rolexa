@@ -150,7 +150,7 @@
         <article class="card rx-roadmap-stat"><span>In progress</span><b>${Number(summary?.in_progress_features || 0)}</b><small>Features actively being built or polished.</small></article>
         <article class="card rx-roadmap-stat"><span>Planned</span><b>${Number(summary?.planned_features || 0)}</b><small>Approved work waiting in the roadmap.</small></article>
       </div>
-      <div class="rx-roadmap-status"><p id="rxRoadmapStatus">Roadmap data loaded securely from Supabase.</p><button class="rx-roadmap-refresh" id="rxRoadmapRefresh" type="button">Refresh roadmap</button></div>
+      <div class="rx-roadmap-status"><p id="rxRoadmapStatus"></p><button class="rx-roadmap-refresh" id="rxRoadmapRefresh" type="button">Refresh roadmap</button></div>
       <div class="rx-roadmap-epics">${epics.map(epic => epicHtml(epic, groups.get(epic.id) || [])).join('')}</div>`;
   }
 
