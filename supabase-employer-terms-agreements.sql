@@ -20,7 +20,7 @@ create table if not exists public.employer_terms_versions (
   title text not null,
   terms_text text not null,
   terms_sha256 text generated always as (
-    encode(digest(convert_to(terms_text, 'UTF8'), 'sha256'), 'hex')
+    encode(digest(terms_text, 'sha256'), 'hex')
   ) stored,
   currency text not null default 'GBP' check (currency = 'GBP'),
   monthly_subscription_pence integer not null check (monthly_subscription_pence >= 0),
