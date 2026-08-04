@@ -307,6 +307,17 @@
     const { data } = await db.auth.getSession();
     const session = data && data.session;
     if (!session || !session.user) { location.replace('employer-login.html?next=employer-dashboard.html'); return; }
+    try {
+      const termsStatus = await window.RolexaEmployerTermsAccess.getStatus(db, session.user);
+      if (termsStatus.required && !termsStatus.accepted) {
+        location.replace('employer-terms.html');
+        return;
+      }
+    } catch (error) {
+      console.warn('Employer terms access check failed', error);
+      location.replace('employer-terms.html');
+      return;
+    }
     currentUser = session.user;
     const email = currentUser.email || 'Employer';
     if (byId('topName')) byId('topName').textContent = email;
