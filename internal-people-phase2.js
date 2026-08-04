@@ -92,7 +92,7 @@
         <article class="card people-summary"><span>Preboarding</span><b id="peoplePreboarding">—</b><small>Employment setup in progress</small></article>
         <article class="card people-summary"><span>Secure documents</span><b id="peopleDocumentsMetric">—</b><small>PDF records you can access</small></article>
       </div>
-      <div class="people-privacy-note"><div><b>Privacy by default</b>Owner and HR can view all employee records. Every other team member receives only their own record and employee-visible documents. HR-only files are never returned to ordinary employee accounts.</div></div>
+      <div class="people-privacy-note"><div><b>Privacy by default</b>HR can view all employee records. Every other team member receives only their own record and employee-visible documents. HR-only files are never returned to ordinary employee accounts.</div></div>
       <section class="card people-directory-card"><div class="users-directory-head"><div><h2 id="peopleDirectoryTitle">Rolexa people</h2><p id="peopleDirectoryDescription">Select a team member to open their employment record.</p></div><button class="refresh" id="refreshPeople" type="button">Refresh</button></div><div class="people-directory-list" id="peopleDirectoryList"><div class="people-empty">Loading secure employee records…</div></div><div class="metrics-status" id="peopleStatus">Waiting for secure employee data…</div></section>`;
 
     const team = byId('peopleTeamAccess');
