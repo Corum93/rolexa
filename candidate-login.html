@@ -40,6 +40,7 @@ function showSession(session){document.getElementById('formArea').classList.add(
 document.getElementById('authForm').addEventListener('submit',async e=>{e.preventDefault();clearStatus();const email=document.getElementById('email').value.trim().toLowerCase();const password=document.getElementById('password').value;const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent=mode==='login'?'Logging in...':'Creating...';let result;if(mode==='login'){result=await db.auth.signInWithPassword({email,password});}else{result=await db.auth.signUp({email,password,options:{emailRedirectTo:redirectTo}});}btn.disabled=false;btn.textContent=mode==='login'?'Log in':'Create account';if(result.error){showStatus('bad',result.error.message||'Something went wrong.');return;}if(result.data&&result.data.session){goNext();return;}showStatus('good','Account created. Check your email to confirm your account, then come back and log in.');});
 async function loginWithGoogle(){clearStatus();const {error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo}});if(error)showStatus('bad',error.message||'Google login could not start.');}
 async function signOut(){await db.auth.signOut();location.reload();}
+if(params.get('mode')==='signup'){setMode('signup');}
 checkSession();
 </script>
 <script src="candidate-login-helpers.js?v=57"></script>
