@@ -25,7 +25,7 @@ create table if not exists public.candidate_evidence (
   id uuid primary key default gen_random_uuid(),
   candidate_user_id uuid not null references auth.users(id) on delete restrict,
   application_id uuid not null references public.candidate_applications(id) on delete restrict,
-  job_id uuid not null references public.jobs(id) on delete restrict,
+  job_id text not null references public.jobs(id) on delete restrict,
   issuing_employer_user_id uuid not null references auth.users(id) on delete restrict,
   evidence_definition_id uuid not null references public.evidence_definitions(id) on delete restrict,
   demonstrated_level text not null default 'demonstrated',
