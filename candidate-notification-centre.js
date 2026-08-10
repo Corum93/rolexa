@@ -41,8 +41,11 @@
     style.id = 'rxCandidateNotificationStyles';
     style.textContent = `
       .rx-notification-wrap{position:relative;display:flex;align-items:center}
-      .rx-notification-bell{position:relative;width:42px;height:42px;border-radius:13px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;font-size:19px;font-weight:900}
-      .rx-notification-bell:hover{background:rgba(255,255,255,.14)}
+      .rx-notification-bell{position:relative;width:42px;height:42px;border-radius:13px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(145deg,rgba(255,255,255,.11),rgba(255,255,255,.055));color:#EAF0FF;display:grid;place-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 8px 20px rgba(0,0,0,.12);transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease}
+      .rx-notification-bell-icon{width:20px;height:20px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+      .rx-notification-bell:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.26);color:#fff;transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 10px 24px rgba(0,0,0,.18)}
+      .rx-notification-bell:focus-visible{outline:3px solid rgba(103,145,255,.5);outline-offset:3px}
+      .rx-notification-bell[aria-expanded="true"]{background:rgba(64,105,230,.28);border-color:rgba(133,164,255,.48);color:#fff}
       .rx-notification-badge{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#E0533F;color:#fff;border:2px solid #071025;display:none;align-items:center;justify-content:center;font-size:10px;font-weight:900}
       .rx-notification-badge.show{display:flex}
       .rx-notification-panel{position:absolute;top:52px;right:0;width:min(390px,calc(100vw - 32px));max-height:580px;overflow:hidden;background:#fff;color:#071025;border:1px solid rgba(7,16,37,.1);border-radius:20px;box-shadow:0 24px 65px rgba(7,16,37,.24);z-index:10020;display:none}
@@ -104,7 +107,7 @@
     wrap.id = 'rxCandidateNotificationWrap';
     wrap.className = 'rx-notification-wrap';
     wrap.innerHTML = `
-      <button class="rx-notification-bell" id="rxCandidateNotificationBell" type="button" aria-label="Open notifications" aria-expanded="false">♢<span class="rx-notification-badge" id="rxCandidateNotificationBadge">0</span></button>
+      <button class="rx-notification-bell" id="rxCandidateNotificationBell" type="button" aria-label="Open notifications" aria-expanded="false"><svg class="rx-notification-bell-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span class="rx-notification-badge" id="rxCandidateNotificationBadge">0</span></button>
       <section class="rx-notification-panel" id="rxCandidateNotificationPanel" aria-label="Candidate notifications">
         <div class="rx-notification-head"><div><h3>Notifications</h3><p>Updates about your applications.</p></div><button class="rx-notification-mark-all" id="rxCandidateMarkAll" type="button">Mark all read</button></div>
         <div class="rx-notification-list" id="rxCandidateNotificationList"></div>
