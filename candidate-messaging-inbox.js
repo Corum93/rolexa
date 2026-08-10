@@ -5,8 +5,9 @@
   const URL = 'https://hndzomiigjjyyconeqpc.supabase.co';
   const KEY = 'sb_publishable_bHyw-HOLRFv_7FDAI1amhQ_MX-Sjocd';
   let client, user, activeThread = '';
-  let messages = [], applications = [], jobs = [], interviewSlots = [];
+  let messages = [], applications = [], jobs = [], interviewSlots = [], hiringStages = [];
   let employerProfiles = new Map();
+  const MESSAGE_ENABLED_STATUSES = new Set(['Shortlisted','Interview','Offer','Hired']);
 
   const $ = id => document.getElementById(id);
   const safe = value => String(value ?? '').replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
@@ -112,11 +113,15 @@
     return messages.filter(m => (m.thread_key || 'support') === threadKey);
   }
 
-  function candidateCanReply(threadKey){
-    const thread = threadMessages(threadKey);
-    if (!thread.length) return false;
-    const latest = thread[thread.length - 1];
-    return latest.sender === 'employer';
+  function candidateCanMessage(threadKey){
+    const {app} = applicationAndJob(threadKey);
+    if (!app) return threadKey === 'support' && threadMessages(threadKey).length > 0;
+    const status = String(app.status || '');
+    if (['Rejected','Withdrawn'].includes(status)) return false;
+    const stage = hiringStages.find(item => String(item.id) === String(app.current_hiring_stage_id || ''));
+    return stage
+      ? String(stage.stage_type || '').toLowerCase() !== 'review'
+      : MESSAGE_ENABLED_STATUSES.has(status);
   }
 
   function interviewCard(threadKey){
@@ -149,15 +154,17 @@
   }
 
   async function loadData(){
-    const [m,a,j] = await Promise.all([
+    const [m,a,j,s] = await Promise.all([
       client.from('candidate_messages').select('*').eq('user_id',user.id).order('created_at',{ascending:true}),
-      client.from('candidate_applications').select('id,job_id,status').eq('user_id',user.id),
-      client.from('jobs').select('id,title,company,employer_user_id')
+      client.from('candidate_applications').select('id,job_id,status,current_hiring_stage_id').eq('user_id',user.id),
+      client.from('jobs').select('id,title,company,employer_user_id'),
+      client.from('job_hiring_stages').select('id,job_id,stage_type')
     ]);
     if (m.error) throw m.error;
     messages = m.data || [];
     applications = a.data || [];
     jobs = j.error ? [] : (j.data || []);
+    hiringStages = s.error ? [] : (s.data || []);
 
     employerProfiles = new Map();
     const employerIds = [...new Set(jobs.map(job => job.employer_user_id).filter(Boolean).map(String))];
@@ -181,7 +188,8 @@
     ensureLayout();
     const messageKeys = messages.map(m => m.thread_key || 'support');
     const slotKeys = interviewSlots.map(slot => `application:${slot.application_id}`);
-    const keys = [...new Set([...messageKeys,...slotKeys])];
+    const eligibleKeys = applications.filter(app => candidateCanMessage(`application:${app.id}`)).map(app => `application:${app.id}`);
+    const keys = [...new Set([...eligibleKeys,...messageKeys,...slotKeys])];
     const input = $('chatInput');
     const button = $('chatForm')?.querySelector('button');
     if (!keys.length) {
@@ -195,31 +203,34 @@
     }
     if (!keys.includes(activeThread)) activeThread = keys[keys.length-1];
 
-    const canReply = candidateCanReply(activeThread);
+    const canMessage = candidateCanMessage(activeThread);
     if (input) {
-      input.disabled = !canReply;
-      input.placeholder = canReply ? 'Type your reply...' : 'Waiting for the employer to reply...';
-      if (!canReply) input.value = '';
+      input.disabled = !canMessage;
+      input.placeholder = canMessage ? 'Type a message...' : 'Conversation unavailable';
+      if (!canMessage) input.value = '';
     }
-    if (button) button.disabled = !canReply;
+    if (button) button.disabled = !canMessage;
 
     $('threadList').innerHTML = keys.map(key => {
       const info = label(key);
       const latest = [...messages].reverse().find(m => (m.thread_key || 'support') === key);
       const hasInvite = interviewCard(key) !== '';
-      const waiting = !candidateCanReply(key);
-      const preview = latest ? safe(latest.body) : (hasInvite ? 'Interview invitation received' : 'Conversation');
-      return `<div class="thread rx-candidate-company-thread ${key===activeThread?'active':''}" data-candidate-thread="${safe(key)}">${companyAvatar(info)}<div class="rx-candidate-company-copy"><b>${safe(info.name)}</b><p>${safe(info.sub)} · ${preview}${waiting?' · Waiting for employer':''}</p></div></div>`;
+      const preview = latest ? safe(latest.body) : (hasInvite ? 'Interview invitation received' : 'Conversation open');
+      return `<div class="thread rx-candidate-company-thread ${key===activeThread?'active':''}" data-candidate-thread="${safe(key)}">${companyAvatar(info)}<div class="rx-candidate-company-copy"><b>${safe(info.name)}</b><p>${safe(info.sub)} · ${preview}</p></div></div>`;
     }).join('');
     const info = label(activeThread);
     $('chatName').textContent = info.name;
-    $('chatSub').textContent = canReply ? `${info.sub} · You can reply now` : `${info.sub} · Waiting for employer reply`;
-    const messageHtml = threadMessages(activeThread).map(m => {
+    $('chatSub').textContent = canMessage ? `${info.sub} · Conversation open` : `${info.sub} · Conversation unavailable`;
+    const activeMessages = threadMessages(activeThread);
+    const messageHtml = activeMessages.map(m => {
       const mine = m.sender === 'candidate';
       const employerName = info.name || 'Employer';
       return `<div class="bubble ${mine?'me':'them'}"><div style="font-size:11px;font-weight:900;opacity:.72;margin-bottom:4px">${safe(mine ? (m.sender_name || 'You') : employerName)} · ${safe(time(m.created_at))}</div>${safe(m.body)}</div>`;
     }).join('');
-    $('chatBody').innerHTML = `${messageHtml}${interviewCard(activeThread)}`;
+    const emptyConversation = !messageHtml && !interviewCard(activeThread)
+      ? '<div class="empty">Conversation opened. Send a message to arrange the next step.</div>'
+      : '';
+    $('chatBody').innerHTML = `${messageHtml}${interviewCard(activeThread)}${emptyConversation}`;
     $('chatBody').scrollTop = $('chatBody').scrollHeight;
   }
 
@@ -234,7 +245,7 @@
     const button = event.target.querySelector('button');
     const body = input.value.trim();
     if (!body || !activeThread) return;
-    if (!candidateCanReply(activeThread)) return toast('Please wait for the employer to reply before sending another message.');
+    if (!candidateCanMessage(activeThread)) return toast('This application conversation is not available.');
     button.disabled = true;
     button.textContent = 'Sending...';
     const {error} = await client.from('candidate_messages').insert({
@@ -248,7 +259,7 @@
     if (error) { button.disabled = false; return toast(error.message || 'Could not send reply.'); }
     input.value = '';
     await refresh();
-    toast('Reply sent. The employer can now respond.',true);
+    toast('Message sent.',true);
   }
 
   async function init(){

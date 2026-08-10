@@ -5,6 +5,7 @@
   let client = null;
   let currentUser = null;
   let appMap = new Map();
+  let eligibleApplicationIds = new Set();
   let inboxMessages = [];
   let activeThread = '';
   const candidatePhotoCache = new Map();
@@ -103,15 +104,20 @@
 
   async function loadApplications(){
     appMap = new Map();
+    eligibleApplicationIds = new Set();
     const jobsResult = await client.from('jobs').select('id,title,company').eq('employer_user_id',currentUser.id);
     if (jobsResult.error) throw jobsResult.error;
     const jobs = jobsResult.data || [];
     const jobIds = jobs.map(job => job.id).filter(Boolean);
     if (!jobIds.length) return;
 
-    const appsResult = await client.from('candidate_applications').select('id,user_id,job_id,status').in('job_id',jobIds);
+    const [appsResult,stagesResult] = await Promise.all([
+      client.from('candidate_applications').select('id,user_id,job_id,status,current_hiring_stage_id').in('job_id',jobIds),
+      client.from('job_hiring_stages').select('id,job_id,stage_type').in('job_id',jobIds)
+    ]);
     if (appsResult.error) throw appsResult.error;
     const apps = appsResult.data || [];
+    const stageMap = new Map((stagesResult.error ? [] : (stagesResult.data || [])).map(stage => [String(stage.id),stage]));
     const userIds = [...new Set(apps.map(app => app.user_id).filter(Boolean))];
     let profiles = [];
     if (userIds.length) {
@@ -125,7 +131,16 @@
 
     const jobMap = new Map(jobs.map(job => [job.id,job]));
     const profileMap = new Map(profiles.map(profile => [profile.user_id,profile]));
-    apps.forEach(app => appMap.set(app.id,{app,job:jobMap.get(app.job_id)||{},profile:profileMap.get(app.user_id)||{}}));
+    apps.forEach(app => {
+      appMap.set(app.id,{app,job:jobMap.get(app.job_id)||{},profile:profileMap.get(app.user_id)||{}});
+      const status = String(app.status || '');
+      const stage = stageMap.get(String(app.current_hiring_stage_id || ''));
+      const terminal = ['Rejected','Withdrawn'].includes(status);
+      const reachedConversationStage = stage
+        ? String(stage.stage_type || '').toLowerCase() !== 'review'
+        : MESSAGE_ENABLED_STATUSES.has(status);
+      if (!terminal && reachedConversationStage) eligibleApplicationIds.add(String(app.id));
+    });
   }
 
   function decorateApplicationCards(){
@@ -133,13 +148,29 @@
       const appId = profileButton.getAttribute('data-review-profile');
       if (!appId || profileButton.parentElement.querySelector(`[data-message-app="${CSS.escape(appId)}"]`)) return;
       const row = appMap.get(appId);
-      if (!row || !MESSAGE_ENABLED_STATUSES.has(row.app.status)) return;
+      if (!row || !eligibleApplicationIds.has(String(appId))) return;
       const button = document.createElement('button');
       button.className = 'rx-status-btn primary';
       button.type = 'button';
       button.textContent = 'Message';
       button.dataset.messageApp = appId;
       profileButton.parentElement.insertBefore(button,profileButton.nextSibling);
+    });
+  }
+
+  function decoratePipelineCards(){
+    document.querySelectorAll('[data-evidence-application-id]').forEach(card => {
+      const appId = card.getAttribute('data-evidence-application-id') || '';
+      if (!appId || !eligibleApplicationIds.has(String(appId)) || card.querySelector(`[data-message-app="${CSS.escape(appId)}"]`)) return;
+      const actions = card.querySelector('.rx-pipeline-card-actions');
+      if (!actions) return;
+      const button = document.createElement('button');
+      button.className = 'rx-pipeline-action';
+      button.type = 'button';
+      button.textContent = 'Message';
+      button.dataset.messageApp = appId;
+      const open = actions.querySelector('[data-rx-pipeline-open-list]');
+      open ? open.insertAdjacentElement('afterend',button) : actions.appendChild(button);
     });
   }
 
@@ -194,7 +225,8 @@
     const send = byId('rxEmployerChatSend');
     if (!list || !body || !name || !sub || !head) return;
 
-    const keys = [...new Set(inboxMessages.map(message => message.thread_key).filter(Boolean))];
+    const eligibleKeys = [...eligibleApplicationIds].map(id => `application:${id}`);
+    const keys = [...new Set([...eligibleKeys,...inboxMessages.map(message => message.thread_key).filter(Boolean)])];
     if (!keys.length) {
       list.innerHTML = '<div class="rx-employer-thread-empty">No conversations yet.</div>';
       name.textContent = 'Messages';
@@ -212,8 +244,11 @@
       return String(bLatest).localeCompare(String(aLatest));
     });
     if (!activeThread || !keys.includes(activeThread)) activeThread = keys[0];
-    if (input) { input.disabled = false; input.placeholder = 'Type a message...'; }
-    if (send) send.disabled = false;
+    const activeRow = rowForThread(activeThread);
+    const activeMessages = inboxMessages.filter(message => message.thread_key === activeThread);
+    const canSend = Boolean(activeRow && (eligibleApplicationIds.has(String(activeRow.app.id)) || activeMessages.length));
+    if (input) { input.disabled = !canSend; input.placeholder = canSend ? 'Type a message...' : 'Conversation unavailable'; }
+    if (send) send.disabled = !canSend;
 
     list.innerHTML = keys.map(key => {
       const label = threadLabel(key);
@@ -226,11 +261,11 @@
     head.insertAdjacentHTML('afterbegin',avatarHtml(label));
     name.textContent = label.name;
     sub.textContent = label.sub;
-    body.innerHTML = inboxMessages.filter(message => message.thread_key === activeThread).map(message => {
+    body.innerHTML = activeMessages.length ? activeMessages.map(message => {
       const side = message.sender === 'employer' ? 'employer' : 'candidate';
       const sender = message.sender_name || (side === 'employer' ? 'You' : 'Candidate');
       return `<div class="rx-employer-bubble ${side}"><div class="rx-employer-bubble-meta">${safe(sender)}${message.created_at?' · '+safe(timeText(message.created_at)):''}</div>${safe(message.body)}</div>`;
-    }).join('');
+    }).join('') : '<div class="empty">Conversation opened. Send a message to arrange the next step.</div>';
     body.scrollTop = body.scrollHeight;
   }
 
@@ -290,6 +325,7 @@
   async function refresh(){
     await loadApplications();
     decorateApplicationCards();
+    decoratePipelineCards();
     await loadMessages();
   }
 
