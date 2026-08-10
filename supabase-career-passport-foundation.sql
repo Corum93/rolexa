@@ -289,6 +289,9 @@ declare
   application_row record;
   definition_id uuid;
   created_id uuid;
+  normalised_source text := lower(btrim(coalesce(p_evidence_source, '')));
+  current_stage_group integer;
+  current_stage_order integer;
 begin
   if actor_id is null then
     raise exception using errcode = '42501', message = 'AUTHENTICATION_REQUIRED';
@@ -303,6 +306,7 @@ begin
     application.user_id as candidate_user_id,
     application.job_id,
     application.status,
+    application.current_hiring_stage_id,
     job.employer_user_id
   into application_row
   from public.candidate_applications as application
@@ -335,7 +339,7 @@ begin
     raise exception using errcode = '22023', message = 'INVALID_DEMONSTRATED_LEVEL';
   end if;
 
-  if lower(coalesce(btrim(p_evidence_source), '')) not in (
+  if normalised_source not in (
     'application_review',
     'screening',
     'interview',
@@ -345,6 +349,89 @@ begin
     'employment_verification'
   ) then
     raise exception using errcode = '22023', message = 'INVALID_EVIDENCE_SOURCE';
+  end if;
+
+  select
+    case
+      when stage.stage_type = 'review' then 0
+      when stage.stage_type = 'shortlist' then 1
+      when stage.stage_type = 'offer' then 3
+      else 2
+    end,
+    stage.stage_order
+  into current_stage_group, current_stage_order
+  from public.job_hiring_stages as stage
+  where stage.job_id = application_row.job_id
+    and (
+      application_row.current_hiring_stage_id is null
+      or stage.id = application_row.current_hiring_stage_id
+    )
+  order by
+    case
+      when stage.stage_type = 'review' then 0
+      when stage.stage_type = 'shortlist' then 1
+      when stage.stage_type = 'offer' then 3
+      else 2
+    end,
+    stage.stage_order
+  limit 1;
+
+  if normalised_source = 'interview'
+     and not exists (
+       select 1
+       from public.job_hiring_stages as reached
+       where reached.job_id = application_row.job_id
+         and reached.stage_type = 'interview'
+         and current_stage_group is not null
+         and (
+           case
+             when reached.stage_type = 'review' then 0
+             when reached.stage_type = 'shortlist' then 1
+             when reached.stage_type = 'offer' then 3
+             else 2
+           end < current_stage_group
+           or (
+             case
+               when reached.stage_type = 'review' then 0
+               when reached.stage_type = 'shortlist' then 1
+               when reached.stage_type = 'offer' then 3
+               else 2
+             end = current_stage_group
+             and reached.stage_order <= current_stage_order
+           )
+         )
+     ) then
+    raise exception using errcode = '22023', message = 'EVIDENCE_SOURCE_NOT_REACHED';
+  end if;
+
+  if normalised_source in ('case_presentation', 'role_specific_task')
+     and not exists (
+       select 1
+       from public.job_hiring_stages as reached
+       where reached.job_id = application_row.job_id
+         and reached.stage_type = 'assessment'
+         and current_stage_group is not null
+         and (
+           2 < current_stage_group
+           or (2 = current_stage_group and reached.stage_order <= current_stage_order)
+         )
+     ) then
+    raise exception using errcode = '22023', message = 'EVIDENCE_SOURCE_NOT_REACHED';
+  end if;
+
+  if normalised_source in ('reference_check', 'employment_verification')
+     and not exists (
+       select 1
+       from public.job_hiring_stages as reached
+       where reached.job_id = application_row.job_id
+         and reached.stage_type = 'offer'
+         and current_stage_group is not null
+         and (
+           3 < current_stage_group
+           or (3 = current_stage_group and reached.stage_order <= current_stage_order)
+         )
+     ) then
+    raise exception using errcode = '22023', message = 'EVIDENCE_SOURCE_NOT_REACHED';
   end if;
 
   if p_factual_note is not null
@@ -374,7 +461,7 @@ begin
     actor_id,
     definition_id,
     lower(btrim(p_demonstrated_level)),
-    lower(btrim(p_evidence_source)),
+    normalised_source,
     nullif(btrim(p_factual_note), ''),
     p_expires_at
   )

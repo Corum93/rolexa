@@ -20,6 +20,19 @@
   const initials = value => String(value || 'Candidate')
     .split(/\s+/).filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'C';
 
+  function orderedStages(stages) {
+    const group = stage => {
+      const type = String(stage.stage_type || '').toLowerCase();
+      if (type === 'review') return 0;
+      if (type === 'shortlist') return 1;
+      if (type === 'offer') return 3;
+      return 2;
+    };
+    return [...stages].sort((left, right) =>
+      group(left) - group(right) || Number(left.stage_order || 0) - Number(right.stage_order || 0)
+    );
+  }
+
   function addStyles() {
     if (document.getElementById('rxEmployerPipelineStyles')) return;
     const style = document.createElement('style');
@@ -150,6 +163,7 @@
       if (!stagesByJob.has(stage.job_id)) stagesByJob.set(stage.job_id, []);
       stagesByJob.get(stage.job_id).push(stage);
     });
+    stagesByJob.forEach((stages, jobId) => stagesByJob.set(jobId, orderedStages(stages)));
     const profileMap = new Map(profiles.map(profile => [profile.user_id, profile]));
 
     rows = jobs.map(job => ({
@@ -190,7 +204,7 @@
       action = `<button type="button" class="rx-pipeline-action primary" data-rx-pipeline-hire="${safe(app.id)}">Mark hired</button>`;
     }
 
-    return `<article class="rx-pipeline-card">
+    return `<article class="rx-pipeline-card" data-evidence-application-id="${safe(app.id)}">
       <div class="rx-pipeline-candidate"><div class="rx-pipeline-avatar">${safe(initials(name))}</div><div><div class="rx-pipeline-name">${safe(name)}</div><div class="rx-pipeline-meta">${safe(role)}${profile.location ? ' · ' + safe(profile.location) : ''}</div></div></div>
       <div class="rx-pipeline-card-actions"><button type="button" class="rx-pipeline-action" data-rx-pipeline-open-list>Open in list</button>${action}</div>
     </article>`;

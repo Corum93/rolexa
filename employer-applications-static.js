@@ -11,6 +11,19 @@
   function dateText(value){ try { return value ? new Date(value).toLocaleDateString('en-GB') : 'Date not available'; } catch(e){ return 'Date not available'; } }
   function emptyHtml(){ return '<div class="empty">No real applications yet. When a candidate applies to one of your jobs, they will appear here. Demo candidates have been removed.</div>'; }
 
+  function orderedStages(stages){
+    const group = stage => {
+      const type = String(stage.stage_type || '').toLowerCase();
+      if (type === 'review') return 0;
+      if (type === 'shortlist') return 1;
+      if (type === 'offer') return 3;
+      return 2;
+    };
+    return [...stages].sort((left, right) =>
+      group(left) - group(right) || Number(left.stage_order || 0) - Number(right.stage_order || 0)
+    );
+  }
+
   function showStatus(message, type = 'info') {
     const bar = byId('statusBar');
     if (!bar) return;
@@ -150,6 +163,7 @@
       if (!stageMap.has(stage.job_id)) stageMap.set(stage.job_id, []);
       stageMap.get(stage.job_id).push(stage);
     });
+    stageMap.forEach((stages, jobId) => stageMap.set(jobId, orderedStages(stages)));
     applications = apps.map(app => ({ app, job: jobMap.get(app.job_id) || {}, profile: profileMap.get(app.user_id) || {}, stages: stageMap.get(app.job_id) || [], profileWarning }));
   }
 
