@@ -1,6 +1,6 @@
 (() => {
-  if (window.__rolexaPremiumMobileDashboardMenuV1) return;
-  window.__rolexaPremiumMobileDashboardMenuV1 = true;
+  if (window.__rolexaPremiumMobileDashboardMenuV2) return;
+  window.__rolexaPremiumMobileDashboardMenuV2 = true;
 
   const isCandidate = /candidate-dashboard\.html$/.test(location.pathname);
   const isEmployer = /employer-dashboard\.html$/.test(location.pathname);
@@ -8,15 +8,18 @@
 
   const icons = {
     overview: '⌂',
+    careerDirection: '⌖',
     jobSearch: '⌕',
     postJob: '+',
-    jobs: '⌕',
-    applications: '◎',
-    matches: '◎',
-    savedJobs: '◇',
+    jobs: '▣',
+    applications: '✓',
+    matches: '✓',
+    careerPassport: '✓',
+    savedJobs: '⌑',
     messages: '✉',
     profile: '○',
-    companyProfile: '○',
+    companyProfile: '▦',
+    termsAgreement: '≡',
     salary: '£',
     editProfile: '↗',
     signOut: '↪'
