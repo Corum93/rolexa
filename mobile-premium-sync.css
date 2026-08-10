@@ -172,3 +172,70 @@
   .nav-cta .btn{padding:8px 10px!important;font-size:11px!important}
   .rx-chat-launcher{min-width:124px!important;height:48px!important;padding:0 15px!important;font-size:13px!important}
 }
+
+/* v3: keep post-July candidate and employer features aligned on iPad and mobile. */
+@media (max-width:1100px){
+  .mobile-top{position:sticky;top:0;z-index:1000;min-height:66px;padding:14px 22px!important;background:linear-gradient(135deg,#061027,#0b1c45)!important;border-bottom:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(7,16,37,.16)}
+  .mobile-top .brand{margin:0!important}
+  .mobile-top .menu-btn{min-height:42px;padding:10px 14px!important;border-radius:12px!important;background:rgba(255,255,255,.08)!important}
+  .topbar{position:sticky!important;top:66px!important;z-index:900!important;min-height:70px!important;height:auto!important;padding:12px 22px!important}
+  .topbar .user{min-width:0!important;margin-left:auto!important}
+  .topbar .user>div:nth-child(2){min-width:0!important}
+  .topbar .user b{display:block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rx-notification-wrap,.rx-employer-notification-wrap{flex:0 0 auto!important}
+  .rx-notification-panel,.rx-employer-notification-panel{z-index:1100!important}
+  .page,.page.active{min-width:0}
+  .content>*{min-width:0}
+  .card,.form-card,.job,.application,.item,.event,.thread-wrap,.rx-app-card,.rx-job-card{max-width:100%;min-width:0}
+  #roleHealthPanel,#overviewPage .two,.rx-passport-layout,.rx-career-passport-layout,.rx-company-profile-layout,.rx-employer-profile-layout{grid-template-columns:1fr!important}
+  .rx-app-card,.rx-job-card{grid-template-columns:52px minmax(0,1fr)!important}
+  .rx-app-actions,.rx-job-actions{grid-column:2/-1!important;justify-content:flex-start!important;max-width:none!important}
+  .rx-passport-actions,.rx-evidence-actions,.rx-stage-actions,.rx-application-actions{display:flex!important;flex-wrap:wrap!important;gap:8px!important}
+  .rx-passport-actions>*,.rx-evidence-actions>*,.rx-stage-actions>*,.rx-application-actions>*{max-width:100%}
+  table{max-width:100%}
+  .table-wrap,.rx-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+@media (min-width:761px) and (max-width:1100px){
+  .content{padding:26px 28px 42px!important}
+  .page-head{display:flex!important;align-items:flex-start!important}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #overviewPage>.grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  #overviewPage>.grid>.stat{min-height:128px!important}
+  .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .field.full{grid-column:1/-1!important}
+  .rx-notification-panel,.rx-employer-notification-panel{position:fixed!important;top:146px!important;right:22px!important;left:auto!important;width:min(390px,calc(100vw - 44px))!important}
+}
+@media (max-width:760px){
+  .mobile-top{min-height:60px;padding:12px 14px!important}
+  .topbar{top:60px!important;display:flex!important;align-items:center!important;padding:10px 14px!important}
+  .topbar .search{display:none!important}
+  .topbar .user{width:auto!important;flex:1 1 auto!important;justify-content:flex-end!important;gap:8px!important}
+  .topbar .user .avatar,.topbar .user .rx-profile-sync-avatar,.topbar .user img{width:38px!important;height:38px!important;flex:0 0 38px!important}
+  .topbar .user small{display:none!important}
+  .topbar .user b{max-width:112px;font-size:12px!important}
+  .topbar .signout{display:none!important}
+  .rx-notification-wrap,.rx-employer-notification-wrap{order:-1;margin:0 2px 0 0!important}
+  .rx-notification-bell,.rx-employer-notification-bell{width:40px!important;height:40px!important;border-radius:12px!important}
+  .rx-notification-panel,.rx-employer-notification-panel{top:124px!important;left:8px!important;right:8px!important;width:auto!important;max-width:none!important;max-height:calc(100dvh - 138px)!important;border-radius:18px!important}
+  .rx-notification-head,.rx-employer-notification-head{padding:14px!important}
+  .rx-notification-list,.rx-employer-notification-list{max-height:calc(100dvh - 220px)!important}
+  .setup-hero{padding:25px 20px!important;border-radius:21px!important}
+  .setup-hero h1{font-size:32px!important}
+  .form-card{padding:19px!important;border-radius:19px!important}
+  .rx-candidate-alert,.rx-employer-alert{grid-template-columns:40px minmax(0,1fr)!important;padding:14px!important;border-radius:17px!important}
+  .rx-candidate-alert-button,.rx-employer-alert-button{grid-column:1/-1!important;width:100%!important}
+  .rx-app-card,.rx-job-card,.item,.job,.application,.event{grid-template-columns:42px minmax(0,1fr)!important;gap:10px!important}
+  .rx-app-card .logo,.rx-job-card .logo,.item .logo,.job .logo,.application .logo{width:42px!important;height:42px!important}
+  .rx-app-actions,.rx-job-actions,.actions,.job-actions{grid-column:1/-1!important;margin-left:52px!important;justify-content:flex-start!important}
+  .rx-app-actions>button,.rx-job-actions>button,.actions>button,.job-actions>button{min-height:40px}
+  .rx-passport-actions,.rx-evidence-actions,.rx-stage-actions,.rx-application-actions{display:grid!important;grid-template-columns:1fr!important;width:100%!important}
+  .rx-passport-actions>*,.rx-evidence-actions>*,.rx-stage-actions>*,.rx-application-actions>*{width:100%!important;justify-content:center!important}
+  .salary-big{font-size:38px!important}
+  .bars{min-height:150px!important}
+  input,select,textarea{font-size:16px!important}
+}
+@media (max-width:390px){
+  .topbar .user b{max-width:86px}
+  .rx-app-actions,.rx-job-actions,.actions,.job-actions{margin-left:0!important}
+  .primary,.secondary,.small-btn{white-space:normal!important;text-align:center}
+}
