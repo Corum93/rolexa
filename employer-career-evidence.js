@@ -127,16 +127,18 @@
   }
 
   function orderedStages(stages) {
-    const group = stage => {
-      const type = String(stage.stage_type || '').toLowerCase();
-      if (type === 'review') return 0;
-      if (type === 'shortlist') return 1;
-      if (type === 'offer') return 3;
-      return 2;
-    };
     return [...stages].sort((left, right) =>
-      group(left) - group(right) || Number(left.stage_order || 0) - Number(right.stage_order || 0)
+      Number(left.stage_order || 0) - Number(right.stage_order || 0)
     );
+  }
+
+  function stageSupports(stage, capability) {
+    const type = String(stage?.stage_type || '').toLowerCase();
+    const name = String(stage?.stage_name || '').toLowerCase();
+    if (capability === 'interview') return type === 'interview' || /interview|\bround\b|phone screen|screening call/.test(name);
+    if (capability === 'assessment') return type === 'assessment' || /assessment|task|case|presentation|test|exercise/.test(name);
+    if (capability === 'offer') return type === 'offer' || /offer|reference|employment verification/.test(name);
+    return false;
   }
 
   function sourcesForApplication(application, stages) {
@@ -146,13 +148,12 @@
     let currentIndex = ordered.findIndex(stage => stage.id === application.current_hiring_stage_id);
     if (currentIndex < 0) currentIndex = 0;
     ordered.slice(0, currentIndex + 1).forEach(stage => {
-      const type = String(stage.stage_type || '').toLowerCase();
-      if (type === 'interview') allowed.add('interview');
-      if (type === 'assessment') {
+      if (stageSupports(stage, 'interview')) allowed.add('interview');
+      if (stageSupports(stage, 'assessment')) {
         allowed.add('case_presentation');
         allowed.add('role_specific_task');
       }
-      if (type === 'offer') {
+      if (stageSupports(stage, 'offer')) {
         allowed.add('reference_check');
         allowed.add('employment_verification');
       }

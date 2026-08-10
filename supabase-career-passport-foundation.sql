@@ -290,7 +290,6 @@ declare
   definition_id uuid;
   created_id uuid;
   normalised_source text := lower(btrim(coalesce(p_evidence_source, '')));
-  current_stage_group integer;
   current_stage_order integer;
 begin
   if actor_id is null then
@@ -351,29 +350,15 @@ begin
     raise exception using errcode = '22023', message = 'INVALID_EVIDENCE_SOURCE';
   end if;
 
-  select
-    case
-      when stage.stage_type = 'review' then 0
-      when stage.stage_type = 'shortlist' then 1
-      when stage.stage_type = 'offer' then 3
-      else 2
-    end,
-    stage.stage_order
-  into current_stage_group, current_stage_order
+  select stage.stage_order
+  into current_stage_order
   from public.job_hiring_stages as stage
   where stage.job_id = application_row.job_id
     and (
       application_row.current_hiring_stage_id is null
       or stage.id = application_row.current_hiring_stage_id
     )
-  order by
-    case
-      when stage.stage_type = 'review' then 0
-      when stage.stage_type = 'shortlist' then 1
-      when stage.stage_type = 'offer' then 3
-      else 2
-    end,
-    stage.stage_order
+  order by stage.stage_order
   limit 1;
 
   if normalised_source = 'interview'
@@ -381,24 +366,11 @@ begin
        select 1
        from public.job_hiring_stages as reached
        where reached.job_id = application_row.job_id
-         and reached.stage_type = 'interview'
-         and current_stage_group is not null
+         and current_stage_order is not null
+         and reached.stage_order <= current_stage_order
          and (
-           case
-             when reached.stage_type = 'review' then 0
-             when reached.stage_type = 'shortlist' then 1
-             when reached.stage_type = 'offer' then 3
-             else 2
-           end < current_stage_group
-           or (
-             case
-               when reached.stage_type = 'review' then 0
-               when reached.stage_type = 'shortlist' then 1
-               when reached.stage_type = 'offer' then 3
-               else 2
-             end = current_stage_group
-             and reached.stage_order <= current_stage_order
-           )
+           reached.stage_type = 'interview'
+           or lower(coalesce(reached.stage_name, '')) ~ '(interview|(^|[^a-z])round([^a-z]|$)|phone screen|screening call)'
          )
      ) then
     raise exception using errcode = '22023', message = 'EVIDENCE_SOURCE_NOT_REACHED';
@@ -409,11 +381,11 @@ begin
        select 1
        from public.job_hiring_stages as reached
        where reached.job_id = application_row.job_id
-         and reached.stage_type = 'assessment'
-         and current_stage_group is not null
+         and current_stage_order is not null
+         and reached.stage_order <= current_stage_order
          and (
-           2 < current_stage_group
-           or (2 = current_stage_group and reached.stage_order <= current_stage_order)
+           reached.stage_type = 'assessment'
+           or lower(coalesce(reached.stage_name, '')) ~ '(assessment|task|case|presentation|test|exercise)'
          )
      ) then
     raise exception using errcode = '22023', message = 'EVIDENCE_SOURCE_NOT_REACHED';
@@ -424,11 +396,11 @@ begin
        select 1
        from public.job_hiring_stages as reached
        where reached.job_id = application_row.job_id
-         and reached.stage_type = 'offer'
-         and current_stage_group is not null
+         and current_stage_order is not null
+         and reached.stage_order <= current_stage_order
          and (
-           3 < current_stage_group
-           or (3 = current_stage_group and reached.stage_order <= current_stage_order)
+           reached.stage_type = 'offer'
+           or lower(coalesce(reached.stage_name, '')) ~ '(offer|reference|employment verification)'
          )
      ) then
     raise exception using errcode = '22023', message = 'EVIDENCE_SOURCE_NOT_REACHED';

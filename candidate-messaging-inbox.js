@@ -90,14 +90,27 @@
     return {app,job,profile};
   }
 
+  function stagesForJob(jobId){
+    return hiringStages
+      .filter(stage => String(stage.job_id) === String(jobId))
+      .sort((left, right) => Number(left.stage_order || 0) - Number(right.stage_order || 0));
+  }
+
+  function currentStageFor(app){
+    if (!app) return null;
+    const stages = stagesForJob(app.job_id);
+    return stages.find(stage => String(stage.id) === String(app.current_hiring_stage_id || '')) || stages[0] || null;
+  }
+
   function label(threadKey){
     if (threadKey === 'support') return {name:'Rolexa Support',sub:'Candidate support',logo:'',initials:'RS'};
     const {app,job,profile} = applicationAndJob(threadKey);
     if (app && job) {
       const name = profile?.company_name || job.company || 'Employer';
+      const currentStage = currentStageFor(app);
       return {
         name,
-        sub:`${job.title || 'Application'} · ${app.status || 'Application'}`,
+        sub:`${job.title || 'Application'} · ${currentStage?.stage_name || app.status || 'Application'}`,
         logo:profile?.logo_url || '',
         initials:initials(name)
       };
@@ -118,9 +131,10 @@
     if (!app) return threadKey === 'support' && threadMessages(threadKey).length > 0;
     const status = String(app.status || '');
     if (['Rejected','Withdrawn'].includes(status)) return false;
-    const stage = hiringStages.find(item => String(item.id) === String(app.current_hiring_stage_id || ''));
-    return stage
-      ? String(stage.stage_type || '').toLowerCase() !== 'review'
+    const stages = stagesForJob(app.job_id);
+    const currentIndex = stages.findIndex(stage => String(stage.id) === String(app.current_hiring_stage_id || ''));
+    return stages.length
+      ? currentIndex > 0
       : MESSAGE_ENABLED_STATUSES.has(status);
   }
 
@@ -158,7 +172,7 @@
       client.from('candidate_messages').select('*').eq('user_id',user.id).order('created_at',{ascending:true}),
       client.from('candidate_applications').select('id,job_id,status,current_hiring_stage_id').eq('user_id',user.id),
       client.from('jobs').select('id,title,company,employer_user_id'),
-      client.from('job_hiring_stages').select('id,job_id,stage_type')
+      client.from('job_hiring_stages').select('id,job_id,stage_order,stage_name,stage_type').order('stage_order',{ascending:true})
     ]);
     if (m.error) throw m.error;
     messages = m.data || [];
