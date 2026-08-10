@@ -32,11 +32,63 @@
     const style = document.createElement('style');
     style.id = 'rxCareerEvidenceStyles';
     style.textContent = `
-      .rx-evidence-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;width:100%;margin-top:3px}.rx-evidence-issue-btn{border:1px solid rgba(23,107,255,.22);background:#EEF3FF;color:#2946C7;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900}.rx-evidence-issue-btn:hover{background:#E0E9FF}.rx-evidence-count{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:#E1F6EB;color:#176B49;padding:7px 9px;font-size:11px;font-weight:900}
-      .rx-evidence-modal-backdrop{position:fixed;inset:0;background:rgba(7,16,37,.62);z-index:10020;display:flex;align-items:center;justify-content:center;padding:20px}.rx-evidence-modal{width:min(680px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:24px;border:1px solid rgba(255,255,255,.22);box-shadow:0 32px 90px rgba(7,16,37,.38)}
-      .rx-evidence-modal-head{padding:22px 24px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.rx-evidence-modal-head h2{font-size:24px;margin:0}.rx-evidence-modal-head p{font-size:12.5px;color:#6B7280;line-height:1.5;margin:6px 0 0;max-width:520px}.rx-evidence-modal-close{border:1px solid var(--line);background:#fff;color:#0A1738;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900}
-      .rx-evidence-modal-body{padding:22px 24px;display:grid;gap:13px}.rx-evidence-principle{border:1px solid rgba(23,107,255,.17);background:#EEF3FF;color:#2946C7;border-radius:13px;padding:11px 12px;font-size:12px;line-height:1.5;font-weight:760}.rx-evidence-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.rx-evidence-field{display:grid;gap:6px}.rx-evidence-field.full{grid-column:1/-1}.rx-evidence-field label{font-size:11px;text-transform:uppercase;letter-spacing:.045em;color:#51617F;font-weight:900}.rx-evidence-field select,.rx-evidence-field textarea{width:100%;border:1px solid var(--line);background:#F8FAFE;color:#071025;border-radius:12px;padding:11px 12px;font-size:13px;outline:none}.rx-evidence-field textarea{min-height:92px;resize:vertical;line-height:1.5}.rx-evidence-field select:focus,.rx-evidence-field textarea:focus{border-color:#176BFF;background:#fff}.rx-evidence-help{font-size:11.5px;color:#7A879F;line-height:1.45}.rx-evidence-modal-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:3px}.rx-evidence-submit{border:0;background:#176BFF;color:#fff;border-radius:999px;padding:11px 15px;font-size:12.5px;font-weight:900}.rx-evidence-submit:disabled{opacity:.6;cursor:not-allowed}
-      @media(max-width:700px){.rx-evidence-modal-backdrop{padding:8px;align-items:flex-end}.rx-evidence-modal{border-radius:22px 22px 0 0}.rx-evidence-modal-head,.rx-evidence-modal-body{padding:18px 16px}.rx-evidence-form-grid{grid-template-columns:1fr}.rx-evidence-field.full{grid-column:auto}.rx-evidence-modal-actions{justify-content:stretch}.rx-evidence-submit{width:100%}}
+      .rx-evidence-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;width:100%;margin-top:3px}
+      .rx-evidence-issue-btn{border:1px solid rgba(23,107,255,.22);background:#EEF3FF;color:#2946C7;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+      .rx-evidence-issue-btn:hover{background:#E0E9FF;border-color:rgba(23,107,255,.35);transform:translateY(-1px)}
+      .rx-evidence-count{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:#E1F6EB;color:#176B49;padding:7px 9px;font-size:11px;font-weight:900}
+      .rx-evidence-modal-backdrop{position:fixed;inset:0;background:rgba(5,13,32,.68);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);z-index:10020;display:flex;align-items:center;justify-content:center;padding:24px}
+      .rx-evidence-modal{position:relative;width:min(720px,100%);max-height:92vh;overflow:auto;background:#FBFCFF;border-radius:26px;border:1px solid rgba(255,255,255,.56);box-shadow:0 34px 100px rgba(2,10,30,.42),0 2px 8px rgba(2,10,30,.08);scrollbar-width:thin}
+      .rx-evidence-modal:before{content:"";position:absolute;top:0;left:32px;right:32px;height:3px;border-radius:0 0 999px 999px;background:linear-gradient(90deg,#176BFF,#6C7BFF,#21B68B)}
+      .rx-evidence-modal-head{padding:29px 30px 24px;border-bottom:1px solid #E9EDF5;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;background:linear-gradient(180deg,#FFFFFF 0%,#FCFDFF 100%)}
+      .rx-evidence-title-wrap{display:flex;align-items:flex-start;gap:14px;min-width:0}
+      .rx-evidence-title-icon{width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;border-radius:14px;color:#176BFF;background:linear-gradient(145deg,#E8F0FF,#F4F7FF);border:1px solid #DCE7FF;box-shadow:0 8px 22px rgba(23,107,255,.13)}
+      .rx-evidence-title-icon svg{width:22px;height:22px}
+      .rx-evidence-eyebrow{display:block;margin:0 0 5px;color:#176BFF;font-size:10.5px;font-weight:900;letter-spacing:.105em;text-transform:uppercase}
+      .rx-evidence-modal-head h2{font-size:25px;line-height:1.16;letter-spacing:-.025em;color:#071025;margin:0}
+      .rx-evidence-modal-head p{font-size:13px;color:#69758B;line-height:1.55;margin:7px 0 0;max-width:510px}
+      .rx-evidence-modal-close{width:36px;height:36px;flex:0 0 36px;display:grid;place-items:center;border:1px solid #E2E7F0;background:#fff;color:#526078;border-radius:12px;padding:0;font-size:21px;line-height:1;cursor:pointer;transition:color .18s ease,border-color .18s ease,background .18s ease}
+      .rx-evidence-modal-close:hover{color:#071025;border-color:#C8D1E0;background:#F6F8FC}
+      .rx-evidence-modal-body{display:block}
+      .rx-evidence-modal-content{padding:22px 30px 24px;display:grid;gap:18px}
+      .rx-evidence-principle{display:flex;align-items:flex-start;gap:11px;border:1px solid #DCE7FF;background:linear-gradient(135deg,#F0F5FF,#F7F9FF);color:#385177;border-radius:16px;padding:13px 14px;font-size:12px;line-height:1.55;font-weight:550}
+      .rx-evidence-principle-icon{width:26px;height:26px;flex:0 0 26px;display:grid;place-items:center;border-radius:9px;background:#fff;color:#176BFF;box-shadow:0 2px 8px rgba(23,107,255,.1)}
+      .rx-evidence-principle-icon svg{width:14px;height:14px}
+      .rx-evidence-principle b{display:block;color:#193966;font-weight:850;margin-bottom:1px}
+      .rx-evidence-form-shell{border:1px solid #E4E9F2;background:#fff;border-radius:18px;padding:19px;box-shadow:0 7px 24px rgba(10,23,56,.045)}
+      .rx-evidence-form-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:14px;row-gap:17px}
+      .rx-evidence-field{display:flex;flex-direction:column;align-self:start;gap:7px;min-width:0}
+      .rx-evidence-field.full{grid-column:1/-1}
+      .rx-evidence-field label{font-size:10.5px;text-transform:uppercase;letter-spacing:.065em;color:#465774;font-weight:900}
+      .rx-evidence-field select,.rx-evidence-field textarea{box-sizing:border-box;width:100%;border:1px solid #D7DEEA;background:#F9FAFD;color:#071025;border-radius:12px;padding:12px 13px;font:inherit;font-size:13px;outline:none;box-shadow:0 1px 2px rgba(10,23,56,.025);transition:border-color .18s ease,background .18s ease,box-shadow .18s ease}
+      .rx-evidence-field select{height:44px;appearance:auto}
+      .rx-evidence-field textarea{min-height:98px;resize:vertical;line-height:1.5}
+      .rx-evidence-field select:hover,.rx-evidence-field textarea:hover{border-color:#BEC9DA}
+      .rx-evidence-field select:focus,.rx-evidence-field textarea:focus{border-color:#176BFF;background:#fff;box-shadow:0 0 0 3px rgba(23,107,255,.11)}
+      .rx-evidence-help{font-size:11.5px;color:#7A879F;line-height:1.45}
+      .rx-evidence-stage-help{display:flex;align-items:center;gap:6px;color:#687893}
+      .rx-evidence-stage-dot{width:6px;height:6px;flex:0 0 6px;border-radius:999px;background:#21A679;box-shadow:0 0 0 3px rgba(33,166,121,.1)}
+      .rx-evidence-modal-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:17px 30px 19px;border-top:1px solid #E9EDF5;background:#fff}
+      .rx-evidence-approval-note{display:flex;align-items:center;gap:8px;color:#6C7890;font-size:11.5px;font-weight:650}
+      .rx-evidence-approval-note svg{width:15px;height:15px;color:#526B98}
+      .rx-evidence-submit{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;background:linear-gradient(135deg,#176BFF,#1D5FE8);color:#fff;border-radius:12px;padding:12px 17px;font-size:12.5px;font-weight:900;box-shadow:0 9px 20px rgba(23,107,255,.22);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+      .rx-evidence-submit:hover{transform:translateY(-1px);box-shadow:0 12px 24px rgba(23,107,255,.27);filter:brightness(1.03)}
+      .rx-evidence-submit svg{width:15px;height:15px}
+      .rx-evidence-submit:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+      @media(max-width:700px){
+        .rx-evidence-modal-backdrop{padding:8px 8px 0;align-items:flex-end}
+        .rx-evidence-modal{max-height:94vh;border-radius:24px 24px 0 0}
+        .rx-evidence-modal:before{left:24px;right:24px}
+        .rx-evidence-modal-head{padding:24px 18px 20px}
+        .rx-evidence-title-icon{width:40px;height:40px;flex-basis:40px;border-radius:13px}
+        .rx-evidence-modal-head h2{font-size:22px}
+        .rx-evidence-modal-content{padding:18px}
+        .rx-evidence-form-shell{padding:16px}
+        .rx-evidence-form-grid{grid-template-columns:1fr;row-gap:16px}
+        .rx-evidence-field.full{grid-column:auto}
+        .rx-evidence-modal-actions{align-items:stretch;flex-direction:column;padding:16px 18px calc(18px + env(safe-area-inset-bottom))}
+        .rx-evidence-submit{width:100%}
+      }
+      @media(max-width:430px){.rx-evidence-title-icon{display:none}.rx-evidence-modal-head p{font-size:12.5px}.rx-evidence-principle{padding:12px}.rx-evidence-approval-note{justify-content:center}}
     `;
     document.head.appendChild(style);
   }
@@ -203,20 +255,37 @@
     const definitionOptions = available.map(definition => `<option value="${safe(definition.code)}">${safe(definition.name)} · ${safe(titleCase(definition.category))}</option>`).join('');
     const disabled = available.length && context.sources.length ? '' : 'disabled';
     document.body.insertAdjacentHTML('beforeend', `<div class="rx-evidence-modal-backdrop" id="rxEvidenceModal"><div class="rx-evidence-modal" role="dialog" aria-modal="true" aria-labelledby="rxEvidenceModalTitle">
-      <div class="rx-evidence-modal-head"><div><h2 id="rxEvidenceModalTitle">Verify positive evidence</h2><p>Award reusable evidence only where the candidate genuinely demonstrated it during this hiring process.</p></div><button class="rx-evidence-modal-close" type="button" data-close-evidence-modal>Close</button></div>
-      <form class="rx-evidence-modal-body" id="rxEvidenceForm" data-application-id="${safe(applicationId)}">
-        <div class="rx-evidence-principle"><b>Positive evidence only.</b> Do not record rejection reasons, personality judgements, health information, protected characteristics or confidential interview notes.</div>
-        ${available.length ? '' : '<div class="rx-evidence-principle">Every current evidence type has already been issued for this application.</div>'}
-        <div class="rx-evidence-form-grid">
-          <div class="rx-evidence-field full"><label for="rxEvidenceDefinition">Evidence type</label><select id="rxEvidenceDefinition" required ${disabled}>${definitionOptions}</select><span class="rx-evidence-help" id="rxEvidenceDefinitionHelp"></span></div>
-          <div class="rx-evidence-field"><label for="rxEvidenceSource">How it was demonstrated</label><select id="rxEvidenceSource" required ${disabled}>${sourceOptions}</select><span class="rx-evidence-help">Available for the reached stage${currentStage ? `: ${safe(currentStage.stage_name)}` : ''}.</span></div>
-          <div class="rx-evidence-field"><label for="rxEvidenceLevel">Demonstrated level</label><select id="rxEvidenceLevel" required><option value="demonstrated">Demonstrated</option><option value="strong">Strong</option><option value="advanced">Advanced</option></select></div>
-          <div class="rx-evidence-field full"><label for="rxEvidenceNote">Short factual note (optional)</label><textarea id="rxEvidenceNote" maxlength="500" placeholder="Example: Presented a clear 90-day operational plan and answered follow-up questions using measurable assumptions."></textarea><span class="rx-evidence-help">Write what was observed, not an opinion about the person. Maximum 500 characters.</span></div>
+      <div class="rx-evidence-modal-head">
+        <div class="rx-evidence-title-wrap">
+          <span class="rx-evidence-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 19 6v5c0 4.6-2.8 8.1-7 10-4.2-1.9-7-5.4-7-10V6l7-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m8.7 12 2.1 2.1 4.6-4.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <div><span class="rx-evidence-eyebrow">Career Passport</span><h2 id="rxEvidenceModalTitle">Verify positive evidence</h2><p>Create a trusted record of what this candidate genuinely demonstrated during your hiring process.</p></div>
         </div>
-        <div class="rx-evidence-modal-actions"><button class="rx-evidence-submit" type="submit" ${disabled}>Send to candidate for approval</button></div>
+        <button class="rx-evidence-modal-close" type="button" data-close-evidence-modal aria-label="Close verified evidence form">&times;</button>
+      </div>
+      <form class="rx-evidence-modal-body" id="rxEvidenceForm" data-application-id="${safe(applicationId)}">
+        <div class="rx-evidence-modal-content">
+          <div class="rx-evidence-principle">
+            <span class="rx-evidence-principle-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 19 6v5c0 4.6-2.8 8.1-7 10-4.2-1.9-7-5.4-7-10V6l7-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
+            <span><b>Keep the record factual and positive</b>Do not include rejection reasons, personality judgements, health information, protected characteristics or confidential interview notes.</span>
+          </div>
+          ${available.length ? '' : '<div class="rx-evidence-principle"><span><b>All evidence types issued</b>Every current evidence type has already been issued for this application.</span></div>'}
+          <div class="rx-evidence-form-shell">
+            <div class="rx-evidence-form-grid">
+              <div class="rx-evidence-field full"><label for="rxEvidenceDefinition">Evidence type</label><select id="rxEvidenceDefinition" required ${disabled}>${definitionOptions}</select><span class="rx-evidence-help" id="rxEvidenceDefinitionHelp"></span></div>
+              <div class="rx-evidence-field"><label for="rxEvidenceSource">How it was demonstrated</label><select id="rxEvidenceSource" required ${disabled}>${sourceOptions}</select><span class="rx-evidence-help rx-evidence-stage-help"><span class="rx-evidence-stage-dot" aria-hidden="true"></span>Available at reached stage${currentStage ? `: ${safe(currentStage.stage_name)}` : ''}</span></div>
+              <div class="rx-evidence-field"><label for="rxEvidenceLevel">Demonstrated level</label><select id="rxEvidenceLevel" required ${disabled}><option value="demonstrated">Demonstrated</option><option value="strong">Strong</option><option value="advanced">Advanced</option></select></div>
+              <div class="rx-evidence-field full"><label for="rxEvidenceNote">Short factual note <span aria-hidden="true">·</span> Optional</label><textarea id="rxEvidenceNote" maxlength="500" placeholder="Example: Presented a clear 90-day operational plan and answered follow-up questions using measurable assumptions."></textarea><span class="rx-evidence-help">Describe what was observed, not an opinion about the person. Maximum 500 characters.</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="rx-evidence-modal-actions">
+          <span class="rx-evidence-approval-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Candidate approval is required</span>
+          <button class="rx-evidence-submit" type="submit" ${disabled}>Send for approval <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
       </form>
     </div></div>`);
     updateDefinitionHelp();
+    byId('rxEvidenceDefinition')?.focus();
   }
 
   function closeModal() {
@@ -238,7 +307,7 @@
       showStatus('The factual note must contain at least 3 characters or be left blank.', 'bad');
       return;
     }
-    const previous = button.textContent;
+    const previous = button.innerHTML;
     button.disabled = true;
     button.textContent = 'Sending…';
     const result = await client.rpc('issue_candidate_evidence', {
@@ -250,7 +319,7 @@
       p_expires_at: null
     });
     button.disabled = false;
-    button.textContent = previous;
+    button.innerHTML = previous;
     if (result.error) {
       const rawMessage = result.error.message || '';
       const message = rawMessage.includes('EVIDENCE_ALREADY_ISSUED')
@@ -305,6 +374,9 @@
       });
       document.addEventListener('change', event => {
         if (event.target.id === 'rxEvidenceDefinition') updateDefinitionHelp();
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && byId('rxEvidenceModal')) closeModal();
       });
       document.addEventListener('submit', event => {
         if (event.target.id !== 'rxEvidenceForm') return;
