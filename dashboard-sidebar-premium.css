@@ -63,18 +63,58 @@
     transition: inherit;
   }
 
-  .side .nav [data-view="overview"]::before { content: "⌂"; }
-  .side .nav [data-view="postJob"]::before { content: "+"; font-size: 19px; }
+  /* Crisp, consistent line icons replace font glyphs that varied by browser. */
+  .side .nav [data-view]::before,
+  .side .nav a[href*="employer-terms"]::before {
+    content: "";
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 16px 16px;
+  }
+
+  .side .nav [data-view="overview"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239db3ef' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 10 8-6 8 6v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z'/%3E%3C/svg%3E");
+  }
+
+  .side .nav [data-view="postJob"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239db3ef' stroke-width='1.8' stroke-linecap='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='4'/%3E%3Cpath d='M12 8v8M8 12h8'/%3E%3C/svg%3E");
+  }
+
   .side .nav [data-view="jobs"]::before,
-  .side .nav [data-view="jobSearch"]::before { content: "⌕"; font-size: 17px; }
+  .side .nav [data-view="jobSearch"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239db3ef' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='7' width='18' height='12' rx='3'/%3E%3Cpath d='M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 12h18M10 12v2h4v-2'/%3E%3C/svg%3E");
+  }
+
   .side .nav [data-view="matches"]::before,
-  .side .nav [data-view="applications"]::before { content: "◎"; }
-  .side .nav [data-view="savedJobs"]::before { content: "◇"; }
-  .side .nav [data-view="messages"]::before { content: "✉"; font-size: 13px; }
+  .side .nav [data-view="applications"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239db3ef' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 20v-1.5a4.5 4.5 0 0 0-9 0V20'/%3E%3Ccircle cx='11.5' cy='8' r='3.5'/%3E%3Cpath d='m17 11 1.5 1.5L21 10'/%3E%3C/svg%3E");
+  }
+
+  .side .nav [data-view="savedJobs"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239db3ef' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 4h10a1 1 0 0 1 1 1v16l-6-4-6 4V5a1 1 0 0 1 1-1z'/%3E%3C/svg%3E");
+  }
+
+  .side .nav [data-view="messages"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239db3ef' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-8l-5 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z'/%3E%3Cpath d='M7.5 10h9M7.5 13h5'/%3E%3C/svg%3E");
+  }
+
   .side .nav [data-view="profile"]::before,
-  .side .nav a[href*="company-profile"]::before { content: "○"; }
+  .side .nav [data-view="companyProfile"]::before,
+  .side .nav a[href*="company-profile"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239db3ef' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20V7l8-3 8 3v13M8 9h2M14 9h2M8 13h2M14 13h2M9 20v-3h6v3'/%3E%3C/svg%3E");
+  }
+
+  .side .nav a[href*="employer-terms"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239db3ef' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 3h7l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z'/%3E%3Cpath d='M14 3v5h5M9 12h6M9 16h4'/%3E%3C/svg%3E");
+  }
+
   .side .nav [data-view="salary"]::before { content: "£"; font-size: 13px; }
   .side .nav button[onclick*="editProfile"]::before { content: "↗"; }
+
+  .side .nav button.active::before,
+  .side .nav a.active::before {
+    filter: brightness(1.45) saturate(0.7);
+  }
 
   .side .nav button:hover,
   .side .nav a:hover {
