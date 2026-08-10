@@ -116,7 +116,11 @@
           existing?.remove();
           return;
         }
-        const html = `<button class="rx-shared-passport-action" type="button" data-view-shared-passport="${safe(applicationId)}"><span>✓</span>View shared Career Passport · ${count}</button>`;
+        if (
+          existing?.dataset.viewSharedPassport === applicationId
+          && existing.dataset.sharedPassportCount === String(count)
+        ) return;
+        const html = `<button class="rx-shared-passport-action" type="button" data-view-shared-passport="${safe(applicationId)}" data-shared-passport-count="${count}"><span>✓</span>View shared Career Passport · ${count}</button>`;
         if (existing) existing.outerHTML = html;
         else actions.insertAdjacentHTML('beforeend', html);
       });
