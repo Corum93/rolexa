@@ -11,6 +11,7 @@
 /* Employer agreement loading and unavailable-state polish. */
 [hidden]{display:none!important}
 .unavailable{max-width:760px;padding-top:8px}
+.unavailable.show{margin-top:70px}
 .unavailable .card{position:relative;overflow:hidden;padding:46px 48px 42px;border-color:rgba(23,107,255,.12);box-shadow:0 24px 70px rgba(7,16,37,.11)}
 .unavailable .card:before{content:'';position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#176BFF,#68A2FF)}
 .unavailable-icon{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 20px;border:1px solid #D8E5FF;border-radius:18px;background:linear-gradient(145deg,#F7FAFF,#EAF2FF);color:var(--blue);box-shadow:0 10px 24px rgba(23,107,255,.1)}
@@ -23,7 +24,7 @@
 .unavailable .dashboard-link:focus-visible{outline:3px solid rgba(23,107,255,.25);outline-offset:3px}
 .dashboard-arrow{font-size:17px;line-height:1}
 .loader{min-height:150px}
-@media(max-width:620px){.unavailable{padding-top:4px}.unavailable .card{padding:34px 22px 30px}.unavailable h2{font-size:25px}.unavailable .dashboard-link{max-width:none}}
+@media(max-width:620px){.unavailable{padding-top:4px}.unavailable.show{margin-top:56px}.unavailable .card{padding:34px 22px 30px}.unavailable h2{font-size:25px}.unavailable .dashboard-link{max-width:none}}
 </style>
 </head>
 <body>
