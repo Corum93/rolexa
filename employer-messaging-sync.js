@@ -264,7 +264,6 @@
 
     const label = threadLabel(activeThread);
     head.querySelector('.rx-candidate-avatar')?.remove();
-    head.insertAdjacentHTML('afterbegin',avatarHtml(label,'small'));
     name.textContent = label.name;
     sub.textContent = label.sub;
     body.innerHTML = activeMessages.length ? activeMessages.map(message => {
