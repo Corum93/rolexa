@@ -1,0 +1,212 @@
+(() => {
+  if (window.__rolexaEmployerCareerEvidence) return;
+  window.__rolexaEmployerCareerEvidence = true;
+
+  const SUPABASE_URL = 'https://hndzomiigjjyyconeqpc.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_bHyw-HOLRFv_7FDAI1amhQ_MX-Sjocd';
+  let client = null;
+  let currentUser = null;
+  let definitions = [];
+  let issuedByApplication = new Map();
+  let decorating = false;
+
+  const byId = id => document.getElementById(id);
+  const safe = value => String(value ?? '').replace(/[&<>\"]/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;'
+  }[character]));
+  const titleCase = value => String(value || '').replace(/_/g, ' ').replace(/\b\w/g, character => character.toUpperCase());
+
+  function addStyles() {
+    if (byId('rxCareerEvidenceStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'rxCareerEvidenceStyles';
+    style.textContent = `
+      .rx-evidence-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;width:100%;margin-top:3px}.rx-evidence-issue-btn{border:1px solid rgba(23,107,255,.22);background:#EEF3FF;color:#2946C7;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900}.rx-evidence-issue-btn:hover{background:#E0E9FF}.rx-evidence-count{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:#E1F6EB;color:#176B49;padding:7px 9px;font-size:11px;font-weight:900}
+      .rx-evidence-modal-backdrop{position:fixed;inset:0;background:rgba(7,16,37,.62);z-index:10020;display:flex;align-items:center;justify-content:center;padding:20px}.rx-evidence-modal{width:min(680px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:24px;border:1px solid rgba(255,255,255,.22);box-shadow:0 32px 90px rgba(7,16,37,.38)}
+      .rx-evidence-modal-head{padding:22px 24px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.rx-evidence-modal-head h2{font-size:24px;margin:0}.rx-evidence-modal-head p{font-size:12.5px;color:#6B7280;line-height:1.5;margin:6px 0 0;max-width:520px}.rx-evidence-modal-close{border:1px solid var(--line);background:#fff;color:#0A1738;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900}
+      .rx-evidence-modal-body{padding:22px 24px;display:grid;gap:13px}.rx-evidence-principle{border:1px solid rgba(23,107,255,.17);background:#EEF3FF;color:#2946C7;border-radius:13px;padding:11px 12px;font-size:12px;line-height:1.5;font-weight:760}.rx-evidence-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.rx-evidence-field{display:grid;gap:6px}.rx-evidence-field.full{grid-column:1/-1}.rx-evidence-field label{font-size:11px;text-transform:uppercase;letter-spacing:.045em;color:#51617F;font-weight:900}.rx-evidence-field select,.rx-evidence-field textarea{width:100%;border:1px solid var(--line);background:#F8FAFE;color:#071025;border-radius:12px;padding:11px 12px;font-size:13px;outline:none}.rx-evidence-field textarea{min-height:92px;resize:vertical;line-height:1.5}.rx-evidence-field select:focus,.rx-evidence-field textarea:focus{border-color:#176BFF;background:#fff}.rx-evidence-help{font-size:11.5px;color:#7A879F;line-height:1.45}.rx-evidence-modal-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:3px}.rx-evidence-submit{border:0;background:#176BFF;color:#fff;border-radius:999px;padding:11px 15px;font-size:12.5px;font-weight:900}.rx-evidence-submit:disabled{opacity:.6;cursor:not-allowed}
+      @media(max-width:700px){.rx-evidence-modal-backdrop{padding:8px;align-items:flex-end}.rx-evidence-modal{border-radius:22px 22px 0 0}.rx-evidence-modal-head,.rx-evidence-modal-body{padding:18px 16px}.rx-evidence-form-grid{grid-template-columns:1fr}.rx-evidence-field.full{grid-column:auto}.rx-evidence-modal-actions{justify-content:stretch}.rx-evidence-submit{width:100%}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  async function loadSupabase() {
+    if (window.supabase?.createClient) return window.supabase;
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Could not connect to verified evidence.'));
+      document.head.appendChild(script);
+    });
+    return window.supabase;
+  }
+
+  function showStatus(message, type = 'info') {
+    const bar = byId('statusBar');
+    if (!bar) return;
+    bar.className = `statusbar show ${type}`;
+    bar.textContent = message;
+    setTimeout(() => {
+      if (bar.textContent === message) bar.className = 'statusbar';
+    }, 4800);
+  }
+
+  function applicationIdFromCard(card) {
+    const control = card.querySelector('[data-app-id], [data-stage-app-id], [data-review-profile], [data-review-cv]');
+    return control?.getAttribute('data-app-id')
+      || control?.getAttribute('data-stage-app-id')
+      || control?.getAttribute('data-review-profile')
+      || control?.getAttribute('data-review-cv')
+      || '';
+  }
+
+  async function loadFoundation() {
+    if (!client || !currentUser) return false;
+    const [definitionResult, issuedResult] = await Promise.all([
+      client.from('evidence_definitions').select('code,name,category,description,sort_order').eq('is_active', true).order('sort_order'),
+      client.from('candidate_evidence').select('id,application_id,candidate_status,evidence_definition:evidence_definitions(code,name)').eq('issuing_employer_user_id', currentUser.id)
+    ]);
+    if (definitionResult.error || issuedResult.error) return false;
+    definitions = definitionResult.data || [];
+    issuedByApplication = new Map();
+    (issuedResult.data || []).forEach(row => {
+      const list = issuedByApplication.get(row.application_id) || [];
+      list.push(row);
+      issuedByApplication.set(row.application_id, list);
+    });
+    return true;
+  }
+
+  function decorateCards() {
+    if (decorating || !definitions.length) return;
+    decorating = true;
+    try {
+      document.querySelectorAll('.rx-app-card').forEach(card => {
+        const applicationId = applicationIdFromCard(card);
+        const actions = card.querySelector('.rx-app-actions');
+        if (!applicationId || !actions) return;
+        const count = (issuedByApplication.get(applicationId) || []).length;
+        const existing = actions.querySelector('[data-evidence-actions-for]');
+        if (existing?.dataset.evidenceCount === String(count)) return;
+        const html = `<span class="rx-evidence-actions" data-evidence-actions-for="${safe(applicationId)}" data-evidence-count="${count}"><button class="rx-evidence-issue-btn" type="button" data-issue-evidence="${safe(applicationId)}">Verify positive evidence</button>${count ? `<span class="rx-evidence-count">✓ ${count} issued</span>` : ''}</span>`;
+        if (existing) existing.outerHTML = html;
+        else actions.insertAdjacentHTML('beforeend', html);
+      });
+    } finally {
+      decorating = false;
+    }
+  }
+
+  function availableDefinitions(applicationId) {
+    const used = new Set((issuedByApplication.get(applicationId) || []).map(row => row.evidence_definition?.code).filter(Boolean));
+    return definitions.filter(definition => !used.has(definition.code));
+  }
+
+  function openModal(applicationId) {
+    closeModal();
+    const available = availableDefinitions(applicationId);
+    const definitionOptions = available.map(definition => `<option value="${safe(definition.code)}">${safe(definition.name)} · ${safe(titleCase(definition.category))}</option>`).join('');
+    const disabled = available.length ? '' : 'disabled';
+    document.body.insertAdjacentHTML('beforeend', `<div class="rx-evidence-modal-backdrop" id="rxEvidenceModal"><div class="rx-evidence-modal" role="dialog" aria-modal="true" aria-labelledby="rxEvidenceModalTitle">
+      <div class="rx-evidence-modal-head"><div><h2 id="rxEvidenceModalTitle">Verify positive evidence</h2><p>Award reusable evidence only where the candidate genuinely demonstrated it during this hiring process.</p></div><button class="rx-evidence-modal-close" type="button" data-close-evidence-modal>Close</button></div>
+      <form class="rx-evidence-modal-body" id="rxEvidenceForm" data-application-id="${safe(applicationId)}">
+        <div class="rx-evidence-principle"><b>Positive evidence only.</b> Do not record rejection reasons, personality judgements, health information, protected characteristics or confidential interview notes.</div>
+        ${available.length ? '' : '<div class="rx-evidence-principle">Every current evidence type has already been issued for this application.</div>'}
+        <div class="rx-evidence-form-grid">
+          <div class="rx-evidence-field full"><label for="rxEvidenceDefinition">Evidence type</label><select id="rxEvidenceDefinition" required ${disabled}>${definitionOptions}</select><span class="rx-evidence-help" id="rxEvidenceDefinitionHelp"></span></div>
+          <div class="rx-evidence-field"><label for="rxEvidenceSource">How it was demonstrated</label><select id="rxEvidenceSource" required><option value="application_review">Application review</option><option value="screening">Screening</option><option value="interview" selected>Interview</option><option value="case_presentation">Case presentation</option><option value="role_specific_task">Role-specific task</option><option value="reference_check">Reference check</option><option value="employment_verification">Employment verification</option></select></div>
+          <div class="rx-evidence-field"><label for="rxEvidenceLevel">Demonstrated level</label><select id="rxEvidenceLevel" required><option value="demonstrated">Demonstrated</option><option value="strong">Strong</option><option value="advanced">Advanced</option></select></div>
+          <div class="rx-evidence-field full"><label for="rxEvidenceNote">Short factual note (optional)</label><textarea id="rxEvidenceNote" maxlength="500" placeholder="Example: Presented a clear 90-day operational plan and answered follow-up questions using measurable assumptions."></textarea><span class="rx-evidence-help">Write what was observed, not an opinion about the person. Maximum 500 characters.</span></div>
+        </div>
+        <div class="rx-evidence-modal-actions"><button class="rx-evidence-submit" type="submit" ${disabled}>Send to candidate for approval</button></div>
+      </form>
+    </div></div>`);
+    updateDefinitionHelp();
+  }
+
+  function closeModal() {
+    byId('rxEvidenceModal')?.remove();
+  }
+
+  function updateDefinitionHelp() {
+    const select = byId('rxEvidenceDefinition');
+    const help = byId('rxEvidenceDefinitionHelp');
+    const definition = definitions.find(item => item.code === select?.value);
+    if (help) help.textContent = definition?.description || '';
+  }
+
+  async function submitEvidence(form) {
+    const button = form.querySelector('[type="submit"]');
+    const applicationId = form.dataset.applicationId;
+    const note = byId('rxEvidenceNote')?.value.trim() || null;
+    if (note && note.length < 3) {
+      showStatus('The factual note must contain at least 3 characters or be left blank.', 'bad');
+      return;
+    }
+    const previous = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Sending…';
+    const result = await client.rpc('issue_candidate_evidence', {
+      p_application_id: applicationId,
+      p_definition_code: byId('rxEvidenceDefinition').value,
+      p_demonstrated_level: byId('rxEvidenceLevel').value,
+      p_evidence_source: byId('rxEvidenceSource').value,
+      p_factual_note: note,
+      p_expires_at: null
+    });
+    button.disabled = false;
+    button.textContent = previous;
+    if (result.error) {
+      const message = result.error.message?.includes('EVIDENCE_ALREADY_ISSUED')
+        ? 'That evidence type has already been issued for this application.'
+        : result.error.message || 'Could not issue verified evidence.';
+      showStatus(message, 'bad');
+      return;
+    }
+    closeModal();
+    showStatus('Positive evidence sent to the candidate for approval.', 'good');
+    await loadFoundation();
+    decorateCards();
+  }
+
+  async function init() {
+    addStyles();
+    try {
+      const library = await loadSupabase();
+      client = library.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const sessionResult = await client.auth.getSession();
+      currentUser = sessionResult.data?.session?.user || null;
+      if (!currentUser || !(await loadFoundation())) return;
+
+      decorateCards();
+      const observer = new MutationObserver(() => {
+        clearTimeout(window.__rxEvidenceDecorateTimer);
+        window.__rxEvidenceDecorateTimer = setTimeout(decorateCards, 90);
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      document.addEventListener('click', event => {
+        const issueButton = event.target.closest?.('[data-issue-evidence]');
+        if (issueButton) {
+          event.preventDefault();
+          openModal(issueButton.dataset.issueEvidence);
+          return;
+        }
+        if (event.target.closest?.('[data-close-evidence-modal]') || event.target.id === 'rxEvidenceModal') closeModal();
+      });
+      document.addEventListener('change', event => {
+        if (event.target.id === 'rxEvidenceDefinition') updateDefinitionHelp();
+      });
+      document.addEventListener('submit', event => {
+        if (event.target.id !== 'rxEvidenceForm') return;
+        event.preventDefault();
+        submitEvidence(event.target);
+      });
+    } catch (error) {
+      console.warn('[Rolexa] Verified career evidence could not initialise.', error);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
