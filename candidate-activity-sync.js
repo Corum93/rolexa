@@ -158,7 +158,7 @@
     const [jobsRes, savedRes, appsRes, msgRes, stagesRes] = await Promise.all([
       client.from('jobs').select('*').eq('is_active', true).order('created_at', { ascending: true }),
       client.from('candidate_saved_jobs').select('job_id, created_at').eq('user_id', user.id),
-      client.from('candidate_applications').select('job_id,status,applied_at,updated_at,current_hiring_stage_id,hiring_stage_updated_at').eq('user_id', user.id).order('updated_at', { ascending: false }),
+      client.from('candidate_applications').select('id,job_id,status,applied_at,updated_at,current_hiring_stage_id,hiring_stage_updated_at').eq('user_id', user.id).order('updated_at', { ascending: false }),
       client.from('candidate_messages').select('*').eq('user_id', user.id).order('created_at', { ascending: true }),
       client.from('job_hiring_stages').select('id,job_id,stage_order,stage_name,stage_type').order('stage_order', { ascending: true })
     ]);
@@ -241,9 +241,19 @@
 
   function threadLabel(key){
     if (key === 'support') return { name: 'Rolexa Support', sub: 'Candidate support' };
+    if (String(key || '').startsWith('application:')) {
+      const applicationId = String(key).slice('application:'.length);
+      const application = syncedApplications.find(item => String(item.id) === applicationId);
+      const job = application && syncedJobs.find(item => String(item.id) === String(application.job_id));
+      const currentStage = application ? currentStageFor(application) : null;
+      return {
+        name: job?.company || 'Employer',
+        sub: `${job?.title || 'Application'} · ${currentStage?.stage_name || application?.status || 'Application conversation'}`
+      };
+    }
     if (key === 'proxima') return { name: 'Laura Harrison', sub: 'Proxima Labs' };
     if (key === 'northbridge') return { name: 'Michael Chen', sub: 'Northbridge Digital' };
-    return { name: key, sub: 'Message thread' };
+    return { name: 'Employer', sub: 'Application conversation' };
   }
 
   async function ensureStarterMessages(){
