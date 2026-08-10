@@ -21,15 +21,8 @@
     .split(/\s+/).filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'C';
 
   function orderedStages(stages) {
-    const group = stage => {
-      const type = String(stage.stage_type || '').toLowerCase();
-      if (type === 'review') return 0;
-      if (type === 'shortlist') return 1;
-      if (type === 'offer') return 3;
-      return 2;
-    };
     return [...stages].sort((left, right) =>
-      group(left) - group(right) || Number(left.stage_order || 0) - Number(right.stage_order || 0)
+      Number(left.stage_order || 0) - Number(right.stage_order || 0)
     );
   }
 
