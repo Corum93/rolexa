@@ -12,7 +12,6 @@
     #why:before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(76,116,255,.22),transparent)}
     #why .sec-head{margin-bottom:22px!important;align-items:flex-start}
     #why .sec-head>div{max-width:760px}
-    #why .sec-head>div:before{content:'Why Rolexa';display:inline-flex;align-items:center;background:#e9edff;color:#2946c7;border-radius:999px;padding:6px 11px;font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
     #why .sec-head h2{font-size:34px!important;line-height:1.15;letter-spacing:-.025em}
     #why .sec-head p{max-width:720px!important;font-size:15px!important;line-height:1.62!important;color:#626c82!important}
     #why .compare-table-wrap{position:relative;overflow:hidden!important;border:1px solid rgba(10,14,26,.09)!important;border-radius:24px!important;padding:0!important;background:#fff!important;box-shadow:0 24px 60px rgba(10,14,26,.08)!important}
