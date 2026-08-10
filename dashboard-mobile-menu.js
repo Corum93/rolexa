@@ -1,6 +1,6 @@
 (() => {
-  if (window.__rolexaDashboardSharedLoaderV7) return;
-  window.__rolexaDashboardSharedLoaderV7 = true;
+  if (window.__rolexaDashboardSharedLoaderV8) return;
+  window.__rolexaDashboardSharedLoaderV8 = true;
 
   const isDashboard = /(?:candidate|employer)-dashboard\.html$/.test(location.pathname);
   if (!isDashboard) return;
@@ -24,7 +24,7 @@
     '__rolexaStableDashboardMenuRequested',
     () => {
       load('dashboard-mobile-menu-premium.js?v=1','__rolexaPremiumDashboardMenuRequestedV1');
-      load('dashboard-messages-layout.js?v=2','__rolexaMessagesLayoutRequestedV2');
+      load('dashboard-messages-layout.js?v=3','__rolexaMessagesLayoutRequestedV3');
     }
   );
 })();
