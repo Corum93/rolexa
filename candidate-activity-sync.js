@@ -13,6 +13,7 @@
   let syncedSaved = [];
   let syncedApplications = [];
   let syncedMessages = [];
+  let syncedHiringStages = [];
   let activeThread = 'support';
 
   function byId(id){ return document.getElementById(id); }
@@ -71,25 +72,45 @@
     };
   }
 
-  function statusClass(s){
-    if (s === 'Shortlisted' || s === 'Hired') return 'tag';
-    if (s === 'Interview' || s === 'Offer') return 'tag warn';
-    if (s === 'Rejected') return 'tag bad';
-    if (s === 'Withdrawn') return 'tag blue';
+  function orderedStages(stages){
+    return [...stages].sort((left, right) =>
+      Number(left.stage_order || 0) - Number(right.stage_order || 0)
+    );
+  }
+
+  function stagesForApplication(application){
+    return orderedStages(syncedHiringStages.filter(stage => String(stage.job_id) === String(application.job_id)));
+  }
+
+  function currentStageFor(application, stages = stagesForApplication(application)){
+    return stages.find(stage => String(stage.id) === String(application.current_hiring_stage_id || '')) || stages[0] || null;
+  }
+
+  function statusClass(application, stage){
+    const status = String(application.status || 'Applied');
+    if (status === 'Hired') return 'tag';
+    if (status === 'Rejected') return 'tag bad';
+    if (status === 'Withdrawn') return 'tag blue';
+    if (['interview','assessment','offer'].includes(String(stage?.stage_type || '').toLowerCase())) return 'tag warn';
+    if (String(stage?.stage_type || '').toLowerCase() === 'shortlist') return 'tag';
     return 'tag blue';
   }
 
-  function statusMessage(s){
-    const messages = {
-      Applied: 'Application received by the employer.',
-      Shortlisted: 'Good news — you have been shortlisted.',
-      Interview: 'The employer has moved you to interview stage.',
-      Offer: 'The employer has moved you to offer stage.',
-      Hired: 'Congratulations — marked as hired.',
-      Rejected: 'Not a match this time.',
-      Withdrawn: 'You withdrew this application.'
-    };
-    return messages[s] || 'Application status updated.';
+  function displayStageName(application, current){
+    const status = String(application.status || 'Applied');
+    if (['Hired','Rejected','Withdrawn'].includes(status)) return status;
+    return current?.stage_name || status;
+  }
+
+  function statusMessage(application, current, next){
+    const status = String(application.status || 'Applied');
+    if (status === 'Hired') return 'Congratulations. You have been marked as hired.';
+    if (status === 'Rejected') return 'This application is no longer progressing.';
+    if (status === 'Withdrawn') return 'You withdrew this application.';
+    if (!current) return 'Application received by the employer.';
+    return next
+      ? `Current stage: ${current.stage_name}. Next stage: ${next.stage_name}.`
+      : `Current stage: ${current.stage_name}. This is the final configured stage.`;
   }
 
   function formatDateTime(value){
@@ -99,20 +120,23 @@
     } catch(e) { return 'Not updated yet'; }
   }
 
-  function timelineHtml(status){
-    if (status === 'Rejected') {
-      return `<div class="rx-timeline"><span class="rx-step done"><span class="rx-dot"></span>Applied</span><span class="rx-line done"></span><span class="rx-step rejected current"><span class="rx-dot"></span>Rejected</span></div>`;
-    }
-    if (status === 'Withdrawn') {
-      return `<div class="rx-timeline"><span class="rx-step done"><span class="rx-dot"></span>Applied</span><span class="rx-line done"></span><span class="rx-step withdrawn current"><span class="rx-dot"></span>Withdrawn</span></div>`;
-    }
-    const stages = ['Applied','Shortlisted','Interview','Offer','Hired'];
-    const currentIndex = Math.max(0, stages.indexOf(status || 'Applied'));
-    return `<div class="rx-timeline">${stages.map((stage, index) => {
-      const state = index < currentIndex ? 'done' : index === currentIndex ? 'current' : '';
-      const line = index < stages.length - 1 ? `<span class="rx-line ${index < currentIndex ? 'done' : ''}"></span>` : '';
-      return `<span class="rx-step ${state}"><span class="rx-dot"></span>${safe(stage)}</span>${line}`;
-    }).join('')}</div>`;
+  function timelineHtml(application, stages){
+    const status = String(application.status || 'Applied');
+    const terminal = ['Hired','Rejected','Withdrawn'].includes(status) ? status : '';
+    const configured = stages.length ? stages : [{ id:'fallback', stage_name:status, stage_order:1 }];
+    const current = currentStageFor(application, configured);
+    const currentIndex = Math.max(0, configured.findIndex(stage => stage === current || String(stage.id) === String(current?.id)));
+    const process = configured.map((stage, index) => {
+      const reached = index < currentIndex || (terminal && index === currentIndex);
+      const state = reached ? 'done' : index === currentIndex ? 'current' : '';
+      const lineDone = index < currentIndex || (terminal && index === currentIndex);
+      const line = index < configured.length - 1 || terminal ? `<span class="rx-line ${lineDone ? 'done' : ''}"></span>` : '';
+      return `<span class="rx-step ${state}"><span class="rx-dot"></span>${safe(stage.stage_name)}</span>${line}`;
+    }).join('');
+    const terminalStep = terminal
+      ? `<span class="rx-step ${terminal.toLowerCase()} current"><span class="rx-dot"></span>${safe(terminal)}</span>`
+      : '';
+    return `<div class="rx-timeline">${process}${terminalStep}</div>`;
   }
 
   function isSaved(id){ return syncedSaved.some(x => x.job_id === id); }
@@ -131,14 +155,15 @@
   }
 
   async function loadData(){
-    const [jobsRes, savedRes, appsRes, msgRes] = await Promise.all([
+    const [jobsRes, savedRes, appsRes, msgRes, stagesRes] = await Promise.all([
       client.from('jobs').select('*').eq('is_active', true).order('created_at', { ascending: true }),
       client.from('candidate_saved_jobs').select('job_id, created_at').eq('user_id', user.id),
-      client.from('candidate_applications').select('job_id, status, applied_at, updated_at').eq('user_id', user.id).order('updated_at', { ascending: false }),
-      client.from('candidate_messages').select('*').eq('user_id', user.id).order('created_at', { ascending: true })
+      client.from('candidate_applications').select('job_id,status,applied_at,updated_at,current_hiring_stage_id,hiring_stage_updated_at').eq('user_id', user.id).order('updated_at', { ascending: false }),
+      client.from('candidate_messages').select('*').eq('user_id', user.id).order('created_at', { ascending: true }),
+      client.from('job_hiring_stages').select('id,job_id,stage_order,stage_name,stage_type').order('stage_order', { ascending: true })
     ]);
-    if (jobsRes.error || savedRes.error || appsRes.error || msgRes.error) {
-      console.warn('Rolexa activity load error', jobsRes.error || savedRes.error || appsRes.error || msgRes.error);
+    if (jobsRes.error || savedRes.error || appsRes.error || msgRes.error || stagesRes.error) {
+      console.warn('Rolexa activity load error', jobsRes.error || savedRes.error || appsRes.error || msgRes.error || stagesRes.error);
       showStatus('bad', 'Could not load your activity.');
       return false;
     }
@@ -146,6 +171,7 @@
     syncedSaved = savedRes.data || [];
     syncedApplications = appsRes.data || [];
     syncedMessages = msgRes.data || [];
+    syncedHiringStages = stagesRes.data || [];
     return true;
   }
 
@@ -166,8 +192,16 @@
     byId('applicationsList').innerHTML = syncedApplications.map(a => {
       const j = syncedJobs.find(x => x.id === a.job_id) || { title: a.job_id, company: 'Rolexa', logo: 'R', cls: 'blue' };
       const date = a.applied_at ? new Date(a.applied_at).toLocaleDateString('en-GB') : '';
-      const actions = a.status === 'Applied' ? `<div class="rx-candidate-actions"><button class="rx-withdraw-btn" type="button" onclick="withdrawApplication('${safe(a.job_id)}')">Withdraw</button></div>` : `<span class="${statusClass(a.status)}">${safe(a.status)}</span>`;
-      return `<div class="application rx-app-card-live"><div class="logo ${safe(j.cls)}">${safe(j.logo)}</div><div class="rx-app-body"><div class="item-title">${safe(j.title)}</div><div class="item-sub">${safe(j.company)}${date ? ', applied ' + date : ''}</div><div class="item-sub">${safe(statusMessage(a.status))}</div><div class="rx-updated">Last updated: ${safe(formatDateTime(a.updated_at || a.applied_at))}</div>${timelineHtml(a.status)}</div>${actions}</div>`;
+      const stages = stagesForApplication(a);
+      const current = currentStageFor(a, stages);
+      const currentIndex = Math.max(0, stages.findIndex(stage => String(stage.id) === String(current?.id)));
+      const next = stages[currentIndex + 1] || null;
+      const statusLabel = displayStageName(a, current);
+      const canWithdraw = a.status === 'Applied' && currentIndex === 0;
+      const actions = canWithdraw
+        ? `<div class="rx-candidate-actions"><span class="${statusClass(a, current)}">${safe(statusLabel)}</span><button class="rx-withdraw-btn" type="button" onclick="withdrawApplication('${safe(a.job_id)}')">Withdraw</button></div>`
+        : `<span class="${statusClass(a, current)}">${safe(statusLabel)}</span>`;
+      return `<div class="application rx-app-card-live"><div class="logo ${safe(j.cls)}">${safe(j.logo)}</div><div class="rx-app-body"><div class="item-title">${safe(j.title)}</div><div class="item-sub">${safe(j.company)}${date ? ', applied ' + date : ''}</div><div class="item-sub">${safe(statusMessage(a, current, next))}</div><div class="rx-updated">Last updated: ${safe(formatDateTime(a.hiring_stage_updated_at || a.updated_at || a.applied_at))}</div>${timelineHtml(a, stages)}</div>${actions}</div>`;
     }).join('');
   }
 
