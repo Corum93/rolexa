@@ -8,7 +8,18 @@
   let currentUser = null;
   let definitions = [];
   let issuedByApplication = new Map();
+  let applicationContext = new Map();
   let decorating = false;
+
+  const SOURCE_OPTIONS = [
+    ['application_review', 'Application review'],
+    ['screening', 'Screening'],
+    ['interview', 'Interview'],
+    ['case_presentation', 'Case presentation'],
+    ['role_specific_task', 'Role-specific task'],
+    ['reference_check', 'Reference check'],
+    ['employment_verification', 'Employment verification']
+  ];
 
   const byId = id => document.getElementById(id);
   const safe = value => String(value ?? '').replace(/[&<>\"]/g, character => ({
@@ -53,6 +64,8 @@
   }
 
   function applicationIdFromCard(card) {
+    const direct = card.getAttribute('data-evidence-application-id');
+    if (direct) return direct;
     const control = card.querySelector('[data-app-id], [data-stage-app-id], [data-review-profile], [data-review-cv]');
     return control?.getAttribute('data-app-id')
       || control?.getAttribute('data-stage-app-id')
@@ -61,13 +74,48 @@
       || '';
   }
 
+  function orderedStages(stages) {
+    const group = stage => {
+      const type = String(stage.stage_type || '').toLowerCase();
+      if (type === 'review') return 0;
+      if (type === 'shortlist') return 1;
+      if (type === 'offer') return 3;
+      return 2;
+    };
+    return [...stages].sort((left, right) =>
+      group(left) - group(right) || Number(left.stage_order || 0) - Number(right.stage_order || 0)
+    );
+  }
+
+  function sourcesForApplication(application, stages) {
+    const allowed = new Set(['application_review', 'screening']);
+    if (!application || String(application.status || '').toLowerCase() === 'withdrawn') return [];
+    const ordered = orderedStages(stages || []);
+    let currentIndex = ordered.findIndex(stage => stage.id === application.current_hiring_stage_id);
+    if (currentIndex < 0) currentIndex = 0;
+    ordered.slice(0, currentIndex + 1).forEach(stage => {
+      const type = String(stage.stage_type || '').toLowerCase();
+      if (type === 'interview') allowed.add('interview');
+      if (type === 'assessment') {
+        allowed.add('case_presentation');
+        allowed.add('role_specific_task');
+      }
+      if (type === 'offer') {
+        allowed.add('reference_check');
+        allowed.add('employment_verification');
+      }
+    });
+    return SOURCE_OPTIONS.filter(([value]) => allowed.has(value));
+  }
+
   async function loadFoundation() {
     if (!client || !currentUser) return false;
-    const [definitionResult, issuedResult] = await Promise.all([
+    const [definitionResult, issuedResult, jobsResult] = await Promise.all([
       client.from('evidence_definitions').select('code,name,category,description,sort_order').eq('is_active', true).order('sort_order'),
-      client.from('candidate_evidence').select('id,application_id,candidate_status,evidence_definition:evidence_definitions(code,name)').eq('issuing_employer_user_id', currentUser.id)
+      client.from('candidate_evidence').select('id,application_id,candidate_status,evidence_definition:evidence_definitions(code,name)').eq('issuing_employer_user_id', currentUser.id),
+      client.from('jobs').select('id').eq('employer_user_id', currentUser.id)
     ]);
-    if (definitionResult.error || issuedResult.error) return false;
+    if (definitionResult.error || issuedResult.error || jobsResult.error) return false;
     definitions = definitionResult.data || [];
     issuedByApplication = new Map();
     (issuedResult.data || []).forEach(row => {
@@ -75,6 +123,30 @@
       list.push(row);
       issuedByApplication.set(row.application_id, list);
     });
+
+    applicationContext = new Map();
+    const jobIds = (jobsResult.data || []).map(job => job.id).filter(Boolean);
+    if (jobIds.length) {
+      const [applicationsResult, stagesResult] = await Promise.all([
+        client.from('candidate_applications').select('id,job_id,status,current_hiring_stage_id').in('job_id', jobIds),
+        client.from('job_hiring_stages').select('id,job_id,stage_order,stage_name,stage_type').in('job_id', jobIds).order('stage_order')
+      ]);
+      if (applicationsResult.error || stagesResult.error) return false;
+      const stagesByJob = new Map();
+      (stagesResult.data || []).forEach(stage => {
+        const list = stagesByJob.get(stage.job_id) || [];
+        list.push(stage);
+        stagesByJob.set(stage.job_id, list);
+      });
+      (applicationsResult.data || []).forEach(application => {
+        const stages = orderedStages(stagesByJob.get(application.job_id) || []);
+        applicationContext.set(application.id, {
+          application,
+          stages,
+          sources: sourcesForApplication(application, stages)
+        });
+      });
+    }
     return true;
   }
 
@@ -82,12 +154,18 @@
     if (decorating || !definitions.length) return;
     decorating = true;
     try {
-      document.querySelectorAll('.rx-app-card').forEach(card => {
+      document.querySelectorAll('.rx-app-card, .rx-pipeline-card').forEach(card => {
         const applicationId = applicationIdFromCard(card);
-        const actions = card.querySelector('.rx-app-actions');
+        const actions = card.querySelector('.rx-app-actions, .rx-pipeline-card-actions');
         if (!applicationId || !actions) return;
+        const context = applicationContext.get(applicationId);
+        const withdrawn = String(context?.application?.status || '').toLowerCase() === 'withdrawn';
         const count = (issuedByApplication.get(applicationId) || []).length;
         const existing = actions.querySelector('[data-evidence-actions-for]');
+        if (withdrawn) {
+          existing?.remove();
+          return;
+        }
         if (existing?.dataset.evidenceCount === String(count)) return;
         const html = `<span class="rx-evidence-actions" data-evidence-actions-for="${safe(applicationId)}" data-evidence-count="${count}"><button class="rx-evidence-issue-btn" type="button" data-issue-evidence="${safe(applicationId)}">Verify positive evidence</button>${count ? `<span class="rx-evidence-count">✓ ${count} issued</span>` : ''}</span>`;
         if (existing) existing.outerHTML = html;
@@ -103,11 +181,27 @@
     return definitions.filter(definition => !used.has(definition.code));
   }
 
-  function openModal(applicationId) {
+  async function openModal(applicationId) {
+    if (!(await loadFoundation())) {
+      showStatus('Verified evidence could not be refreshed. Please try again.', 'bad');
+      return;
+    }
+    decorateCards();
+    const context = applicationContext.get(applicationId);
+    if (!context) {
+      showStatus('This application could not be verified for evidence.', 'bad');
+      return;
+    }
+    if (String(context.application.status || '').toLowerCase() === 'withdrawn') {
+      showStatus('Evidence cannot be issued because the candidate withdrew this application.', 'bad');
+      return;
+    }
     closeModal();
     const available = availableDefinitions(applicationId);
+    const sourceOptions = context.sources.map(([value, label]) => `<option value="${safe(value)}">${safe(label)}</option>`).join('');
+    const currentStage = context.stages.find(stage => stage.id === context.application.current_hiring_stage_id) || context.stages[0];
     const definitionOptions = available.map(definition => `<option value="${safe(definition.code)}">${safe(definition.name)} · ${safe(titleCase(definition.category))}</option>`).join('');
-    const disabled = available.length ? '' : 'disabled';
+    const disabled = available.length && context.sources.length ? '' : 'disabled';
     document.body.insertAdjacentHTML('beforeend', `<div class="rx-evidence-modal-backdrop" id="rxEvidenceModal"><div class="rx-evidence-modal" role="dialog" aria-modal="true" aria-labelledby="rxEvidenceModalTitle">
       <div class="rx-evidence-modal-head"><div><h2 id="rxEvidenceModalTitle">Verify positive evidence</h2><p>Award reusable evidence only where the candidate genuinely demonstrated it during this hiring process.</p></div><button class="rx-evidence-modal-close" type="button" data-close-evidence-modal>Close</button></div>
       <form class="rx-evidence-modal-body" id="rxEvidenceForm" data-application-id="${safe(applicationId)}">
@@ -115,7 +209,7 @@
         ${available.length ? '' : '<div class="rx-evidence-principle">Every current evidence type has already been issued for this application.</div>'}
         <div class="rx-evidence-form-grid">
           <div class="rx-evidence-field full"><label for="rxEvidenceDefinition">Evidence type</label><select id="rxEvidenceDefinition" required ${disabled}>${definitionOptions}</select><span class="rx-evidence-help" id="rxEvidenceDefinitionHelp"></span></div>
-          <div class="rx-evidence-field"><label for="rxEvidenceSource">How it was demonstrated</label><select id="rxEvidenceSource" required><option value="application_review">Application review</option><option value="screening">Screening</option><option value="interview" selected>Interview</option><option value="case_presentation">Case presentation</option><option value="role_specific_task">Role-specific task</option><option value="reference_check">Reference check</option><option value="employment_verification">Employment verification</option></select></div>
+          <div class="rx-evidence-field"><label for="rxEvidenceSource">How it was demonstrated</label><select id="rxEvidenceSource" required ${disabled}>${sourceOptions}</select><span class="rx-evidence-help">Available for the reached stage${currentStage ? `: ${safe(currentStage.stage_name)}` : ''}.</span></div>
           <div class="rx-evidence-field"><label for="rxEvidenceLevel">Demonstrated level</label><select id="rxEvidenceLevel" required><option value="demonstrated">Demonstrated</option><option value="strong">Strong</option><option value="advanced">Advanced</option></select></div>
           <div class="rx-evidence-field full"><label for="rxEvidenceNote">Short factual note (optional)</label><textarea id="rxEvidenceNote" maxlength="500" placeholder="Example: Presented a clear 90-day operational plan and answered follow-up questions using measurable assumptions."></textarea><span class="rx-evidence-help">Write what was observed, not an opinion about the person. Maximum 500 characters.</span></div>
         </div>
@@ -158,9 +252,16 @@
     button.disabled = false;
     button.textContent = previous;
     if (result.error) {
-      const message = result.error.message?.includes('EVIDENCE_ALREADY_ISSUED')
+      const rawMessage = result.error.message || '';
+      const message = rawMessage.includes('EVIDENCE_ALREADY_ISSUED')
         ? 'That evidence type has already been issued for this application.'
-        : result.error.message || 'Could not issue verified evidence.';
+        : rawMessage.includes('EVIDENCE_SOURCE_NOT_REACHED')
+          ? 'That evidence source is not available until the candidate reaches the matching hiring stage.'
+          : rawMessage.includes('WITHDRAWN_APPLICATION')
+            ? 'Evidence cannot be issued because the candidate withdrew this application.'
+            : rawMessage.includes('EMPLOYER_CANNOT_ISSUE_EVIDENCE_TO_SELF')
+              ? 'Use a separate candidate account to test evidence. An employer cannot issue evidence to its own account.'
+              : rawMessage || 'Could not issue verified evidence.';
       showStatus(message, 'bad');
       return;
     }
@@ -186,11 +287,18 @@
       });
       observer.observe(document.body, { childList: true, subtree: true });
 
-      document.addEventListener('click', event => {
+      document.addEventListener('click', async event => {
         const issueButton = event.target.closest?.('[data-issue-evidence]');
         if (issueButton) {
           event.preventDefault();
-          openModal(issueButton.dataset.issueEvidence);
+          const previous = issueButton.textContent;
+          issueButton.disabled = true;
+          issueButton.textContent = 'Checking…';
+          await openModal(issueButton.dataset.issueEvidence);
+          if (issueButton.isConnected) {
+            issueButton.disabled = false;
+            issueButton.textContent = previous;
+          }
           return;
         }
         if (event.target.closest?.('[data-close-evidence-modal]') || event.target.id === 'rxEvidenceModal') closeModal();
