@@ -113,11 +113,16 @@
 
     const [appsResult,stagesResult] = await Promise.all([
       client.from('candidate_applications').select('id,user_id,job_id,status,current_hiring_stage_id').in('job_id',jobIds),
-      client.from('job_hiring_stages').select('id,job_id,stage_type').in('job_id',jobIds)
+      client.from('job_hiring_stages').select('id,job_id,stage_order').in('job_id',jobIds).order('stage_order',{ascending:true})
     ]);
     if (appsResult.error) throw appsResult.error;
     const apps = appsResult.data || [];
-    const stageMap = new Map((stagesResult.error ? [] : (stagesResult.data || [])).map(stage => [String(stage.id),stage]));
+    const stagesByJob = new Map();
+    (stagesResult.error ? [] : (stagesResult.data || [])).forEach(stage => {
+      if (!stagesByJob.has(String(stage.job_id))) stagesByJob.set(String(stage.job_id),[]);
+      stagesByJob.get(String(stage.job_id)).push(stage);
+    });
+    stagesByJob.forEach(stages => stages.sort((left,right) => Number(left.stage_order || 0) - Number(right.stage_order || 0)));
     const userIds = [...new Set(apps.map(app => app.user_id).filter(Boolean))];
     let profiles = [];
     if (userIds.length) {
@@ -134,10 +139,11 @@
     apps.forEach(app => {
       appMap.set(app.id,{app,job:jobMap.get(app.job_id)||{},profile:profileMap.get(app.user_id)||{}});
       const status = String(app.status || '');
-      const stage = stageMap.get(String(app.current_hiring_stage_id || ''));
+      const stages = stagesByJob.get(String(app.job_id)) || [];
+      const currentIndex = stages.findIndex(stage => String(stage.id) === String(app.current_hiring_stage_id || ''));
       const terminal = ['Rejected','Withdrawn'].includes(status);
-      const reachedConversationStage = stage
-        ? String(stage.stage_type || '').toLowerCase() !== 'review'
+      const reachedConversationStage = stages.length
+        ? currentIndex > 0
         : MESSAGE_ENABLED_STATUSES.has(status);
       if (!terminal && reachedConversationStage) eligibleApplicationIds.add(String(app.id));
     });
