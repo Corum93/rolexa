@@ -9,6 +9,15 @@
     document.body.appendChild(script);
   };
 
+  const removeRedundantHomepageLogin = () => {
+    document.querySelectorAll('nav .rx-login-link').forEach(link => link.remove());
+  };
+  const homepageNavActions = document.querySelector('nav .nav-cta');
+  if (homepageNavActions) {
+    removeRedundantHomepageLogin();
+    new MutationObserver(removeRedundantHomepageLogin).observe(homepageNavActions, { childList: true });
+  }
+
   if (/candidate-dashboard\.html$/.test(location.pathname)) {
     load('candidate-messaging-inbox.js?v=4', '__rolexaCandidateInboxRequested');
     load('candidate-career-direction.js?v=1', '__rolexaCandidateCareerDirectionRequestedV1');
