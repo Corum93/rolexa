@@ -67,7 +67,7 @@
           <div class="rx-career-kicker">A platform for your whole career</div>
           <h2 id="rxCareerProgressionTitle">Find the role that moves your career forward.</h2>
         </div>
-        <p>Whether you’re starting your first job, stepping into leadership or going for senior management, Rolexa helps you understand your next move and find opportunities that match your growing skills and experience.</p>
+        <p>Whether you’re entering the workforce, changing direction or moving into leadership, Rolexa helps you understand your next step and find opportunities aligned with your skills, experience and ambitions.</p>
       </div>
       <div class="rx-career-track">
         <article class="rx-career-stage">
@@ -96,8 +96,8 @@
         </article>
       </div>
       <div class="rx-career-foot">
-        <strong>Your career does not have to follow one fixed route.</strong>
-        <span>Rolexa can support the next realistic move: upward, sideways into a new specialism, or into a different industry.</span>
+        <strong>Built to support your career beyond a single application.</strong>
+        <span>Explore realistic next moves, whether that means progressing upward, moving into a new specialism or changing industry.</span>
       </div>
     </div>`;
 
