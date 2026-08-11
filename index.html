@@ -192,6 +192,118 @@
     .showcase-actions--quiet{align-items:flex-start;gap:10px;}
   }
 </style>
+
+<style id="rolexa-workspace-premium">
+  #candidate-dashboard,
+  #employer-showcase{
+    position:relative;
+    overflow:hidden;
+  }
+  #candidate-dashboard:before,
+  #employer-showcase:before{
+    content:'';
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:
+      radial-gradient(circle at 8% 18%,rgba(76,116,255,.055),transparent 28%),
+      radial-gradient(circle at 92% 78%,rgba(118,78,255,.04),transparent 24%);
+  }
+  #candidate-dashboard .wrap,
+  #employer-showcase .wrap{position:relative;z-index:1;}
+  .product-showcase{
+    border-color:rgba(26,39,92,.10);
+    box-shadow:0 24px 64px rgba(26,39,92,.11);
+  }
+  .showcase-label{
+    display:inline-flex;
+    align-items:center;
+    color:#244EDB;
+    background:transparent;
+    border:0;
+    border-radius:0;
+    padding:0;
+    font-size:11.5px;
+    line-height:1.2;
+    font-weight:800;
+    letter-spacing:.075em;
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .feature-grid{gap:16px;}
+  .feature-card{
+    position:relative;
+    overflow:hidden;
+    isolation:isolate;
+    background:var(--white);
+    border:1px solid rgba(26,39,92,.10);
+    border-radius:20px;
+    padding:24px 22px 22px 25px;
+    min-height:202px;
+    box-shadow:0 12px 30px rgba(26,39,92,.075);
+    transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+  }
+  .feature-card:before{
+    content:'';
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:4px;
+    background:var(--card-accent,#4C74FF);
+  }
+  .feature-card:after{
+    content:counter(workspace-step,decimal-leading-zero);
+    position:absolute;
+    top:20px;
+    right:20px;
+    color:#96A0BC;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.04em;
+  }
+  .feature-grid{counter-reset:workspace-step;}
+  .feature-card{counter-increment:workspace-step;}
+  .feature-card:hover{
+    transform:translateY(-3px);
+    border-color:rgba(76,116,255,.20);
+    box-shadow:0 18px 38px rgba(26,39,92,.12);
+  }
+  .feature-icon{
+    width:46px;
+    height:46px;
+    border-radius:14px;
+    background:var(--card-soft,#E9EEFF);
+    color:var(--card-accent,#4C74FF);
+    margin-bottom:20px;
+  }
+  .feature-icon svg{width:22px;height:22px;stroke-width:1.9;}
+  .feature-card h4{font-size:17px;line-height:1.25;margin-bottom:10px;}
+  .feature-card p{font-size:13.5px;line-height:1.6;}
+  .feature-card:nth-child(1){--card-accent:#4C74FF;--card-soft:#E9EEFF;}
+  .feature-card:nth-child(2){--card-accent:#2FAE7A;--card-soft:#E3F5ED;}
+  .feature-card:nth-child(3){--card-accent:#7652E8;--card-soft:#EEE8FF;}
+  .feature-card:nth-child(4){--card-accent:#D58A22;--card-soft:#FFF2DC;}
+  #employer-showcase .feature-card:nth-child(1){--card-accent:#315FD8;--card-soft:#E8EEFF;}
+  #employer-showcase .feature-card:nth-child(2){--card-accent:#16866A;--card-soft:#E0F4EC;}
+  #employer-showcase .feature-card:nth-child(3){--card-accent:#6550D8;--card-soft:#ECE8FF;}
+  #employer-showcase .feature-card:nth-child(4){--card-accent:#277D9B;--card-soft:#E2F3F8;}
+  @media(max-width:960px){
+    .feature-card{min-height:194px;}
+  }
+  @media(max-width:860px){
+    .product-showcase{padding:26px 22px;}
+    .showcase-label{margin-bottom:9px;}
+    .feature-grid{gap:12px;}
+    .feature-card{min-height:auto;padding:22px 20px 21px 24px;}
+    .feature-icon{width:44px;height:44px;margin-bottom:17px;}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .feature-card{transition:none;}
+    .feature-card:hover{transform:none;}
+  }
+</style>
 </head>
 <body data-view="seeker">
 <nav><div class="nav-inner"><div class="brand"><svg class="brand-mark" viewBox="0 0 62 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="rxLogoGrad" x1="8" y1="6" x2="56" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#1D7BFF"/><stop offset="1" stop-color="#0057FF"/></linearGradient></defs><path d="M9 35V7h17.5c7.4 0 12.2 4.3 12.2 10.7S33.9 28.4 26.5 28.4H18" stroke="url(#rxLogoGrad)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30.5 21c0-8.4 6.7-15.1 15.1-15.1S60.7 12.6 60.7 21 54 36.1 45.6 36.1 30.5 29.4 30.5 21Z" stroke="url(#rxLogoGrad)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 28.3L29 35" stroke="url(#rxLogoGrad)" stroke-width="6.4" stroke-linecap="round"/></svg><span class="brand-word">Rolexa</span></div><div class="nav-links"><a href="#why">Why Rolexa</a><a href="#candidate-dashboard">For candidates</a><a href="#employer-showcase">For employers</a><a href="#explorer">Salary guidance</a></div><div class="nav-cta"><a class="btn btn-ghost" href="candidate-login.html">Candidate sign in</a><a class="btn btn-primary" href="employer-login.html">Employer sign in</a></div></div></nav>
@@ -200,7 +312,7 @@
 <section id="improvements" class="improve"><div class="wrap"><div class="sec-head"><div><h2>One connected journey for both sides of hiring</h2><p>Rolexa replaces scattered job-board activity, inboxes and disconnected records with a clearer experience from first search to final decision.</p></div></div><div class="improve-grid"><div class="improve-card"><div class="num">01</div><div class="tag">Discover</div><h3>Find roles with clearer expectations</h3><p>Search by role, location and level with UK-focused salary guidance to help assess opportunities realistically.</p><ul class="improve-list"><li>Career direction and job discovery</li><li>Saved roles and reusable profile details</li><li>Region-aware salary guidance</li></ul></div><div class="improve-card"><div class="num">02</div><div class="tag">Progress</div><h3>Move through hiring with visibility</h3><p>Every application, stage, interview and message stays connected to the role it belongs to.</p><ul class="improve-list"><li>Clear application stage tracking</li><li>Interview details and notifications</li><li>Employer-first secure messaging</li></ul></div><div class="improve-card"><div class="num">03</div><div class="tag">Carry forward</div><h3>Turn hiring activity into career evidence</h3><p>Useful evidence does not have to disappear when a hiring process ends.</p><ul class="improve-list"><li>Verified Career Passport evidence</li><li>Candidate-controlled sharing</li><li>Access that can be revoked</li></ul></div></div></div></section>
 <div id="view-seeker"><section id="explorer"><div class="wrap"><div class="sec-head"><div><h2>UK salary guidance</h2><p>Explore indicative full-time salary ranges by UK region and career level to help set realistic expectations before applying or hiring.</p></div></div><div class="explorer"><div class="explorer-controls" id="region-chips"></div><div class="bracket-grid" id="bracket-grid"></div><div class="bracket-note">Figures are illustrative gross annual guidance based on broad level ranges and regional adjustments. They are not live market data or guaranteed pay and should be considered alongside the role, sector, experience required and current salary sources.</div></div></div></section>
 <section id="why"><div class="wrap"><div class="sec-head"><div class="why-heading"><div class="why-kicker">Why Rolexa</div><h2>More than a job board. A clearer path through work.</h2><p>Most job boards help people find vacancies. Rolexa connects the wider hiring journey, from discovering the right role and understanding salary expectations to tracking applications, communicating securely and building verified career evidence that stays with the candidate.</p></div></div><div class="compare-table-wrap" role="region" aria-label="Rolexa compared with typical job boards" tabindex="0"><table class="compare-table"><thead><tr><th scope="col">The experience</th><th scope="col" class="col-rolexa">Rolexa</th><th scope="col">Typical job boards</th></tr></thead><tbody><tr><td>Career journey</td><td class="col-rolexa">Supports candidates from career direction through application, hiring and future progression</td><td>Primarily focused on vacancy discovery</td></tr><tr><td>Career Passport</td><td class="col-rolexa">A portable record of verified evidence from real hiring experiences</td><td>Applications and useful feedback usually disappear when the process ends</td></tr><tr><td>Candidate control</td><td class="col-rolexa">Candidates choose which verified evidence an employer can view and can revoke access</td><td>Candidate information is often spread across separate systems</td></tr><tr><td>Application transparency</td><td class="col-rolexa">Clear stages from application through interview, offer or rejection</td><td>Updates are often limited, delayed or missing</td></tr><tr><td>Safe communication</td><td class="col-rolexa">Employers initiate secure, application-specific conversations; candidates can then reply</td><td>Communication is fragmented across email and external portals</td></tr><tr><td>Salary clarity</td><td class="col-rolexa">Region-adjusted guidance helps candidates assess roles realistically</td><td>Salary is frequently hidden or described as “competitive”</td></tr><tr><td>Employer workspace</td><td class="col-rolexa">Jobs, applicants, stages, CVs, messages and shared evidence managed in one place</td><td>Hiring activity is often divided across boards, inboxes and ATS tools</td></tr><tr><td>UK focus</td><td class="col-rolexa">Designed around UK regions, salaries and hiring expectations</td><td>Often adapted from a generic global model</td></tr></tbody></table></div><div class="why-scroll-note" aria-hidden="true">Swipe across to compare the full experience →</div></div></section>
-<section id="candidate-dashboard"><div class="wrap"><div class="sec-head"><div><h2>Your career, organised around you</h2><p>Rolexa gives candidates one secure workspace for making career decisions, applying, tracking progress and carrying verified evidence forward.</p></div></div><div class="product-showcase"><div class="showcase-top"><div><div class="showcase-badge">Candidate workspace</div><h3>More control at every stage</h3><p>From working out where to go next to sharing evidence with a future employer, each tool is connected to the candidate's wider career journey.</p></div></div><div class="feature-grid"><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15 9-2 4-4 2 2-4 4-2Z"/></svg></div><h4>Career Direction</h4><p>Explore possible routes and make clearer decisions about roles, levels and progression.</p></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v4h4M9 12h6M9 16h5"/></svg></div><h4>Transparent applications</h4><p>See every application and its current stage from applied through interview, offer or rejection.</p></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h5M8 16h4"/><path d="m15 16 1.5 1.5L19 15"/></svg></div><h4>Career Passport</h4><p>Build a portable record of verified evidence created through real hiring experiences.</p></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.9 8 7 10 4.1-2 7-5.4 7-10V6z"/><path d="m9 12 2 2 4-4"/></svg></div><h4>Controlled sharing</h4><p>Choose what an employer can view and revoke access when it is no longer needed.</p></div></div><div class="showcase-actions showcase-actions--quiet"><a class="showcase-signin" href="candidate-login.html">Candidate sign in <span aria-hidden="true">→</span></a><span class="showcase-note">Your evidence remains under your control.</span></div></div></div></section>
+<section id="candidate-dashboard"><div class="wrap"><div class="sec-head"><div><h2>Your career, organised around you</h2><p>Rolexa gives candidates one secure workspace for making career decisions, applying, tracking progress and carrying verified evidence forward.</p></div></div><div class="product-showcase"><div class="showcase-top"><div><div class="showcase-label">Candidate workspace</div><h3>More control at every stage</h3><p>From working out where to go next to sharing evidence with a future employer, each tool is connected to the candidate's wider career journey.</p></div></div><div class="feature-grid"><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15 9-2 4-4 2 2-4 4-2Z"/></svg></div><h4>Career Direction</h4><p>Explore possible routes and make clearer decisions about roles, levels and progression.</p></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v4h4M9 12h6M9 16h5"/></svg></div><h4>Transparent applications</h4><p>See every application and its current stage from applied through interview, offer or rejection.</p></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h5M8 16h4"/><path d="m15 16 1.5 1.5L19 15"/></svg></div><h4>Career Passport</h4><p>Build a portable record of verified evidence created through real hiring experiences.</p></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.9 8 7 10 4.1-2 7-5.4 7-10V6z"/><path d="m9 12 2 2 4-4"/></svg></div><h4>Controlled sharing</h4><p>Choose what an employer can view and revoke access when it is no longer needed.</p></div></div><div class="showcase-actions showcase-actions--quiet"><a class="showcase-signin" href="candidate-login.html">Candidate sign in <span aria-hidden="true">→</span></a><span class="showcase-note">Your evidence remains under your control.</span></div></div></div></section>
 <section id="employer-showcase"><div class="wrap"><div class="sec-head"><div><h2>A complete workspace for hiring companies</h2><p>Manage jobs and candidates with a clear process, better communication and fewer disconnected tools.</p></div></div><div class="product-showcase"><div class="showcase-top"><div><div class="showcase-label">Employer workspace</div><h3>Move hiring forward from one place</h3><p>Rolexa keeps roles, applicants, stages, interviews, messages and candidate-shared evidence connected to the hiring decision.</p></div></div><div class="feature-grid"><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V4h6v3M4 12h16M10 12v2h4v-2"/></svg></div><h4>Jobs and applicants</h4><p>Post roles, review applicants and keep each hiring process organised in one workspace.</p></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M5 4v16M5 7h5v4H5M10 9h5v4h-5M15 11h4v4h-4"/></svg></div><h4>Clear hiring stages</h4><p>Move candidates through applied, shortlisted, interview, task and offer stages with clarity.</p></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 4z"/><path d="M8 9h8M8 13h5"/></svg></div><h4>Employer-first messaging</h4><p>Start secure conversations within a real application thread, protecting teams from unsolicited messages.</p></div><div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M7 3h10v4H7zM5 7h14v14H5z"/><path d="M9 12h6M9 16h4"/></svg></div><h4>Shared career evidence</h4><p>Review only the Career Passport evidence a candidate has chosen to share with your company.</p></div></div><div class="showcase-actions showcase-actions--quiet"><a class="showcase-signin" href="employer-login.html">Employer sign in <span aria-hidden="true">→</span></a><span class="showcase-note">Candidate access remains permission-controlled.</span></div></div></div></section>
 <footer><div class="wrap"><div class="brand"><svg class="brand-mark" viewBox="0 0 62 42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="rxLogoGradFooter" x1="8" y1="6" x2="56" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#1D7BFF"/><stop offset="1" stop-color="#0057FF"/></linearGradient></defs><path d="M9 35V7h17.5c7.4 0 12.2 4.3 12.2 10.7S33.9 28.4 26.5 28.4H18" stroke="url(#rxLogoGradFooter)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30.5 21c0-8.4 6.7-15.1 15.1-15.1S60.7 12.6 60.7 21 54 36.1 45.6 36.1 30.5 29.4 30.5 21Z" stroke="url(#rxLogoGradFooter)" stroke-width="6.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 28.3L29 35" stroke="url(#rxLogoGradFooter)" stroke-width="6.4" stroke-linecap="round"/></svg><span class="brand-word">Rolexa</span></div><div class="footer-copy">A UK-focused career and hiring platform built for clearer applications, safer communication and verified career evidence.</div></div></footer>
 <script>
