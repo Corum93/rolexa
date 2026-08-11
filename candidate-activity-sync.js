@@ -23,7 +23,7 @@
     if (byId('rxCandidateTimelineStyles')) return;
     const style = document.createElement('style');
     style.id = 'rxCandidateTimelineStyles';
-    style.textContent = `.rx-app-card-live{grid-template-columns:45px minmax(0,1fr) auto;align-items:flex-start}.rx-app-card-live .rx-app-body{min-width:0}.rx-updated{font-size:12px;color:#6B7280;margin-top:3px}.rx-timeline{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:11px}.rx-step{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:900;color:#9AA4B8}.rx-dot{width:10px;height:10px;border-radius:50%;background:#D8E4FB;box-shadow:0 0 0 3px #F5F7FC}.rx-step.done{color:#176B49}.rx-step.done .rx-dot{background:#22A06B}.rx-step.current{color:#2946C7}.rx-step.current .rx-dot{background:#176BFF}.rx-step.rejected{color:#A33327}.rx-step.rejected .rx-dot{background:#E0533F}.rx-step.withdrawn{color:#6B7280}.rx-step.withdrawn .rx-dot{background:#6B7280}.rx-line{width:22px;height:2px;background:#D8E4FB;border-radius:999px}.rx-line.done{background:#22A06B}.rx-candidate-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.rx-withdraw-btn{border:1px solid rgba(224,83,63,.24);background:#FFF8F6;color:#A33327;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900}.rx-withdraw-btn:disabled,.small-btn:disabled{opacity:.6;cursor:not-allowed}@media(max-width:760px){.rx-app-card-live{grid-template-columns:42px 1fr}.rx-app-card-live > .rx-candidate-actions{grid-column:2;justify-content:flex-start}.rx-line{width:14px}}`;
+    style.textContent = `.rx-app-card-live{grid-template-columns:45px minmax(0,1fr) auto;align-items:flex-start}.rx-app-card-live .rx-app-body{min-width:0}.rx-updated{font-size:12px;color:#6B7280;margin-top:3px}.rx-timeline{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:11px}.rx-step{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:900;color:#9AA4B8}.rx-dot{width:10px;height:10px;border-radius:50%;background:#D8E4FB;box-shadow:0 0 0 3px #F5F7FC}.rx-step.done{color:#176B49}.rx-step.done .rx-dot{background:#22A06B}.rx-step.current{color:#2946C7}.rx-step.current .rx-dot{background:#176BFF}.rx-step.rejected{color:#A33327}.rx-step.rejected .rx-dot{background:#E0533F}.rx-step.withdrawn{color:#6B7280}.rx-step.withdrawn .rx-dot{background:#6B7280}.rx-line{width:22px;height:2px;background:#D8E4FB;border-radius:999px}.rx-line.done{background:#22A06B}.rx-candidate-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.rx-withdraw-btn{border:1px solid rgba(224,83,63,.24);background:#FFF8F6;color:#A33327;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900}.rx-withdraw-btn:disabled,.small-btn:disabled{opacity:.6;cursor:not-allowed}.rx-internal-candidate-notice{grid-column:1/-1;border:1px solid rgba(23,107,255,.18);background:#f6f9ff;border-radius:13px;padding:10px 12px;margin-top:10px;display:grid;gap:3px}.rx-internal-candidate-notice small{color:#2946c7;font-size:10px;font-weight:900;letter-spacing:.045em;text-transform:uppercase}.rx-internal-candidate-notice b{color:#101f4a;font-size:12.5px;line-height:1.45}.rx-internal-candidate-notice.legacy{border-color:rgba(138,86,0,.2);background:#fff9eb}.rx-internal-candidate-notice.legacy small{color:#8a5600}@media(max-width:760px){.rx-app-card-live{grid-template-columns:42px 1fr}.rx-app-card-live > .rx-candidate-actions{grid-column:2;justify-content:flex-start}.rx-line{width:14px}}`;
     document.head.appendChild(style);
   }
 
@@ -68,7 +68,8 @@
       tag: row.tag || 'Rolexa',
       desc: row.description || '',
       applicationCount: Math.max(0, Number(row.application_count) || 0),
-      applicationLimit: Math.max(1, Number(row.application_limit) || 100)
+      applicationLimit: Math.max(1, Number(row.application_limit) || 100),
+      internalCandidateStatus: row.internal_candidate_status || ''
     };
   }
 
@@ -151,7 +152,15 @@
     const actions = context === 'saved'
       ? `<button class="small-btn" onclick="removeSaved('${safe(j.id)}')">Remove</button><button class="small-btn primary-mini" onclick="applyJob('${safe(j.id)}')"${applyState}>${applyLabel}</button>`
       : `<button class="small-btn" onclick="saveJob('${safe(j.id)}')">${saved ? 'Saved' : 'Save'}</button><button class="small-btn primary-mini" onclick="applyJob('${safe(j.id)}')"${applyState}>${applyLabel}</button>`;
-    return `<div class="job"><div class="logo ${safe(j.cls)}">${safe(j.logo)}</div><div><div class="item-title">${safe(j.title)}</div><div class="item-sub">${safe(j.company)}, ${safe(j.location)}, ${safe(j.style)}, ${safe(j.salary)}</div><div class="item-sub">${safe(j.desc)}</div></div><div class="job-actions"><span class="tag">${safe(j.tag)}</span>${actions}</div></div>`;
+    const disclosureLabels = {
+      none: 'No internal candidates are currently being considered',
+      may_apply: 'Internal employees may apply, but none are currently progressing',
+      in_process: 'One or more internal candidates are already in the hiring process',
+      preferred: 'An internal candidate is currently preferred for this position'
+    };
+    const disclosure = disclosureLabels[j.internalCandidateStatus] || 'This role was published before Rolexa introduced mandatory internal-candidate disclosure.';
+    const disclosureClass = disclosureLabels[j.internalCandidateStatus] ? '' : ' legacy';
+    return `<div class="job"><div class="logo ${safe(j.cls)}">${safe(j.logo)}</div><div><div class="item-title">${safe(j.title)}</div><div class="item-sub">${safe(j.company)}, ${safe(j.location)}, ${safe(j.style)}, ${safe(j.salary)}</div><div class="item-sub">${safe(j.desc)}</div><div class="rx-internal-candidate-notice${disclosureClass}"><small>Internal candidate disclosure</small><b>${safe(disclosure)}</b></div></div><div class="job-actions"><span class="tag">${safe(j.tag)}</span>${actions}</div></div>`;
   }
 
   async function loadData(){

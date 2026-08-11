@@ -129,7 +129,7 @@
   }
 
   function mapJob(row) {
-    return { id: row.id, title: row.title || '', company: row.company || '', location: row.location || 'UK', style: row.work_style || 'Hybrid', salary: row.salary_range || '', skills: row.required_skills || '', description: row.description || '', status: row.is_active ? 'Live' : 'Closed', active: !!row.is_active };
+    return { id: row.id, title: row.title || '', company: row.company || '', location: row.location || 'UK', style: row.work_style || 'Hybrid', salary: row.salary_range || '', skills: row.required_skills || '', description: row.description || '', status: row.is_active ? 'Live' : 'Closed', active: !!row.is_active, internalCandidateStatus: row.internal_candidate_status || '', internalCandidateConfirmed: !!row.internal_candidate_disclosure_confirmed };
   }
 
   async function loadJobs() {
@@ -224,7 +224,9 @@
     const warningHtml = warnings.map(w => `<span class="rx-warning-chip ${w === 'Role looks healthy' ? 'good' : ''}">${esc(w)}</span>`).join('');
     const healthText = health.score === null ? '' : `<span class="tag blue">Health ${health.score}</span>`;
     const closeText = job.active ? 'Close role' : 'Reopen role';
-    return `<div class="item rx-job-card"><div class="logo blue">${esc(initial(job.company))}</div><div><div class="item-title">${esc(job.title)}</div><div class="item-sub">${esc(job.company)}, ${esc(job.location)}, ${esc(job.style)}, ${esc(job.salary || 'Salary not set')}</div><div class="item-sub">Must-have skills: ${esc(job.skills || 'Not set')}</div></div><div class="rx-job-actions"><span class="tag blue">${esc(job.status)}</span>${healthText}<button class="small-btn primary-mini" type="button" onclick="window.rolexaEmployerShowView('matches')">View matches</button><button class="small-btn" type="button" onclick="window.rolexaEmployerEditJob('${esc(job.id)}')">Edit</button><button class="small-btn" type="button" onclick="window.rolexaEmployerToggleJob('${esc(job.id)}')">${closeText}</button><button class="rx-danger-btn" type="button" onclick="window.rolexaEmployerDeleteJob('${esc(job.id)}')">Delete</button></div><div class="rx-job-insight"><b>Next best action:</b> ${esc(nextBestAction(job))}</div><div class="rx-warning-row">${warningHtml}</div></div>`;
+    const disclosureOptions = window.RolexaInternalCandidateDisclosure?.options || {};
+    const disclosureText = disclosureOptions[job.internalCandidateStatus] || 'Not yet disclosed (role published before this requirement)';
+    return `<div class="item rx-job-card"><div class="logo blue">${esc(initial(job.company))}</div><div><div class="item-title">${esc(job.title)}</div><div class="item-sub">${esc(job.company)}, ${esc(job.location)}, ${esc(job.style)}, ${esc(job.salary || 'Salary not set')}</div><div class="item-sub">Must-have skills: ${esc(job.skills || 'Not set')}</div></div><div class="rx-job-actions"><span class="tag blue">${esc(job.status)}</span>${healthText}<button class="small-btn primary-mini" type="button" onclick="window.rolexaEmployerShowView('matches')">View matches</button><button class="small-btn" type="button" onclick="window.rolexaEmployerEditJob('${esc(job.id)}')">Edit</button><button class="small-btn" type="button" onclick="window.rolexaEmployerToggleJob('${esc(job.id)}')">${closeText}</button><button class="rx-danger-btn" type="button" onclick="window.rolexaEmployerDeleteJob('${esc(job.id)}')">Delete</button></div><div class="rx-job-insight"><b>Internal candidate disclosure:</b> ${esc(disclosureText)}</div><div class="rx-job-insight"><b>Next best action:</b> ${esc(nextBestAction(job))}</div><div class="rx-warning-row">${warningHtml}</div></div>`;
   }
 
   function candidateCard(candidate) {
@@ -280,7 +282,14 @@
     const must = byId('requiredSkills').value.trim();
     const nice = byId('niceToHaveSkills') ? byId('niceToHaveSkills').value.trim() : '';
     const description = byId('jobDescription').value.trim();
-    const payload = { employer_user_id: currentUser.id, title, company, location, work_style: style, salary_range: salary, required_skills: must, description: descriptionWithSkills(description, must, nice), logo: initial(company), logo_class: 'blue', tag: 'Employer posted', is_active: true, updated_at: new Date().toISOString() };
+    const disclosure = window.RolexaInternalCandidateDisclosure?.getValue() || { status: '', confirmed: false };
+    if (!disclosure.status || !disclosure.confirmed) {
+      if (button) { button.disabled = false; button.textContent = wasEditing ? 'Save job changes' : 'Verify and publish job'; }
+      showStatus('bad', 'Select the internal candidate position and confirm that the disclosure is accurate before publishing.');
+      byId('rxInternalCandidateDisclosure')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const payload = { employer_user_id: currentUser.id, title, company, location, work_style: style, salary_range: salary, required_skills: must, description: descriptionWithSkills(description, must, nice), logo: initial(company), logo_class: 'blue', tag: 'Employer posted', is_active: true, internal_candidate_disclosure_required: true, internal_candidate_status: disclosure.status, internal_candidate_disclosure_confirmed: true, updated_at: new Date().toISOString() };
     let error;
     if (editingJobId) {
       const result = await db.from('jobs').update(payload).eq('id', editingJobId).eq('employer_user_id', currentUser.id);
@@ -290,11 +299,13 @@
       const result = await db.from('jobs').insert(payload);
       error = result.error;
     }
-    if (button) { button.disabled = false; button.textContent = 'Publish job'; }
+    if (button) { button.disabled = false; button.textContent = 'Verify and publish job'; }
     if (error) {
       console.warn('Employer job save error', error);
-      const needsVerification = /company verification is required/i.test(error.message || '');
-      showStatus('bad', needsVerification ? 'Verify your hiring company before publishing a job.' : (error.message || 'Could not save job.'));
+      const errorMessage = error.message || '';
+      const needsVerification = /company verification is required/i.test(errorMessage);
+      const needsDisclosure = /internal_candidate_disclosure/i.test(errorMessage);
+      showStatus('bad', needsVerification ? 'Verify your hiring company before publishing a job.' : needsDisclosure ? 'Complete and confirm the internal candidate disclosure before publishing.' : (errorMessage || 'Could not save job.'));
       return;
     }
     editingJobId = null;
@@ -346,6 +357,7 @@
     byId('requiredSkills').value = job.skills || '';
     if (byId('niceToHaveSkills')) byId('niceToHaveSkills').value = niceFromDescription(job.description);
     byId('jobDescription').value = cleanDescription(job.description);
+    window.RolexaInternalCandidateDisclosure?.setValue(job.internalCandidateStatus, false);
     if (byId('saveJobBtn')) byId('saveJobBtn').textContent = 'Save job changes';
     showView('postJob');
     showStatus('info', 'Editing existing job. Save changes when ready.');
@@ -355,6 +367,11 @@
     const job = employerJobs.find(item => item.id === id);
     if (!job || !db || !currentUser) return;
     const nextActive = !job.active;
+    if (nextActive) {
+      window.rolexaEmployerEditJob(id);
+      showStatus('info', 'Review the internal candidate disclosure and confirm it again before republishing this role.');
+      return;
+    }
     const { error } = await db.from('jobs').update({ is_active: nextActive, updated_at: new Date().toISOString() }).eq('id', id).eq('employer_user_id', currentUser.id);
     if (error) { showStatus('bad', error.message || 'Could not update role.'); return; }
     await loadJobs();
