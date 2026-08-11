@@ -95,10 +95,10 @@
       <div class="rx-hero-copy">
         <div class="rx-hero-eyebrow">A career platform built around your next move</div>
         <h1>Find the role that <span>moves your career forward.</span></h1>
-        <p>From your first job to leadership and senior management, Rolexa helps you discover the right next step for your growing skills, qualifications and experience.</p>
+        <p>Whether you’re entering the workforce, changing direction or moving into leadership, Rolexa helps you understand your next step and find opportunities aligned with your skills, experience and ambitions.</p>
         <div class="rx-hero-actions">
-          <a class="rx-hero-primary" href="candidate-login.html">Create candidate profile</a>
-          <a class="rx-hero-secondary" href="employer-login.html">Hire with Rolexa</a>
+          <a class="rx-hero-primary" href="candidate-login.html">Explore candidate workspace</a>
+          <a class="rx-hero-secondary" href="employer-login.html">Explore employer workspace</a>
         </div>
         <a class="rx-hero-demo-link" href="#career-progression">See how career progression works <span aria-hidden="true">→</span></a>
         <div class="rx-hero-proof">
@@ -108,14 +108,14 @@
         </div>
       </div>
       <aside class="rx-journey-card" aria-label="Rolexa career progression preview">
-        <div class="rx-journey-top"><div class="rx-journey-title">A career that keeps moving</div><span class="rx-journey-pill">Your next step</span></div>
+        <div class="rx-journey-top"><div class="rx-journey-title">A career that keeps moving</div><span class="rx-journey-pill">Example career path</span></div>
         <div class="rx-journey-list">
           <div class="rx-journey-step"><div class="rx-journey-icon">01</div><div class="rx-journey-copy"><b>Entry level</b><span>Build practical skills, confidence and experience.</span></div><div class="rx-journey-status">Start strong</div></div>
           <div class="rx-journey-step"><div class="rx-journey-icon">02</div><div class="rx-journey-copy"><b>Team Leader or Supervisor</b><span>Take on responsibility and begin supporting others.</span></div><div class="rx-journey-status">Step up</div></div>
           <div class="rx-journey-step"><div class="rx-journey-icon">03</div><div class="rx-journey-copy"><b>Assistant Manager or Manager</b><span>Lead teams, projects and performance.</span></div><div class="rx-journey-status">Lead well</div></div>
           <div class="rx-journey-step"><div class="rx-journey-icon">04</div><div class="rx-journey-copy"><b>Senior Leadership</b><span>Move towards Head, Director or Executive roles.</span></div><div class="rx-journey-status">Shape direction</div></div>
         </div>
-        <div class="rx-journey-foot"><span>Built to support more than one job search</span><span class="rx-journey-match"><strong>4</strong> career stages</span></div>
+        <div class="rx-journey-foot"><span>Built to support your career beyond a single application.</span><span class="rx-journey-match"><strong>4</strong> career stages</span></div>
       </aside>
     </div>`;
 })();
