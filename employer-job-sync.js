@@ -291,7 +291,12 @@
       error = result.error;
     }
     if (button) { button.disabled = false; button.textContent = 'Publish job'; }
-    if (error) { console.warn('Employer job save error', error); showStatus('bad', error.message || 'Could not save job.'); return; }
+    if (error) {
+      console.warn('Employer job save error', error);
+      const needsVerification = /company verification is required/i.test(error.message || '');
+      showStatus('bad', needsVerification ? 'Verify your hiring company before publishing a job.' : (error.message || 'Could not save job.'));
+      return;
+    }
     editingJobId = null;
     event.target.reset();
     await loadJobs();
