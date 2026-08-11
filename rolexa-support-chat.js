@@ -34,7 +34,7 @@
   load('support-chat-session-reset.js?v=3', '__rolexaSupportSessionResetRequestedV3');
   load('demo-experience.js?v=2', '__rolexaDemoExperienceRequestedV2');
   load('homepage-improvements-premium.js?v=2', '__rolexaHomepageImprovementsPremiumRequestedV2');
-  load('premium-homepage-hero.js?v=2', '__rolexaPremiumHomepageHeroRequestedV2');
+  load('premium-homepage-hero.js?v=3', '__rolexaPremiumHomepageHeroRequestedV3');
   load('premium-career-progression.js?v=1', '__rolexaPremiumCareerProgressionRequested');
   load('premium-honesty-section.js?v=2', '__rolexaPremiumHonestySectionRequestedV2');
   load('premium-salary-explorer.js?v=1', '__rolexaPremiumSalaryExplorerRequested');
