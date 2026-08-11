@@ -52,11 +52,11 @@
       <div class="rx-website-consent" id="websiteConsentPanel" aria-live="polite">
         <span class="rx-consent-title">Required legal acknowledgements</span>
         <label class="rx-consent-check">
-          <input id="websiteTermsAccepted" type="checkbox" required>
+          <input id="websiteTermsAccepted" type="checkbox">
           <span>I have read and agree to the <a href="${DOCUMENTS.website_terms.url}" target="_blank" rel="noopener noreferrer">Website Terms &amp; Conditions</a> (version ${DOCUMENTS.website_terms.version}).</span>
         </label>
         <label class="rx-consent-check">
-          <input id="privacyPolicyAcknowledged" type="checkbox" required>
+          <input id="privacyPolicyAcknowledged" type="checkbox">
           <span>I acknowledge that I have read the <a href="${DOCUMENTS.privacy_policy.url}" target="_blank" rel="noopener noreferrer">Privacy Policy</a> (version ${DOCUMENTS.privacy_policy.version}).</span>
         </label>
         <p class="rx-consent-note">Both documents are pre-launch drafts and require professional legal review. Rolexa's final company and policy details are still being confirmed.</p>
@@ -131,6 +131,12 @@
     const panel = byId('websiteConsentPanel');
     const submit = byId('submitBtn');
     const signingUp = currentMode === 'signup';
+    ['websiteTermsAccepted', 'privacyPolicyAcknowledged'].forEach(id => {
+      const input = byId(id);
+      if (!input) return;
+      input.required = signingUp;
+      input.disabled = !signingUp;
+    });
     panel?.classList.toggle('show', signingUp);
     document.body.classList.toggle('auth-signup-mode', signingUp);
     if (!submit) return;
