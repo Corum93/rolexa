@@ -5,6 +5,10 @@
   .side {
     width: 260px;
     padding: 22px 16px 18px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(157, 179, 239, 0.34) transparent;
     background:
       radial-gradient(circle at 18% 0%, rgba(23, 107, 255, 0.16), transparent 28%),
       linear-gradient(180deg, #061027 0%, #08183a 52%, #07132f 100%);
@@ -23,6 +27,7 @@
   }
 
   .side .nav {
+    flex: 0 0 auto;
     gap: 5px;
   }
 
@@ -176,6 +181,7 @@
 
   .side .side-card {
     position: relative;
+    flex: 0 0 auto;
     padding: 17px;
     overflow: hidden;
     border: 1px solid rgba(135, 164, 231, 0.18);
