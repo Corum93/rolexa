@@ -182,14 +182,16 @@
   #employer-showcase{padding-top:20px;padding-bottom:42px;}
   .showcase-label{color:var(--blue);font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;}
   .showcase-actions--quiet{justify-content:space-between;padding-top:18px;margin-top:6px;border-top:1px solid var(--line-soft);}
-  .showcase-signin{display:inline-flex;align-items:center;gap:7px;color:var(--navy);font-size:13.5px;font-weight:750;}
-  .showcase-signin:hover{color:var(--blue);}
-  .showcase-signin span{transition:transform .15s ease;}
+  .showcase-signin{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:42px;padding:11px 19px;border:1px solid rgba(76,116,255,0.38);border-radius:999px;background:linear-gradient(135deg,#315EEA 0%,#4C74FF 100%);box-shadow:0 8px 20px rgba(49,94,234,0.20);color:var(--white);font-size:13.5px;font-weight:750;line-height:1;transition:transform .16s ease,box-shadow .16s ease,background .16s ease;}
+  .showcase-signin:hover{background:linear-gradient(135deg,#244DD4 0%,#3E67ED 100%);box-shadow:0 11px 25px rgba(49,94,234,0.28);color:var(--white);transform:translateY(-1px);}
+  .showcase-signin:focus-visible{outline:3px solid rgba(76,116,255,0.24);outline-offset:3px;}
+  .showcase-signin span{font-size:16px;transition:transform .15s ease;}
   .showcase-signin:hover span{transform:translateX(3px);}
   @media(max-width:860px){
     #candidate-dashboard{padding-bottom:6px;}
     #employer-showcase{padding-top:14px;padding-bottom:34px;}
     .showcase-actions--quiet{align-items:flex-start;gap:10px;}
+    .showcase-signin{width:100%;min-height:46px;}
   }
 </style>
 
