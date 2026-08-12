@@ -1,0 +1,2 @@
+[functions.complete-candidate-account-closure]
+verify_jwt = false
