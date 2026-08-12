@@ -271,8 +271,13 @@
     accountStatus = result.data || {};
     const request = latestRequest();
     if (request && request.status === 'pending_deletion') {
-      setMessage('info', 'Request recorded. Removing stored candidate files...');
-      await removeCandidateStorage(request);
+      setMessage('info', 'Request recorded. Starting the secure account-closure process...');
+      const completion = await client.functions.invoke('complete-candidate-account-closure', {
+        body: { request_id: request.id }
+      });
+      if (completion.error) {
+        console.warn('Rolexa secure account closure will retry automatically', completion.error);
+      }
       clearCandidateBrowserData();
       await client.auth.signOut();
       showClosureOverlay(request);
@@ -283,23 +288,6 @@
     busy = false;
     setMessage('good', 'Your request has been recorded. Your account will stay open until your live applications finish.');
     renderStatus();
-  }
-
-  async function removeCandidateStorage(request){
-    const results = { cv: !request.cv_file_path, photo: !request.photo_file_path };
-    if (request.cv_file_path) {
-      const response = await client.storage.from('candidate-cvs').remove([request.cv_file_path]);
-      results.cv = !response.error;
-    }
-    if (request.photo_file_path) {
-      const response = await client.storage.from('candidate-photos').remove([request.photo_file_path]);
-      results.photo = !response.error;
-    }
-    await client.rpc('record_candidate_storage_cleanup_attempt', {
-      p_request_id: request.id,
-      p_cv_removed: results.cv,
-      p_photo_removed: results.photo
-    });
   }
 
   function clearCandidateBrowserData(){
