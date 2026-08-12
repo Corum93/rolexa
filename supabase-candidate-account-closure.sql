@@ -846,11 +846,11 @@ comment on function public.request_candidate_account_closure(text) is
 comment on function public.complete_candidate_account_closure(uuid, boolean, boolean, boolean) is
   'Trusted completion step. It refuses completion while a live safety report or evidence dispute requires a limited legal hold.';
 
-commit;
-
 -- Operational verification queue (run read-only after the transaction):
 -- select id, candidate_user_id, status, requested_at, deletion_due_at,
 --        candidate_reported_cv_removed, candidate_reported_photo_removed
 -- from public.candidate_account_closure_requests
 -- where status in ('pending_deletion', 'legal_hold')
 -- order by deletion_due_at;
+
+commit;
