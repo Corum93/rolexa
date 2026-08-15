@@ -33,7 +33,7 @@
       #applicationsPage .rx-timeline{
         grid-column:1/-1!important;
         display:grid!important;
-        grid-template-columns:repeat(3,minmax(0,1fr))!important;
+        grid-template-columns:repeat(2,minmax(0,1fr))!important;
         gap:8px!important;
         width:100%!important;
         margin-top:14px!important;
@@ -42,6 +42,8 @@
       #applicationsPage .rx-step{
         min-width:0!important;
         width:100%!important;
+        min-height:48px!important;
+        box-sizing:border-box!important;
         justify-content:center!important;
         gap:5px!important;
         padding:9px 7px!important;
@@ -51,7 +53,9 @@
         font-size:11px!important;
         line-height:1.15!important;
         text-align:center!important;
-        white-space:nowrap!important;
+        white-space:normal!important;
+        overflow-wrap:anywhere!important;
+        word-break:normal!important;
       }
       #applicationsPage .rx-step.done{background:#EEF9F4!important;border-color:rgba(34,160,107,.18)!important}
       #applicationsPage .rx-step.current{background:#F0F4FF!important;border-color:rgba(23,107,255,.2)!important}
@@ -81,8 +85,11 @@
       #applicationsPage .card{padding:10px!important}
       #applicationsPage .application.rx-app-card-live{grid-template-columns:46px minmax(0,1fr)!important;padding:14px 12px!important;gap:10px!important}
       #applicationsPage .rx-app-card-live .logo{width:46px!important;height:46px!important;border-radius:13px!important}
-      #applicationsPage .rx-timeline{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
-      #applicationsPage .rx-step{font-size:10.5px!important;padding:8px 6px!important}
+      #applicationsPage .rx-timeline{gap:7px!important}
+      #applicationsPage .rx-step{font-size:10.5px!important;padding:8px 7px!important}
+    }
+    @media (max-width:340px){
+      #applicationsPage .rx-timeline{grid-template-columns:minmax(0,1fr)!important}
     }
   `;
   document.head.appendChild(style);
