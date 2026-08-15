@@ -11,21 +11,23 @@
     const style = document.createElement('style');
     style.id = 'candidateRightToWorkStyles';
     style.textContent = `
-      .rx-rtw-panel{display:none;margin:3px 0 15px;padding:15px;border:1px solid rgba(23,107,255,.18);border-radius:16px;background:#F7F9FF;}
+      .rx-rtw-panel{display:none;margin:0;padding:0;border:0;background:transparent;}
       .rx-rtw-panel.show{display:block;}
-      .rx-rtw-heading{margin:0;color:#101F4A;font-size:15px;font-weight:900;letter-spacing:-.01em;}
-      .rx-rtw-intro{margin:5px 0 13px!important;color:#5E6880!important;font-size:12px!important;line-height:1.5!important;}
-      .rx-rtw-field{display:grid;gap:6px;margin:0 0 11px;}
-      .rx-rtw-field label{color:#101F4A;font-size:11.5px;font-weight:900;line-height:1.4;}
-      .rx-rtw-field select,.rx-rtw-field input[type="date"]{width:100%;min-height:43px;border:1px solid #D6DCEA;background:#fff;border-radius:12px;padding:10px 12px;color:#101F4A;font:inherit;font-size:13px;outline:none;}
+      .rx-rtw-heading{margin:0;color:#101F4A;font-size:18px;font-weight:900;letter-spacing:-.015em;}
+      .rx-rtw-intro{margin:5px 0 16px!important;color:#5E6880!important;font-size:12.5px!important;line-height:1.5!important;}
+      .rx-rtw-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px 12px;}
+      .rx-rtw-field{display:grid;align-content:start;gap:6px;margin:0;}
+      .rx-rtw-field label{min-height:34px;color:#101F4A;font-size:11.5px;font-weight:900;line-height:1.4;}
+      .rx-rtw-field select,.rx-rtw-field input[type="date"]{width:100%;min-height:45px;border:1px solid #D6DCEA;background:#F8FAFE;border-radius:12px;padding:10px 12px;color:#101F4A;font:inherit;font-size:13px;outline:none;}
       .rx-rtw-field select:focus,.rx-rtw-field input[type="date"]:focus{border-color:#176BFF;box-shadow:0 0 0 3px rgba(23,107,255,.09);}
       .rx-rtw-field select:disabled{background:#EEF1F7;color:#69738A;}
-      .rx-rtw-date{display:none;}
+      .rx-rtw-date{display:none;grid-column:1/-1;}
       .rx-rtw-date.show{display:grid;}
-      .rx-rtw-confirm{display:flex;align-items:flex-start;gap:9px;margin:4px 0 0;color:#36415C;font-size:12px;line-height:1.5;cursor:pointer;}
+      .rx-rtw-date label{min-height:0;}
+      .rx-rtw-confirm{display:flex;align-items:flex-start;gap:10px;margin:17px 0 0;padding:13px 14px;border:1px solid #E1E6F0;border-radius:13px;background:#F8FAFE;color:#36415C;font-size:12px;line-height:1.5;cursor:pointer;}
       .rx-rtw-confirm input{flex:0 0 auto;width:17px;height:17px;margin:1px 0 0;accent-color:#176BFF;}
-      .rx-rtw-note{margin:10px 0 0!important;padding-top:10px;border-top:1px solid #E2E7F1;color:#6B7280!important;font-size:11.5px!important;line-height:1.5!important;}
-      @media(max-width:600px){.rx-rtw-panel{padding:13px 12px}.rx-rtw-field label,.rx-rtw-confirm{font-size:12px}.rx-rtw-confirm input{width:18px;height:18px}}
+      .rx-rtw-note{margin:11px 0 0!important;padding-left:12px;border-left:3px solid #C8D8FF;color:#6B7280!important;font-size:11.5px!important;line-height:1.5!important;}
+      @media(max-width:600px){.rx-rtw-grid{grid-template-columns:1fr;gap:11px}.rx-rtw-field label{min-height:0}.rx-rtw-date{grid-column:auto}.rx-rtw-field label,.rx-rtw-confirm{font-size:12px}.rx-rtw-confirm input{width:18px;height:18px}}
     `;
     document.head.appendChild(style);
   }
@@ -41,6 +43,7 @@
         <h3 class="rx-rtw-heading" id="candidateRightToWorkHeading">UK right to work and job eligibility</h3>
         <p class="rx-rtw-intro">Tell us about your current permission to work. This is a self-declaration and is not an official right-to-work check.</p>
 
+        <div class="rx-rtw-grid">
         <div class="rx-rtw-field">
           <label for="ukWorkPermissionStatus">Do you currently have permission to work in the UK?</label>
           <select id="ukWorkPermissionStatus">
@@ -89,6 +92,7 @@
             <option value="future">Yes, I may need sponsorship in the future</option>
             <option value="unsure">I am not sure</option>
           </select>
+        </div>
         </div>
 
         <label class="rx-rtw-confirm">
@@ -173,9 +177,22 @@
   }
 
   function getSignupData() {
-    const form = byId('authForm');
-    if (!form?.reportValidity()) {
-      throw new Error('Complete every required right-to-work and eligibility question.');
+    const requiredInputs = [
+      'ukWorkPermissionStatus',
+      'ukWorkRestrictionType',
+      'ukWorkPermissionExpiryStatus',
+      'ukWorkSponsorshipRequirement',
+      'ukWorkDeclarationConfirmed'
+    ];
+    if (value('ukWorkPermissionExpiryStatus') === 'expires') {
+      requiredInputs.push('ukWorkPermissionExpiryDate');
+    }
+    for (const id of requiredInputs) {
+      const input = byId(id);
+      if (!input?.checkValidity()) {
+        input?.reportValidity();
+        throw new Error('Complete every required right-to-work and eligibility question.');
+      }
     }
 
     const permissionStatus = value('ukWorkPermissionStatus');
