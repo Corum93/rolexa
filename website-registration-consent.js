@@ -38,8 +38,14 @@
       .rx-consent-state{display:none;margin:10px 0 0;padding:9px 10px;border-radius:11px;font-size:11.5px;line-height:1.4;}
       .rx-consent-state.show{display:block;}
       .rx-consent-state.bad{background:#FBE4E1;color:#A33327;}
+      .rx-website-consent.signup-step{margin:0;padding:0;border:0;background:transparent;}
+      .rx-website-consent.signup-step .rx-consent-title{margin:0 0 12px;font-size:17px;text-transform:none;letter-spacing:-.01em;}
+      .rx-website-consent.signup-step .rx-consent-check{gap:10px;margin:10px 0;padding:14px;border:1px solid #E1E6F0;border-radius:14px;background:#F8FAFE;line-height:1.5;transition:border-color .16s ease,background .16s ease;}
+      .rx-website-consent.signup-step .rx-consent-check:hover{border-color:#BFD0FF;background:#F4F7FF;}
+      .rx-website-consent.signup-step .rx-consent-check:has(input:checked){border-color:#9EBBFF;background:#F1F6FF;}
+      .rx-website-consent.signup-step .rx-consent-note{margin:12px 0 0!important;padding-left:12px;border-left:3px solid #C8D8FF;line-height:1.5!important;}
       .auth-signup-mode .candidate-google-login{display:none!important;}
-      @media(max-width:600px){.rx-website-consent{padding:13px 12px}.rx-consent-check{font-size:12px;line-height:1.5}.rx-consent-check input{width:18px;height:18px}}
+      @media(max-width:600px){.rx-website-consent{padding:13px 12px}.rx-consent-check{font-size:12px;line-height:1.5}.rx-consent-check input{width:18px;height:18px}.rx-website-consent.signup-step{padding:0}.rx-website-consent.signup-step .rx-consent-check{padding:13px}}
     `;
     document.head.appendChild(style);
   }
