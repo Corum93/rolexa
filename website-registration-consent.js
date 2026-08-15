@@ -3,12 +3,12 @@
 
   const DOCUMENTS = Object.freeze({
     website_terms: Object.freeze({
-      version: '2026-08-15-draft-2',
+      version: '2026-08-11-draft-1',
       title: 'Website Terms & Conditions',
       url: 'website-terms.html'
     }),
     privacy_policy: Object.freeze({
-      version: '2026-08-11-draft-1',
+      version: '2026-08-15-draft-2',
       title: 'Privacy Policy',
       url: 'privacy-policy.html'
     })
