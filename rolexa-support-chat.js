@@ -26,7 +26,7 @@
     load('candidate-verified-jobs.js?v=1', '__rolexaCandidateVerifiedJobsRequestedV1');
     load('candidate-verified-jobs-filter.js?v=2', '__rolexaVerifiedJobsFilterRequestedV2');
     load('candidate-mobile-messages-polish.js?v=1', '__rolexaCandidateMobileMessagesPolishRequestedV1');
-    load('candidate-mobile-applications-polish.js?v=1', '__rolexaCandidateMobileApplicationsPolishRequestedV1');
+    load('candidate-mobile-applications-polish.js?v=2', '__rolexaCandidateMobileApplicationsPolishRequestedV2');
     load('candidate-mobile-job-search-polish.js?v=2', '__rolexaCandidateMobileJobSearchPolishRequestedV2');
     load('candidate-mobile-global-polish.js?v=1', '__rolexaCandidateMobileGlobalPolishRequestedV1');
     load('candidate-application-activity.js?v=1', '__rolexaCandidateApplicationActivityRequestedV1');
